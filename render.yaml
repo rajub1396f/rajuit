@@ -1,6 +1,6 @@
 services:
  - type: web
-   name: rajuit-web
+   name: raju-agency
    env: node
    plan: free
    buildCommand: npm install
