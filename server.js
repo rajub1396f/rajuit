@@ -28,18 +28,30 @@ app.use(session({
     }
 }));
 
-// ✅ MySQL Connection
-const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "usersdb"
+/ ✅ MySQL Connection
+//const db = mysql.createConnection({
+//    host: "localhost",
+//    user: "root",
+//    password: "",
+//    database: "usersdb"
+//});
+
+//db.connect((err) => {
+//    if (err) throw err;
+//    console.log("✅ MySQL Connected Successfully");
+//});
+
+// ✅ Neon Database
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.psql 'postgresql://neondb_owner:npg_Jch1bYwUaZ3W@ep-orange-unit-ah7w7ynl-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
 });
 
-db.connect((err) => {
-    if (err) throw err;
-    console.log("✅ MySQL Connected Successfully");
-});
+pool.connect()
+  .then(() => console.log('Connected to Neon DB!'))
+  .catch(err => console.error('DB connection error:', err));
+
 
 // ✅ Register Route
 app.post('/register', async (req, res) => {
