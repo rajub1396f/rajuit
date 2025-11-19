@@ -46,7 +46,7 @@ app.use(session({
 const { Client } = require('pg');
 require('dotenv').config();
 
-const Client = new Client({
+const client = new Client({
   connectionString: process.env.psql_connectionstring,
   ssl: { rejectUnauthorized: false }
 });
