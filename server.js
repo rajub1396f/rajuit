@@ -43,7 +43,7 @@ app.use(session({
 //});
 
 // ✅ Neon Database
-const { Client, Client } = require('pg');
+const { Client } = require('pg');
 require('dotenv').config();
 
 const Client = new Client({
