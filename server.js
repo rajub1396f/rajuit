@@ -43,10 +43,10 @@ app.use(session({
 //});
 
 // ✅ Neon Database
-const { Pool } = require('pg');
+const { Client, Client } = require('pg');
 require('dotenv').config();
 
-const pool = new Pool({
+const Client = new Client({
   connectionString: process.env.psql_connectionstring,
   ssl: { rejectUnauthorized: false }
 });
