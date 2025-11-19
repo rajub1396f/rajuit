@@ -43,7 +43,8 @@ app.use(session({
 //});
 
 // ✅ Neon Database
-const { Pool } = require('pg');
+import pkg from "pg";
+const { Pool } = pkg;
 require('dotenv').config();
 
 const pool = new Pool({
