@@ -7,6 +7,7 @@ const cors = require("cors");
 const bcrypt = require('bcrypt');
 const { match } = require("assert");
 
+
 const app = express();
 
 // Middleware
@@ -29,17 +30,31 @@ app.use(session({
 }));
 
 // ✅ MySQL Connection
-const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "usersdb"
+//const db = mysql.createConnection({
+//    host: "localhost",
+//    user: "root",
+//    password: "",
+//    database: "usersdb"
+//});
+
+//db.connect((err) => {
+//    if (err) throw err;
+//    console.log("✅ MySQL Connected Successfully");
+//});
+
+// ✅ Neon Database
+const { Pool } = require('pg');
+require('dotenv').config();
+
+const pool = new Pool({
+  connectionString: process.env.psql_connectionstring,
+  ssl: { rejectUnauthorized: false }
 });
 
-db.connect((err) => {
-    if (err) throw err;
-    console.log("✅ MySQL Connected Successfully");
-});
+pool.connect()
+  .then(() => console.log('Connected to Neon DB!'))
+  .catch(err => console.error('DB connection error:', err));
+
 
 // ✅ Register Route
 app.post('/register', async (req, res) => {
