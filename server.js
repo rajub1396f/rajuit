@@ -43,18 +43,22 @@ app.use(session({
 //});
 
 // ✅ Neon Database
-import { neon } from "@neondatabase/serverless";
-const { Pool } = require('pg');
-require('dotenv').config();
 
-const pool = new Pool({
-  connectionString: process.env.NEON_DB,
-  ssl: { rejectUnauthorized: false }
-});
+require("dotenv").config();
+const { neon } = require("@neondatabase/serverless");
 
-pool.connect()
-  .then(() => console.log('Connected to Neon DB!'))
-  .catch(err => console.error('DB connection error:', err));
+const sql = neon(process.env.NEON_DB);
+
+// Test connection
+(async () => {
+  try {
+    await sql`SELECT 1`;
+    console.log("✅ Connected to Neon DB!");
+  } catch (err) {
+    console.error("❌ Neon DB connection error:", err);
+  }
+})();
+
 
 
 // ✅ Register Route
