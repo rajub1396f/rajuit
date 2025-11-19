@@ -176,16 +176,18 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Incorrect password" });
     }
 
+    res.redirect("/dashboard");
+
     // 3. Success
-    res.json({
-      message: "Login successful!",
-      user: {
-        id: storedUser.id,
-        name: storedUser.name,
-        email: storedUser.email,
-        phone: storedUser.phone
-      }
-    });
+    //res.json({
+    //  message: "Login successful!",
+    //  user: {
+    //    id: storedUser.id,
+    //    name: storedUser.name,
+    //    email: storedUser.email,
+    //    phone: storedUser.phone
+    //  }
+    //});
 
   } catch (err) {
     console.error("Login error:", err);
