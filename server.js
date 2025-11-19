@@ -43,6 +43,7 @@ app.use(session({
 //});
 
 // ✅ Neon Database
+import { neon } from "@neondatabase/serverless";
 const { Pool } = require('pg');
 require('dotenv').config();
 
