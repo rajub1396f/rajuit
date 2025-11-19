@@ -62,9 +62,9 @@ const sql = neon(process.env.NEON_DB);
 
 
 // ✅ Register Route
-app.post('/register', async (req, res) => {
-  const { name, email, password, confirmPassword, phone } = req.body;
-  console.log(req.body);
+//app.post('/register', async (req, res) => {
+//  const { name, email, password, confirmPassword, phone } = req.body;
+//  console.log(req.body);
 
   // Check password match
   //if (password!== confirmPassword) {
@@ -72,57 +72,127 @@ app.post('/register', async (req, res) => {
   //}
 
 
-  try {
+//  try {
     // hash password
+//    const hashedPassword = await bcrypt.hash(password, 10);
+
+//    const sql = "INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)";
+//    db.query(sql, [name, email, hashedPassword, phone], (err, result) => {
+//      if (err) {
+//        console.log("Database insert error:", err);
+//        return res.send("Registration failed");
+//      }
+//      return res.redirect('/index.html?msg=success');
+//    });
+
+//  } catch (error) {
+//    console.log("Hash error:", error);
+//    res.json({ status: "error", message: "Server error" });
+//  }
+//});
+
+app.post("/register", async (req, res) => {
+  try {
+    const { name, email, password, confirmpassword, phone } = req.body;
+
+    // Check passwords match
+    if (password !== confirmpassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const sql = "INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)";
-    db.query(sql, [name, email, hashedPassword, phone], (err, result) => {
-      if (err) {
-        console.log("Database insert error:", err);
-        return res.send("Registration failed");
-      }
-      return res.redirect('/index.html?msg=success');
+    const result = await sql`
+      INSERT INTO users (name, email, password, confirmpassword, phone)
+      VALUES (${name}, ${email}, ${hashedPassword}, ${hashedPassword}, ${phone})
+      RETURNING *;
+    `;
+
+    res.json({
+      message: "User registered successfully",
+      user: result[0]
     });
 
-  } catch (error) {
-    console.log("Hash error:", error);
-    res.json({ status: "error", message: "Server error" });
+  } catch (err) {
+    console.error("Register error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
 
+
 // ✅ Login Route
-app.post('/login', (req, res) => {
+//app.post('/login', (req, res) => {
+//    const { email, password } = req.body;
+
+//    const sql = 'SELECT * FROM users WHERE email = ?';
+//    db.query(sql, [email], (err, results) => {
+//        if (err) throw err;
+//
+//        // If no user found
+//        if (results.length === 0) {
+//            return res.send('Invalid Email or Password');
+//        }
+
+//        // Compare password
+//        bcrypt.compare(password, results[0].password, (err, match) => {
+//            if (err) throw err;
+
+//            if (match) {
+//                // Save Session
+//                req.session.user = {
+//                    id: results[0].id,
+//                    email: results[0].email
+//                };
+
+//                return res.redirect('/dashboard');
+//            } else {
+//                return res.send('Invalid Email or Password');
+//            }
+//        });
+//    });
+//});
+
+app.post("/login", async (req, res) => {
+  try {
     const { email, password } = req.body;
 
-    const sql = 'SELECT * FROM users WHERE email = ?';
-    db.query(sql, [email], (err, results) => {
-        if (err) throw err;
+    // 1. Check if user exists
+    const user = await sql`
+      SELECT * FROM users WHERE email = ${email}
+    `;
 
-        // If no user found
-        if (results.length === 0) {
-            return res.send('Invalid Email or Password');
-        }
+    if (user.length === 0) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
-        // Compare password
-        bcrypt.compare(password, results[0].password, (err, match) => {
-            if (err) throw err;
+    const storedUser = user[0];
 
-            if (match) {
-                // Save Session
-                req.session.user = {
-                    id: results[0].id,
-                    email: results[0].email
-                };
+    // 2. Compare entered password with hashed password
+    const isMatch = await bcrypt.compare(password, storedUser.password);
 
-                return res.redirect('/dashboard');
-            } else {
-                return res.send('Invalid Email or Password');
-            }
-        });
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect password" });
+    }
+
+    // 3. Success
+    res.json({
+      message: "Login successful!",
+      user: {
+        id: storedUser.id,
+        name: storedUser.name,
+        email: storedUser.email,
+        phone: storedUser.phone
+      }
     });
+
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
+
 
 
 // ✅ Middleware to protect dashboard
