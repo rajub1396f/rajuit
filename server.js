@@ -23,7 +23,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false,     // ✅ must be false for localhost (http)
+        secure: true,     // ✅ must be false for localhost (http)
         httpOnly: true,
         sameSite: "lax",
     }
@@ -208,7 +208,7 @@ app.post("/login", async (req, res) => {
     }
 
     // 3. Success
-    return res.redirect('/dashboard');
+    return res.json({success: true, redirect: "/dashboard"});
 //    res.json({
 //      message: "Login successful!",
 //      user: {
