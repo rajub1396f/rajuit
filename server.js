@@ -192,7 +192,7 @@ app.post("/login", async (req, res) => {
     // 1. Check if user exists
     const user = await sql`
       SELECT * FROM users WHERE email = ${email}
-    `;
+    `;git 
 
     if (user.length === 0) {
       return res.status(400).json({ message: "User not found" });
@@ -208,7 +208,7 @@ app.post("/login", async (req, res) => {
     }
 
     // 3. Success
-    return res.redirect('/dashboard');
+    res.json({ success: true});
 //    res.json({
 //      message: "Login successful!",
 //      user: {
