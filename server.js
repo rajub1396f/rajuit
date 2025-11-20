@@ -207,8 +207,6 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Incorrect password" });
     }
 
-    res.redirect("/dashboard");
-
     // 3. Success
     res.json({
       message: "Login successful!",
