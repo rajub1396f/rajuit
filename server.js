@@ -208,7 +208,7 @@ app.post("/login", async (req, res) => {
     }
 
     // 3. Success
-    return res.json({success: true, redirect: "/dashboard"});
+    return res.redirect('/dashboard');
 //    res.json({
 //      message: "Login successful!",
 //      user: {
