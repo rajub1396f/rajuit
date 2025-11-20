@@ -742,7 +742,7 @@ document.getElementById("loginBtn").addEventListener("click", function () {
     .then(data => {
         alert(data.message);
         if (data.status === "success") {
-            window.location.href = "/dashboard"; // or dashboard page
+            window.location = "dashboard.html"; // or dashboard page
         }
     });
 });
