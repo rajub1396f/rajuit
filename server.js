@@ -264,11 +264,11 @@ app.get("/", (req, res) => {
 });
 
 
-app.post("/login", (req, res) => {
-    //after login success:
-    req.session.user=userData;
-    res.redirect('/dashboard');
-});
+//app.post("/login", (req, res) => {
+//    //after login success:
+//    req.session.user=userData;
+//    res.redirect('/dashboard');
+//});
 
 // ✅ Start Server
 //app.listen(5500, () => {
