@@ -154,6 +154,37 @@ app.post("/register", async (req, res) => {
 //    });
 //});
 
+app.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // 1. Get user from Neon safely
+        const sql = 'SELECT * FROM users WHERE email = $1 LIMIT 1';
+        const result = await pool.query(sql, [email]);
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        const storedUser = result.rows[0];
+
+        // 2. Compare password
+        const isMatch = await bcrypt.compare(password, storedUser.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Incorrect password' });
+        }
+
+        // 3. Redirect on success
+        return res.redirect('/dashboard');
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
