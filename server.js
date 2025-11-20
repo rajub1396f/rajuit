@@ -209,16 +209,16 @@ app.post("/login", async (req, res) => {
 
     res.redirect("/dashboard");
 
-    // 3. Success
-    //res.json({
-    //  message: "Login successful!",
-    //  user: {
-    //    id: storedUser.id,
-    //    name: storedUser.name,
-    //    email: storedUser.email,
-    //    phone: storedUser.phone
-    //  }
-    //});
+     3. Success
+    res.json({
+      message: "Login successful!",
+      user: {
+        id: storedUser.id,
+        name: storedUser.name,
+        email: storedUser.email,
+        phone: storedUser.phone
+      }
+    });
 
   } catch (err) {
     console.error("Login error:", err);
