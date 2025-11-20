@@ -160,7 +160,7 @@ app.post('/login', async (req, res) => {
 
         // 1. Get user from Neon safely
         const sql = 'SELECT * FROM users WHERE email = $1 LIMIT 1';
-        const result = await pool.query(sql, [email]);
+        const result = await neon.query(sql, [email]);
 
         if (result.rows.length === 0) {
             return res.status(400).json({ message: 'User not found' });
