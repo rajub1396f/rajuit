@@ -209,7 +209,7 @@ app.post("/login", async (req, res) => {
 
     res.redirect("/dashboard");
 
-     3. Success
+    // 3. Success
     res.json({
       message: "Login successful!",
       user: {
