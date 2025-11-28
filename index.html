@@ -194,6 +194,27 @@
         <script src="js/scripts.js"></script>
 
         <script>
+// ✅ FIRST: Validate and clear bad tokens
+(function validateToken() {
+  const token = localStorage.getItem("token");
+  
+  if (!token) return; // No token - proceed normally
+  
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) throw new Error("Invalid format");
+    
+    const decoded = JSON.parse(atob(parts[1]));
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Expired");
+    
+    // Token looks good, keep it
+    console.log("✅ Token valid");
+  } catch (err) {
+    console.log("🗑️ Clearing bad token:", err.message);
+    localStorage.removeItem("token");
+  }
+})();
+
 // ✅ Registration
 document.getElementById("registerForm").addEventListener("submit", async function (e) {
   e.preventDefault();
@@ -267,32 +288,13 @@ function updateNavbarLogin() {
 
   const token = localStorage.getItem("token");
 
-  // ✅ Check if token is valid before showing username
   if (token) {
     try {
       const parts = token.split('.');
-      
-      // Token must have 3 parts (header.payload.signature)
-      if (parts.length !== 3) {
-        console.log("❌ Invalid token format");
-        localStorage.removeItem("token");
-        navLogin.innerText = "Login";
-        navLogin.setAttribute("data-bs-toggle", "modal");
-        navLogin.setAttribute("data-bs-target", "#loginModal");
-        return;
-      }
+      if (parts.length !== 3) throw new Error("Invalid format");
 
       const decoded = JSON.parse(atob(parts[1]));
-      
-      // ✅ Check if token is expired
-      if (decoded.exp && decoded.exp * 1000 < Date.now()) {
-        console.log("❌ Token expired");
-        localStorage.removeItem("token");
-        navLogin.innerText = "Login";
-        navLogin.setAttribute("data-bs-toggle", "modal");
-        navLogin.setAttribute("data-bs-target", "#loginModal");
-        return;
-      }
+      if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Expired");
 
       // ✅ Token is valid - show username
       navLogin.innerText = decoded.name || decoded.email || "User";
@@ -304,7 +306,7 @@ function updateNavbarLogin() {
       }, { capture: true });
 
     } catch (err) {
-      console.error("❌ Token decode error:", err);
+      console.log("Invalid token:", err.message);
       localStorage.removeItem("token");
       navLogin.innerText = "Login";
       navLogin.setAttribute("data-bs-toggle", "modal");
@@ -315,28 +317,17 @@ function updateNavbarLogin() {
     navLogin.innerText = "Login";
     navLogin.setAttribute("data-bs-toggle", "modal");
     navLogin.setAttribute("data-bs-target", "#loginModal");
-    navLogin.removeAttribute("href");
   }
 }
 
-// Call on page load
 document.addEventListener("DOMContentLoaded", updateNavbarLogin);
 
-// Clear token on page load if user was just logged out
-window.addEventListener("load", function() {
-    // Check if we just came from /logout redirect
-    if (document.referrer.includes("/logout")) {
-      localStorage.removeItem("token");
-      updateNavbarLogin(); // Update navbar to show Login button
-    }
-  });
-
-  // OR: Listen for logout link clicks
-  document.addEventListener("click", function(e) {
-    if (e.target.getAttribute("href") === "/logout") {
-      localStorage.removeItem("token");
-    }
-  });
+// Clear token on logout
+document.addEventListener("click", function(e) {
+  if (e.target.getAttribute("href") === "/logout") {
+    localStorage.removeItem("token");
+  }
+});
         </script>
     </body>
 </html>
