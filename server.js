@@ -6,6 +6,7 @@ const cors = require("cors");
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const nodemailer = require("nodemailer");
 
 const app = express();
 
@@ -13,6 +14,7 @@ const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // SESSION SETUP (localhost)
 app.use(session({
@@ -225,6 +227,58 @@ app.get("/", (req, res) => {
 // ✅ STATIC FILES LAST (so routes execute first)
 app.use(express.static(path.join(__dirname)));
 app.use(express.static(path.join(__dirname, 'project')));
+
+// POST route for contact form
+app.post("/contact", async (req, res) => {
+    const { name, email, phone, message } = req.body;
+
+    // Validate input
+    if (!name || !email || !phone || !message) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "All fields are required." 
+        });
+    }
+
+    // Create transporter with environment variables
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+            pass: process.env.GMAIL_APP_PASSWORD || "lsbezqbwpypnxaxx" // 16-digit app password
+        }
+    });
+
+    const mailOptions = {
+        from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+        to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+        subject: `New Contact Form Inquiry from ${name}`,
+        html: `
+            <h2>New Contact Form Submission</h2>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Phone:</strong> ${phone}</p>
+            <p><strong>Message:</strong></p>
+            <p>${message.replace(/\n/g, '<br>')}</p>
+        `,
+        replyTo: email // Allow easy reply to customer email
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ 
+            success: true, 
+            message: "Message sent successfully! We'll get back to you soon." 
+        });
+    } catch (err) {
+        console.error("Contact form error:", err);
+        res.status(500).json({ 
+            success: false, 
+            message: "Error sending message. Please try again later." 
+        });
+    }
+});
+
 
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => {
