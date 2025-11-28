@@ -291,20 +291,46 @@ app.post("/contact", async (req, res) => {
     };
 
     // Send email asynchronously WITHOUT waiting for it to complete
-    // This allows immediate response to user
+    // This allows immediate response to user. Log full error/stack if it fails.
     transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-            console.error("❌ Email send failed:", err.message);
-        } else {
-            console.log("✅ Email sent:", info.response);
-        }
+      if (err) {
+        console.error("❌ Email send failed:", err && err.stack ? err.stack : err);
+      } else {
+        console.log("✅ Email sent:", info && info.response ? info.response : info);
+      }
     });
 
     // Respond immediately to user (within 100ms)
     res.status(200).json({ 
-        success: true, 
-        message: "Message received! We'll get back to you shortly." 
+      success: true, 
+      message: "Message received! We'll get back to you shortly." 
     });
+
+  });
+
+  // DEBUG endpoint: sends email synchronously and returns transporter response (use for troubleshooting only)
+  app.post("/contact-debug", async (req, res) => {
+    const { name, email, phone, message } = req.body;
+    if (!name || !email || !phone || !message) {
+      return res.status(400).json({ success: false, message: "All fields are required." });
+    }
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+      to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+      subject: `DEBUG: Test Contact Form from ${name}`,
+      html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Phone:</strong> ${phone}</p><p>${message.replace(/\n/g,'<br>')}</p>`,
+      replyTo: email
+    };
+
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log("✅ Debug email sent:", info);
+      return res.status(200).json({ success: true, info });
+    } catch (err) {
+      console.error("❌ Debug email failed:", err && err.stack ? err.stack : err);
+      return res.status(500).json({ success: false, message: err.message || 'Send failed', error: err });
+    }
 });
 
 
