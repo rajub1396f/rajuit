@@ -141,7 +141,7 @@ app.get("/check-login", (req, res) => {
 // Verify token middleware (accepts JWT or session)
 function verifyToken(req, res, next) {
   const header = req.headers["authorization"];
-  const token = header?.split(" ")[1];
+  const token = header?.split(" ")[1];  // ✅ Correct split
 
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
