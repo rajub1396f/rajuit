@@ -263,11 +263,38 @@ document.getElementById("forgotForm").addEventListener("submit", function (e) {
 // ✅ Update navbar when logged in
 function updateNavbarLogin() {
   const navLogin = document.getElementById("navLoginBtn");
+  if (!navLogin) return;
+
   const token = localStorage.getItem("token");
 
+  // ✅ Check if token is valid before showing username
   if (token) {
     try {
-      const decoded = JSON.parse(atob(token.split('.')[1]));
+      const parts = token.split('.');
+      
+      // Token must have 3 parts (header.payload.signature)
+      if (parts.length !== 3) {
+        console.log("❌ Invalid token format");
+        localStorage.removeItem("token");
+        navLogin.innerText = "Login";
+        navLogin.setAttribute("data-bs-toggle", "modal");
+        navLogin.setAttribute("data-bs-target", "#loginModal");
+        return;
+      }
+
+      const decoded = JSON.parse(atob(parts[1]));
+      
+      // ✅ Check if token is expired
+      if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+        console.log("❌ Token expired");
+        localStorage.removeItem("token");
+        navLogin.innerText = "Login";
+        navLogin.setAttribute("data-bs-toggle", "modal");
+        navLogin.setAttribute("data-bs-target", "#loginModal");
+        return;
+      }
+
+      // ✅ Token is valid - show username
       navLogin.innerText = decoded.name || decoded.email || "User";
       navLogin.removeAttribute("data-bs-toggle");
       navLogin.removeAttribute("data-bs-target");
@@ -275,12 +302,24 @@ function updateNavbarLogin() {
         e.preventDefault();
         window.location.href = "/dashboard.html";
       }, { capture: true });
+
     } catch (err) {
-      console.debug("Token decode failed", err);
+      console.error("❌ Token decode error:", err);
+      localStorage.removeItem("token");
+      navLogin.innerText = "Login";
+      navLogin.setAttribute("data-bs-toggle", "modal");
+      navLogin.setAttribute("data-bs-target", "#loginModal");
     }
+  } else {
+    // ✅ No token - show Login button
+    navLogin.innerText = "Login";
+    navLogin.setAttribute("data-bs-toggle", "modal");
+    navLogin.setAttribute("data-bs-target", "#loginModal");
+    navLogin.removeAttribute("href");
   }
 }
 
+// Call on page load
 document.addEventListener("DOMContentLoaded", updateNavbarLogin);
 
 // Clear token on page load if user was just logged out
