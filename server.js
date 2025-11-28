@@ -10,7 +10,7 @@ require("dotenv").config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname)));
@@ -161,10 +161,9 @@ function verifyToken(req, res, next) {
 function authCheckHTML(req, res, next) {
   const header = req.headers["authorization"];
   const token = header?.split(" ")[1];
-
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
-      if (err) return res.status(403).redirect("/");
+      if (err) return res.redirect("/");
       req.user = decoded;
       next();
     });
@@ -172,14 +171,13 @@ function authCheckHTML(req, res, next) {
     req.user = req.session.user;
     next();
   } else {
-    // No auth - redirect to home instead of JSON error
     return res.redirect("/");
   }
 }
 
 // Serve dashboard.html ONLY if authenticated
 app.get("/dashboard.html", authCheckHTML, (req, res) => {
-  res.sendFile(path.join(__dirname, 'dashboard.html'));
+  res.sendFile(path.join(__dirname, "dashboard.html"));
 });
 
 // Dashboard API (returns JSON for fetch calls)
