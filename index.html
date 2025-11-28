@@ -729,12 +729,13 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
 });
 
 // ✅ Check login status function
+// ...existing code...
 function updateNavbarLogin() {
   const navLogin = document.getElementById("navLoginBtn");
   if (!navLogin) return;
-  
+
   const token = localStorage.getItem("token");
-  
+
   if (token) {
     // Try to get user name from token
     try {
@@ -746,13 +747,20 @@ function updateNavbarLogin() {
         navLogin.removeAttribute("data-bs-target");
         navLogin.setAttribute("href", "/dashboard.html");
         navLogin.style.cursor = "pointer";
+
+        // Force redirect on click (capture phase) to override Bootstrap modal behavior
+        navLogin.addEventListener("click", function (e) {
+          e.preventDefault();
+          window.location.href = "/dashboard.html";
+        }, { capture: true });
+
         return;
       }
     } catch (err) {
       console.debug("Token decode failed", err);
     }
   }
-  
+
   // Fallback: check session
   fetch("/check-login", { credentials: "include" })
     .then(res => res.ok ? res.json() : null)
@@ -764,9 +772,15 @@ function updateNavbarLogin() {
         navLogin.removeAttribute("data-bs-target");
         navLogin.setAttribute("href", "/dashboard.html");
         navLogin.style.cursor = "pointer";
+
+        navLogin.addEventListener("click", function (e) {
+          e.preventDefault();
+          window.location.href = "/dashboard.html";
+        }, { capture: true });
       }
     });
 }
+// ...existing code...
 
 // ✅ RUN ON PAGE LOAD
 document.addEventListener("DOMContentLoaded", updateNavbarLogin);
