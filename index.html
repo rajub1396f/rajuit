@@ -694,6 +694,7 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value;
   if (!email || !password) return alert("Please enter email and password.");
+  
   try {
     const res = await fetch("/login", {
       method: "POST",
@@ -702,17 +703,17 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
       credentials: "include"
     });
     const data = await res.json().catch(()=>null);
+    
     if (res.ok) {
       if (data?.token) localStorage.setItem("token", data.token);
       
-      // Close modal properly before redirect
       const modalEl = document.getElementById('loginModal');
       const modal = bootstrap.Modal.getInstance(modalEl);
       if (modal) modal.hide();
       
-      // Small delay to ensure modal closes, then redirect
+      // ✅ FIXED: Redirect to /dashboard (API route, not HTML file)
       setTimeout(() => {
-        window.location.href = data?.redirect || "/dashboard.html";
+        window.location.href = "/dashboard.html";
       }, 300);
     } else {
       alert(data?.message || "Login failed");
@@ -736,11 +737,5 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
       navLogin.removeAttribute("data-bs-target");
       navLogin.setAttribute("href", "/dashboard.html");
     }
-  } catch (err) {
-    console.debug("check-login failed", err);
-  }
-})();
-</script>
-</body>
-</html>
+  } catch
 
