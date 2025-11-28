@@ -95,10 +95,7 @@
       // ✅ FIXED: Proper Authorization header format
       const headers = token ? { "Authorization": `Bearer ${token}` } : {};
       
-      const res = await fetch("/dashboard", { 
-        headers, 
-        credentials: "include" 
-      });
+      const res = await fetch("/dashboard", { headers, credentials: "include" });
 
       if (!res.ok) {
         console.error("Dashboard auth failed:", res.status);

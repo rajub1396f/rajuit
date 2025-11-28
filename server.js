@@ -139,16 +139,25 @@ function verifyToken(req, res, next) {
   const header = req.headers["authorization"];
   const token = header?.split(" ")[1];
 
+  console.log("🔍 Auth Header:", header); // ✅ Debug log
+  console.log("🔍 Token:", token ? "Found" : "Not found");
+
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
-      if (err) return res.status(401).json({ message: "Invalid token" });
+      if (err) {
+        console.error("❌ Token verification failed:", err.message);
+        return res.status(401).json({ message: "Invalid token", error: err.message });
+      }
+      console.log("✅ Token valid, user:", decoded.email);
       req.user = decoded;
       next();
     });
   } else if (req.session && req.session.user) {
+    console.log("✅ Using session user:", req.session.user.email);
     req.user = req.session.user;
     next();
   } else {
+    console.error("❌ No token or session found");
     return res.status(403).json({ message: "No token provided" });
   }
 }
