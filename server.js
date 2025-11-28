@@ -157,7 +157,32 @@ function verifyToken(req, res, next) {
   }
 }
 
-// Dashboard route - PROTECTED
+// New middleware: Check auth for HTML file serving (uses session OR token)
+function authCheckHTML(req, res, next) {
+  const header = req.headers["authorization"];
+  const token = header?.split(" ")[1];
+
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
+      if (err) return res.status(403).redirect("/");
+      req.user = decoded;
+      next();
+    });
+  } else if (req.session && req.session.user) {
+    req.user = req.session.user;
+    next();
+  } else {
+    // No auth - redirect to home instead of JSON error
+    return res.redirect("/");
+  }
+}
+
+// Serve dashboard.html ONLY if authenticated
+app.get("/dashboard.html", authCheckHTML, (req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
+
+// Dashboard API (returns JSON for fetch calls)
 app.get("/dashboard", verifyToken, async (req, res) => {
   if (req.user && req.user.id) {
     try {
@@ -170,11 +195,6 @@ app.get("/dashboard", verifyToken, async (req, res) => {
     }
   }
   return res.json({ message: "Welcome!", user: req.user });
-});
-
-// Serve dashboard.html ONLY if authenticated
-app.get("/dashboard.html", verifyToken, (req, res) => {
-  res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
 // Logout route (session)
