@@ -676,7 +676,7 @@ if (createBtn) createBtn.addEventListener("click", async function (e) {
     if (res.ok) {
       const regModal = bootstrap.Modal.getInstance(document.getElementById('registerModal')) || new bootstrap.Modal(document.getElementById('registerModal'));
       regModal.hide();
-      alert("Registration successful.");
+      alert("Registration successful. Please login.");
       new bootstrap.Modal(document.getElementById('loginModal')).show();
     } else {
       alert(data?.message || "Registration failed");
@@ -704,17 +704,19 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
     });
     const data = await res.json().catch(()=>null);
     
-    if (res.ok) {
-      if (data?.token) localStorage.setItem("token", data.token);
+    if (res.ok && data?.token) {
+      // ✅ Store token before redirect
+      localStorage.setItem("token", data.token);
       
+      // Close modal
       const modalEl = document.getElementById('loginModal');
       const modal = bootstrap.Modal.getInstance(modalEl);
       if (modal) modal.hide();
       
-      // ✅ FIXED: Redirect to /dashboard (API route, not HTML file)
+      // ✅ Redirect to dashboard
       setTimeout(() => {
         window.location.href = "/dashboard.html";
-      }, 300);
+      }, 500);
     } else {
       alert(data?.message || "Login failed");
     }
@@ -724,7 +726,7 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
   }
 });
 
-// check-login (session)
+// Check login status on page load
 (async function checkLogin() {
   try {
     const res = await fetch("/check-login", { credentials: "include" });
@@ -737,5 +739,11 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
       navLogin.removeAttribute("data-bs-target");
       navLogin.setAttribute("href", "/dashboard.html");
     }
-  } catch
+  } catch (err) {
+    console.debug("check-login failed", err);
+  }
+})();
+</script>
+    </body>
+</html>
 
