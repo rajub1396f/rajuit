@@ -18,12 +18,13 @@
                     <i class="fas fa-bars ms-1"></i>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#" id="navLoginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a></li>
-                    </ul>
+                  <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
+                    <li class="nav-item" id="authContainer">
+                      <a class="nav-link" href="#" id="navLoginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+                    </li>
+                  </ul>
                 </div>
             </div>
         </nav>
@@ -195,16 +196,40 @@
 
         <script>
 (async function initAuth() {
+  const authContainer = document.getElementById("authContainer");
   const navLogin = document.getElementById("navLoginBtn");
-  if (!navLogin) return;
+  if (!navLogin || !authContainer) return;
 
-  // Helper to show login button
   function showLogin() {
     localStorage.removeItem("token");
     navLogin.innerText = "Login";
     navLogin.setAttribute("data-bs-toggle", "modal");
     navLogin.setAttribute("data-bs-target", "#loginModal");
     navLogin.removeAttribute("href");
+    // Remove logout button if exists
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) logoutBtn.remove();
+  }
+
+  function showLogout(userName) {
+    navLogin.innerText = userName;
+    navLogin.removeAttribute("data-bs-toggle");
+    navLogin.removeAttribute("data-bs-target");
+    navLogin.setAttribute("href", "/dashboard.html");
+    navLogin.addEventListener("click", (e) => { 
+      e.preventDefault(); 
+      window.location.href = "/dashboard.html"; 
+    }, { capture: true });
+
+    // ✅ Add Logout button
+    let logoutBtn = document.getElementById("logoutBtn");
+    if (!logoutBtn) {
+      logoutBtn = document.createElement("li");
+      logoutBtn.className = "nav-item";
+      logoutBtn.id = "logoutBtn";
+      logoutBtn.innerHTML = '<a class="nav-link" href="/logout">Logout</a>';
+      authContainer.parentElement.appendChild(logoutBtn);
+    }
   }
 
   // Try server-side session first
@@ -214,11 +239,7 @@
       const data = await res.json().catch(()=>null);
       if (data && data.loggedIn) {
         const name = data.user?.name || data.user?.email || "User";
-        navLogin.innerText = name;
-        navLogin.removeAttribute("data-bs-toggle");
-        navLogin.removeAttribute("data-bs-target");
-        navLogin.setAttribute("href", "/dashboard.html");
-        navLogin.addEventListener("click", (e) => { e.preventDefault(); window.location.href = "/dashboard.html"; }, { capture: true });
+        showLogout(name);
         return;
       }
     }
@@ -226,7 +247,7 @@
     console.debug("check-login failed", err);
   }
 
-  // Fallback: validate local token (format + expiry)
+  // Fallback: validate local token
   const token = localStorage.getItem("token");
   if (!token) { showLogin(); return; }
 
@@ -236,7 +257,6 @@
     const decoded = JSON.parse(atob(parts[1]));
     if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Token expired");
 
-    // Optional server validation
     const apiRes = await fetch("/dashboard", {
       method: "GET",
       headers: { "Authorization": `Bearer ${token}` },
@@ -246,27 +266,58 @@
     if (apiRes.ok) {
       const apiData = await apiRes.json().catch(()=>null);
       const name = apiData?.user?.name || decoded.name || decoded.email || "User";
-      navLogin.innerText = name;
-      navLogin.removeAttribute("data-bs-toggle");
-      navLogin.removeAttribute("data-bs-target");
-      navLogin.setAttribute("href", "/dashboard.html");
-      navLogin.addEventListener("click", (e) => { e.preventDefault(); window.location.href = "/dashboard.html"; }, { capture: true });
+      showLogout(name);
       return;
     } else {
       showLogin();
     }
   } catch (err) {
-    console.log("Token invalid or expired:", err.message);
+    console.log("Token invalid:", err.message);
     showLogin();
   }
 })();
 
-// Ensure clicking server logout clears token
 document.addEventListener("click", function (e) {
-  const t = e.target;
-  if (!t) return;
-  if (t.getAttribute("href") === "/logout" || t.id === "logoutBtn") {
+  if (e.target.getAttribute("href") === "/logout") {
     localStorage.removeItem("token");
+  }
+});
+
+// ✅ Login
+document.getElementById("loginForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+
+  try {
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ email, password }),
+      credentials: "include"
+    });
+    const data = await res.json().catch(()=>null);
+
+    if (res.ok && data?.token) {
+      // ✅ Store token immediately
+      localStorage.setItem("token", data.token);
+      
+      // ✅ Close modal and wait longer
+      const modalEl = document.getElementById('loginModal');
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+      
+      // ✅ Longer delay to ensure modal closes
+      setTimeout(() => {
+        console.log("🔄 Redirecting to dashboard...");
+        window.location.href = "/dashboard.html";
+      }, 600); // Increased from 300ms to 600ms
+    } else {
+      alert(data?.message || "Login failed");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Network error during login");
   }
 });
         </script>
