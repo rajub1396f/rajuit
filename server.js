@@ -290,11 +290,25 @@ app.post("/contact", async (req, res) => {
         replyTo: email
     };
 
+    // Log receipt of contact request for debugging
+    console.log(`📨 /contact received at ${new Date().toISOString()} from: ${email} name: ${name}`);
+    // Show mailOptions summary (avoid logging full message body in production)
+    console.log({ to: mailOptions.to, from: mailOptions.from, subject: mailOptions.subject, replyTo: mailOptions.replyTo });
+
     // Send email asynchronously WITHOUT waiting for it to complete
-    // This allows immediate response to user. Log full error/stack if it fails.
+    // This allows immediate response to user. Log full error/stack if it fails and persist failures to disk for diagnosis.
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
-        console.error("❌ Email send failed:", err && err.stack ? err.stack : err);
+        const errText = err && err.stack ? err.stack : String(err);
+        console.error("❌ Email send failed:", errText);
+        // Persist failure details to file for later inspection
+        const fs = require('fs');
+        const logEntry = `[${new Date().toISOString()}] FAILED EMAIL SEND\nRequest: ${JSON.stringify({name,email,phone,subject: mailOptions.subject})}\nError: ${errText}\n----\n`;
+        try {
+          fs.appendFileSync(path.join(__dirname, 'failed-emails.log'), logEntry);
+        } catch (fsErr) {
+          console.error('Failed to write failed-emails.log:', fsErr && fsErr.stack ? fsErr.stack : fsErr);
+        }
       } else {
         console.log("✅ Email sent:", info && info.response ? info.response : info);
       }
