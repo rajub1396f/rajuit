@@ -91,20 +91,59 @@
     const navbar = document.getElementById("mainNav");
     const dashContent = document.querySelector(".dashboard-content");
 
+    console.log("🔍 Token stored:", token ? "YES" : "NO");
+    if (token) {
+      const parts = token.split('.');
+      console.log("🔍 Token parts:", parts.length, "(should be 3)");
+    }
+
     try {
-      // ✅ FIXED: Proper Authorization header format
       const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+      console.log("🔍 Fetch headers:", headers);
       
-      const res = await fetch("/dashboard", { headers, credentials: "include" });
+      const res = await fetch("/dashboard", { 
+        headers, 
+        credentials: "include" 
+      });
+
+      console.log("🔍 Response status:", res.status);
+      const data = await res.json().catch(() => null);
+      console.log("🔍 Response data:", data);
 
       if (!res.ok) {
-        console.error("Dashboard auth failed:", res.status);
+        console.error("❌ Dashboard auth failed:", res.status, data);
+        
+        // ✅ Try session fallback (stay on page, don't redirect)
+        try {
+          const sessionRes = await fetch("/check-login", { credentials: "include" });
+          const sessionData = await sessionRes.json();
+          
+          if (sessionData?.loggedIn) {
+            console.log("✅ Session valid, loading dashboard");
+            // Session is valid, just hide loading and show content
+            loadingScreen.classList.add("hidden");
+            setTimeout(() => {
+              navbar.classList.add("show");
+              dashContent.classList.add("show");
+            }, 100);
+            
+            // Fill with session data
+            const u = sessionData.user || {};
+            document.getElementById("name").textContent = u.name || "N/A";
+            document.getElementById("email").textContent = u.email || "N/A";
+            document.getElementById("navUserName").textContent = u.name || u.email || "User";
+            return;
+          }
+        } catch (e) {
+          console.error("Session check failed:", e);
+        }
+        
+        // No session and token invalid - redirect home
         localStorage.removeItem("token");
         window.location.href = "/";
         return;
       }
 
-      const data = await res.json().catch(() => null);
       const u = data?.user || {};
 
       // ✅ Set user data
@@ -122,7 +161,7 @@
       }, 100);
 
     } catch (err) {
-      console.error("Auth check failed:", err);
+      console.error("❌ Auth check failed:", err);
       localStorage.removeItem("token");
       window.location.href = "/";
     }
