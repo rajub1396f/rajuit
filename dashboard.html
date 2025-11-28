@@ -39,13 +39,27 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
 <script>
+  (async function() {
+    const token = localStorage.getItem("token");
+    try {
+      const headers = token ? { Authorization: "Bearer " + token } : {};
+      const res = await fetch("/dashboard", { headers, credentials: "include" });
+      if (!res.ok) {
+        localStorage.removeItem("token");
+        window.location.href = "/";
+      }
+    } catch (err) {
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
+  })();
+
   // Prevent back button cached page
   window.addEventListener("pageshow", function(event) {
     if (event.persisted) window.location.reload();
   });
 
   async function validateAndFill() {
-    // try server validation first (supports session or token)
     const token = localStorage.getItem("token");
     try {
       const headers = token ? { Authorization: "Bearer " + token } : {};
@@ -59,12 +73,11 @@
         document.getElementById("address").textContent = u.address || "";
         return;
       }
-      // if unauthorized or forbidden, fallthrough to redirect
     } catch (err) {
       console.debug("Server dashboard check failed", err);
     }
 
-    // Fallback: try decode token locally (if present)
+    // Fallback: decode token locally if present
     if (token) {
       try {
         const u = jwt_decode(token);
@@ -78,7 +91,7 @@
       }
     }
 
-    // Not authenticated — redirect to home
+    // Not authenticated — redirect
     localStorage.removeItem("token");
     window.location.href = "/";
   }

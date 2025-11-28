@@ -150,7 +150,6 @@ function verifyToken(req, res, next) {
       next();
     });
   } else if (req.session && req.session.user) {
-    // map session user to req.user for consistent downstream data
     req.user = req.session.user;
     next();
   } else {
@@ -158,9 +157,8 @@ function verifyToken(req, res, next) {
   }
 }
 
-// Dashboard (protected)
+// Dashboard route - PROTECTED
 app.get("/dashboard", verifyToken, async (req, res) => {
-  // If req.user came from session, enrich with DB values if needed
   if (req.user && req.user.id) {
     try {
       const userRows = await sql`SELECT id, name, email, phone, address FROM users WHERE id = ${req.user.id} LIMIT 1`;
@@ -174,6 +172,11 @@ app.get("/dashboard", verifyToken, async (req, res) => {
   return res.json({ message: "Welcome!", user: req.user });
 });
 
+// Serve dashboard.html ONLY if authenticated
+app.get("/dashboard.html", verifyToken, (req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
+
 // Logout route (session)
 app.get("/logout", (req, res) => {
     req.session.destroy(() => {
@@ -183,7 +186,7 @@ app.get("/logout", (req, res) => {
     });
 });
 
-// Home route - uses session to redirect if needed
+// Home route - redirect ONLY if session exists (not just any login)
 app.get("/", (req, res) => {
     if (req.session && req.session.user) {
         return res.redirect('/dashboard.html');
