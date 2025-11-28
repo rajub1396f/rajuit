@@ -1,174 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>Raju IT</title>
-        <!-- Favicon-->
-        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
-        <!-- Font Awesome icons (free version)-->
-        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-        <!-- Google fonts-->
-        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-        <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-        <!-- Core theme CSS (includes Bootstrap)-->
-        <link href="css/styles.css" rel="stylesheet" />
-        <link href="css/login.css" rel="stylesheet" />
-
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
-
-        
-    </head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard - Raju IT</title>
+  <link href="css/styles.css" rel="stylesheet" />
+  <link href="css/login.css" rel="stylesheet" />
+  <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+</head>
 <body id="page-top">
-        <!-- Navigation-->
-        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
-            <div class="container">
-                <a class="navbar-brand" href="index.html"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                    Menu
-                    <i class="fas fa-bars ms-1"></i>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#account">Account Details</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#orders">Orders</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#Whitelist">Whitelist</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#Cart">Cart</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/logout" id="logoutBtn">Logout</a></li>
-                        
-                    </ul>
-                </div>
-            </div>
-        </nav>
-        <!-- Masthead-->
-        <header class="masthead">
-            <div class="container">
-                <div class="masthead-subheading">Welcome to Your Dashboard</div>
-            </div>
-        </header>
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="index.html"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+        <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
+        <li class="nav-item"><a class="nav-link" href="#account">Account Details</a></li>
+        <li class="nav-item"><a class="nav-link" href="#orders">Orders</a></li>
+        <li class="nav-item"><a class="nav-link" href="/logout" id="logoutBtn">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
 
-        <!-- Products Grid-->
-        <section class="page-section bg-light" id="products">
-            <div class="container">
-                <div class="text-center">
-                    <h2 class="section-heading text-uppercase">Products</h2>
-                    <h3 class="section-subheading text-muted">Lorem ipsum dolor sit amet consectetur.</h3>
-                </div>
-                <div class="row">
-                    <div class="col-lg-4 col-sm-6 mb-4">
-                        <!-- Products item 1-->
-                        <div class="products-item">
-                            <a class="products-link" data-bs-toggle="modal" href="#productsModal1">
-                                <div class="products-hover">
-                                    <div class="products-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/products/1.jpg" alt="..." />
-                            </a>
-                            <div class="products-caption">
-                                <div class="products-caption-heading">Threads</div>
-                                <div class="products-caption-subheading text-muted">Illustration</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-sm-6 mb-4">
-                        <!-- Portfolio item 2-->
-                        <div class="products-item">
-                            <a class="productso-link" data-bs-toggle="modal" href="#productsModal2">
-                                <div class="products-hover">
-                                    <div class="products-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/products/2.jpg" alt="..." />
-                            </a>
-                            <div class="products-caption">
-                                <div class="products-caption-heading">Explore</div>
-                                <div class="products-caption-subheading text-muted">Graphic Design</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-sm-6 mb-4">
-                        <!-- Products item 3-->
-                        <div class="products-item">
-                            <a class="products-link" data-bs-toggle="modal" href="#productsModal3">
-                                <div class="products-hover">
-                                    <div class="products-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/products/3.jpg" alt="..." />
-                            </a>
-                            <div class="products-caption">
-                                <div class="products-caption-heading">Finish</div>
-                                <div class="products-caption-subheading text-muted">Identity</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-sm-6 mb-4 mb-lg-0">
-                        <!-- Products item 4-->
-                        <div class="products-item">
-                            <a class="products-link" data-bs-toggle="modal" href="#productsModal4">
-                                <div class="products-hover">
-                                    <div class="products-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/products/4.jpg" alt="..." />
-                            </a>
-                            <div class="products-caption">
-                                <div class="products-caption-heading">Lines</div>
-                                <div class="products-caption-subheading text-muted">Branding</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-sm-6 mb-4 mb-sm-0">
-                        <!-- Products item 5-->
-                        <div class="products-item">
-                            <a class="products-link" data-bs-toggle="modal" href="#productsModal5">
-                                <div class="products-hover">
-                                    <div class="products-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/products/5.jpg" alt="..." />
-                            </a>
-                            <div class="products-caption">
-                                <div class="products-caption-heading">Southwest</div>
-                                <div class="products-caption-subheading text-muted">Website Design</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-sm-6">
-                        <!-- Products item 6-->
-                        <div class="products-item">
-                            <a class="products-link" data-bs-toggle="modal" href="#productsModal6">
-                                <div class="products-hover">
-                                    <div class="products-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/products/6.jpg" alt="..." />
-                            </a>
-                            <div class="products-caption">
-                                <div class="products-caption-heading">Window</div>
-                                <div class="products-caption-subheading text-muted">Photography</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
+<header class="masthead">
+  <div class="container">
+    <div class="masthead-subheading">Welcome to Your Dashboard</div>
+  </div>
 
-  <a class="button" href="/logout">Logout</a>
-</div>
+  <p>Name: <span id="name"></span></p>
+  <p>Email: <span id="email"></span></p>
+  <p>Phone: <span id="phone"></span></p>
+  <p>Address: <span id="address"></span></p>
+</header>
 
+<script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
 <script>
   // Prevent back button cached page
   window.addEventListener("pageshow", function(event) {
-    if (event.persisted) {
-      window.location.reload();
-    }
+    if (event.persisted) window.location.reload();
   });
 
+  async function validateAndFill() {
+    // try server validation first (supports session or token)
+    const token = localStorage.getItem("token");
+    try {
+      const headers = token ? { Authorization: "Bearer " + token } : {};
+      const res = await fetch("/dashboard", { headers, credentials: "include" });
+      if (res.ok) {
+        const data = await res.json().catch(()=>null);
+        const u = data?.user || {};
+        document.getElementById("name").textContent = u.name || u.email || "";
+        document.getElementById("email").textContent = u.email || "";
+        document.getElementById("phone").textContent = u.phone || "";
+        document.getElementById("address").textContent = u.address || "";
+        return;
+      }
+      // if unauthorized or forbidden, fallthrough to redirect
+    } catch (err) {
+      console.debug("Server dashboard check failed", err);
+    }
 
+    // Fallback: try decode token locally (if present)
+    if (token) {
+      try {
+        const u = jwt_decode(token);
+        document.getElementById("name").textContent = u.name || "";
+        document.getElementById("email").textContent = u.email || "";
+        document.getElementById("phone").textContent = u.phone || "";
+        document.getElementById("address").textContent = u.address || "";
+        return;
+      } catch (err) {
+        console.debug("Token decode failed", err);
+      }
+    }
+
+    // Not authenticated — redirect to home
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  }
+
+  validateAndFill();
 </script>
-
-
 </body>
 </html>

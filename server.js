@@ -1,12 +1,11 @@
 const express = require("express");
-const mysql = require("mysql");
 const bodyParser = require("body-parser");
 const path = require("path");
 const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require('bcrypt');
-const { match } = require("assert");
-
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 const app = express();
 
@@ -15,38 +14,21 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname)));
-app.use(express.static(__dirname + '/project')); //folder name
+app.use(express.static(path.join(__dirname, 'project'))); // folder name
 
-// ✅ SESSION SETUP (IMPORTANT)
+// SESSION SETUP (localhost)
 app.use(session({
-    secret: "yoursecret",
+    secret: process.env.SESSION_SECRET || "yoursecret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true,     // ✅ must be false for localhost (http)
+        secure: false,
         httpOnly: true,
         sameSite: "lax",
     }
 }));
 
-// ✅ MySQL Connection
-//const db = mysql.createConnection({
-//    host: "localhost",
-//    user: "root",
-//    password: "",
-//    database: "usersdb"
-//});
-
-//db.connect((err) => {
-//    if (err) throw err;
-//    console.log("✅ MySQL Connected Successfully");
-//});
-
-// ✅ Neon Database
-
-require("dotenv").config();
 const { neon } = require("@neondatabase/serverless");
-
 const sql = neon(process.env.NEON_DB);
 
 // Test connection
@@ -59,59 +41,38 @@ const sql = neon(process.env.NEON_DB);
   }
 })();
 
-
-
-// ✅ Register Route
-//app.post('/register', async (req, res) => {
-//  const { name, email, password, confirmPassword, phone } = req.body;
-//  console.log(req.body);
-
-  // Check password match
-  //if (password!== confirmPassword) {
-    //return res.send('Password and Confirm Password do not match');
-  //}
-
-
-//  try {
-    // hash password
-//    const hashedPassword = await bcrypt.hash(password, 10);
-
-//    const sql = "INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)";
-//    db.query(sql, [name, email, hashedPassword, phone], (err, result) => {
-//      if (err) {
-//        console.log("Database insert error:", err);
-//        return res.send("Registration failed");
-//      }
-//      return res.redirect('/index.html?msg=success');
-//    });
-
-//  } catch (error) {
-//    console.log("Hash error:", error);
-//    res.json({ status: "error", message: "Server error" });
-//  }
-//});
-
+// Register Route
 app.post("/register", async (req, res) => {
   try {
     const { name, email, password, confirmpassword, phone } = req.body;
 
-    // Check passwords match
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
     if (password !== confirmpassword) {
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
-    // Hash password
+    // Check if email exists
+    const existing = await sql`SELECT id FROM users WHERE email = ${email} LIMIT 1`;
+    if (existing && existing.length > 0) {
+      return res.status(409).json({ message: "Email already registered" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await sql`
-      INSERT INTO users (name, email, password, confirmpassword, phone)
-      VALUES (${name}, ${email}, ${hashedPassword}, ${hashedPassword}, ${phone})
-      RETURNING *;
+      INSERT INTO users (name, email, password, phone)
+      VALUES (${name}, ${email}, ${hashedPassword}, ${phone})
+      RETURNING id, name, email, phone;
     `;
 
-    res.json({
+    const inserted = result[0] || null;
+
+    res.status(201).json({
       message: "User registered successfully",
-      user: result[0]
+      user: inserted
     });
 
   } catch (err) {
@@ -120,104 +81,48 @@ app.post("/register", async (req, res) => {
   }
 });
 
-
-
-// ✅ Login Route
-//app.post('/login', (req, res) => {
-//    const { email, password } = req.body;
-
-//    const sql = 'SELECT * FROM users WHERE email = ?';
-//    db.query(sql, [email], (err, results) => {
-//        if (err) throw err;
-//
-//        // If no user found
-//        if (results.length === 0) {
-//            return res.send('Invalid Email or Password');
-//        }
-
-//        // Compare password
-//        bcrypt.compare(password, results[0].password, (err, match) => {
-//            if (err) throw err;
-
-//            if (match) {
-//                // Save Session
-//                req.session.user = {
-//                    id: results[0].id,
-//                    email: results[0].email
-//                };
-
-//                return res.redirect('/dashboard');
-//            } else {
-//                return res.send('Invalid Email or Password');
-//            }
-//        });
-//    });
-//});
-
-//app.post('/login', async (req, res) => {
-//    try {
-//        const { email, password } = req.body;
-
-        // 1. Get user from Neon safely
-//        const sql = 'SELECT * FROM users WHERE email = $1 LIMIT 1';
-//        const result = await neon.query(sql, [email]);
-
-//        if (result.rows.length === 0) {
-//            return res.status(400).json({ message: 'User not found' });
-//        }
-
-//        const storedUser = result.rows[0];
-
-        // 2. Compare password
-//        const isMatch = await bcrypt.compare(password, storedUser.password);
-
-//        if (!isMatch) {
-//            return res.status(400).json({ message: 'Incorrect password' });
-//        }
-
-        // 3. Redirect on success
-//        return res.redirect('/dashboard');
-
-//    } catch (err) {
-//        console.error(err);
-//        return res.status(500).json({ message: 'Server error' });
-//    }
-//});
-
-
+// Login Route
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Check if user exists
-    const user = await sql`
-      SELECT * FROM users WHERE email = ${email}
-    `;
+    if (!email || !password) {
+      return res.status(400).json({ message: "Missing email or password" });
+    }
 
-    if (user.length === 0) {
+    const userRows = await sql`SELECT * FROM users WHERE email = ${email} LIMIT 1`;
+
+    if (!userRows || userRows.length === 0) {
       return res.status(400).json({ message: "User not found" });
     }
 
-    const storedUser = user[0];
+    const storedUser = userRows[0];
 
-    // 2. Compare entered password with hashed password
     const isMatch = await bcrypt.compare(password, storedUser.password);
 
     if (!isMatch) {
       return res.status(400).json({ message: "Incorrect password" });
     }
 
-    // 3. Success
-    return res.json({success: true, redirect: "/dashboard"});
-//    res.json({
-//      message: "Login successful!",
-//      user: {
-//        id: storedUser.id,
-//        name: storedUser.name,
-//        email: storedUser.email,
-//        phone: storedUser.phone
-//      }
-//    });
+    const payload = {
+      id: storedUser.id,
+      name: storedUser.name,
+      phone: storedUser.phone,
+      address: storedUser.address,
+      email: storedUser.email
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET || "SECRET_KEY", { expiresIn: "2d" });
+
+    // set session for legacy session-based checks
+    req.session.user = { id: storedUser.id, name: storedUser.name, email: storedUser.email };
+
+    return res.json({
+      success: true,
+      token,
+      user: { id: storedUser.id, name: storedUser.name, email: storedUser.email },
+      redirect: "/dashboard.html"
+    });
 
   } catch (err) {
     console.error("Login error:", err);
@@ -225,57 +130,68 @@ app.post("/login", async (req, res) => {
   }
 });
 
-
-
-// ✅ Middleware to protect dashboard
-function checkLogin(req, res, next) {
-    if (req.session.user) {
-        next();
-    } else {
-        res.redirect("/");  // redirect to homepage (login popup)
-    }
-}
-
-// ✅ DASHBOARD Route (Protected)
-app.get('/dashboard', (req, res) => {
-    if (!req.session.user) {
-        return res.redirect('/');
-    }
-    res.sendFile(__dirname + '/dashboard.html');
+// check-login route (used by client to detect session-based login)
+app.get("/check-login", (req, res) => {
+  if (req.session && req.session.user) {
+    return res.json({ loggedIn: true, user: req.session.user });
+  }
+  return res.json({ loggedIn: false });
 });
 
+// Verify token middleware (accepts JWT or session)
+function verifyToken(req, res, next) {
+  const header = req.headers["authorization"];
+  const token = header?.split(" ")[1];
 
-// ✅ LOGOUT Route
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
+      if (err) return res.status(401).json({ message: "Invalid token" });
+      req.user = decoded;
+      next();
+    });
+  } else if (req.session && req.session.user) {
+    // map session user to req.user for consistent downstream data
+    req.user = req.session.user;
+    next();
+  } else {
+    return res.status(403).json({ message: "No token provided" });
+  }
+}
+
+// Dashboard (protected)
+app.get("/dashboard", verifyToken, async (req, res) => {
+  // If req.user came from session, enrich with DB values if needed
+  if (req.user && req.user.id) {
+    try {
+      const userRows = await sql`SELECT id, name, email, phone, address FROM users WHERE id = ${req.user.id} LIMIT 1`;
+      const user = (userRows && userRows[0]) || req.user;
+      return res.json({ message: "Welcome!", user });
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
+  return res.json({ message: "Welcome!", user: req.user });
+});
+
+// Logout route (session)
 app.get("/logout", (req, res) => {
     req.session.destroy(() => {
-        res.redirect("/"); // back to home where login popup is
+        // clear possible cookie; redirect to home
+        res.clearCookie('connect.sid', { path: '/' });
+        res.redirect("/");
     });
 });
 
-
-// ✅ DEFAULT HOME PAGE
+// Home route - uses session to redirect if needed
 app.get("/", (req, res) => {
-    if (req.session.user) {
-        return res.redirect('/dashboard');
-    } 
-    //Not logged in, show index page
-    res.sendFile(__dirname + '/index.html');
+    if (req.session && req.session.user) {
+        return res.redirect('/dashboard.html');
+    }
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-
-//app.post("/login", (req, res) => {
-//    //after login success:
-//    req.session.user=userData;
-//    res.redirect('/dashboard');
-//});
-
-// ✅ Start Server
-//app.listen(5500, () => {
-//    console.log("🚀 Server running at http://localhost:5500");
-//});
-
 const PORT = process.env.PORT || 5500;
-
 app.listen(PORT, () => {
-    console.log('Server running on port: ${PORT}');
+    console.log(`Server running on port: ${PORT}`);
 });

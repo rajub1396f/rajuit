@@ -3,20 +3,10 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
         <title>Raju IT</title>
-        <!-- Favicon-->
-        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
-        <!-- Font Awesome icons (free version)-->
-        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-        <!-- Google fonts-->
-        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-        <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-        <!-- Core theme CSS (includes Bootstrap)-->
         <link href="css/styles.css" rel="stylesheet" />
         <link href="css/login.css" rel="stylesheet" />
-        
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     </head>
     <body id="page-top">
         <!-- Navigation-->
@@ -631,143 +621,119 @@
 </div>
 <!-- ========================================================== -->
 
-
-
-<script>// === Make login box draggable ===
-  const loginBox = document.querySelector(".login-box");
-  let isDragging = false;
-  let startX, startY, initialX, initialY;
-
+<script>
+// === Make login box draggable ===
+const loginBox = document.querySelector(".login-box");
+let isDragging = false, startX, startY, initialX, initialY;
+if (loginBox) {
   loginBox.addEventListener("mousedown", (e) => {
     isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
+    startX = e.clientX; startY = e.clientY;
     const rect = loginBox.getBoundingClientRect();
-    initialX = rect.left;
-    initialY = rect.top;
+    initialX = rect.left; initialY = rect.top;
     loginBox.style.transition = "none";
   });
-
   document.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
     loginBox.style.left = `${initialX + dx}px`;
     loginBox.style.top = `${initialY + dy}px`;
     loginBox.style.position = "absolute";
   });
+  document.addEventListener("mouseup", () => isDragging = false);
+}
 
-  document.addEventListener("mouseup", () => {
-    isDragging = false;
-  });
-
-
-  // Forgot Password modal submit validation
-document.getElementById("forgotSubmit").addEventListener("click", function () {
+// Forgot password
+const forgotBtn = document.getElementById("forgotSubmit");
+if (forgotBtn) forgotBtn.addEventListener("click", () => {
   const email = document.getElementById("forgotEmail").value.trim();
   const phone = document.getElementById("forgotPhone").value.trim();
-
-  if (email === "" && phone === "") {
-    alert("Please enter either your email or phone number.");
-    return;
-  }
-
+  if (!email && !phone) return alert("Please enter either your email or phone number.");
   alert("If your account exists, a reset link or SMS has been sent.");
 });
 
+// Registration
+const createBtn = document.getElementById("createAccountBtn");
+if (createBtn) createBtn.addEventListener("click", async function (e) {
+  e.preventDefault();
+  const name = document.getElementById("registerName").value.trim();
+  const email = document.getElementById("registerEmail").value.trim();
+  const password = document.getElementById("registerPassword").value;
+  const confirmPassword = document.getElementById("registerConfirmPassword").value;
+  const phone = document.getElementById("registerPhone").value.trim();
 
-// Automatically open login modal on page load
-// window.addEventListener("load", function() {
-//  const myModal = new bootstrap.Modal(document.getElementById('loginModal'));
-//  myModal.show();
-//});
+  if (!name || !email || !password) return alert("Please fill required fields.");
+  if (password !== confirmPassword) return alert("Password and Confirm Password do not match");
 
-document.getElementById("createAccountBtn").addEventListener("click", function (e) {
-    e.preventDefault();
-    let name = document.getElementById("registerName").value;
-    let email = document.getElementById("registerEmail").value;
-    let password = document.getElementById("registerPassword").value;
-    let confirmPassword = document.getElementById("registerConfirmPassword").value;
-    let phone = document.getElementById("registerPhone").value;
-
-    //Check password match 
-    if(password !==confirmPassword) {
-        alert("Password and Confirm Password do not match");
-        return; // Stop function, do not register
-    }
-
-
-
-    // Submit with fetch
-    fetch('/register', {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ name, email, password, confirmpassword: confirmPassword, phone })
-    })
-    .then(res => {
-        if (res.redirected) {
-            // ✅ If backend redirects, follow that redirect
-            window.location.href = res.url;
-        }
-        return res.json().catch(() => null);
-    })
-    .then(data => {
-        if (data && data.success) {
-            // ✅ Manual redirect if backend sends JSON
-            window.location.href = "/index?msg=success";
-        }
-    })
-    .catch(err => console.log(err));
-});
-
-const url = new URLSearchParams(window.location.search);
-if(url.get('msg') ==='success') {
-    alert("Registration Successful!");
-}
-
-
-document.getElementById("loginBtn").addEventListener("click", function () {
-    let email = document.getElementById("loginEmail").value;
-    let password = document.getElementById("loginPassword").value;
-
-    fetch("/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password }),
-        credentials:"include"  // very important
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        if (data.status === "success") {
-            window.location = "dashboard.html"; // or dashboard page
-        }
+  try {
+    const res = await fetch('/register', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, confirmpassword: confirmPassword, phone }),
+      credentials: "include"
     });
+    const data = await res.json().catch(()=>null);
+    if (res.ok) {
+      const regModal = bootstrap.Modal.getInstance(document.getElementById('registerModal')) || new bootstrap.Modal(document.getElementById('registerModal'));
+      regModal.hide();
+      alert("Registration successful.");
+      new bootstrap.Modal(document.getElementById('loginModal')).show();
+    } else {
+      alert(data?.message || "Registration failed");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Network error during registration.");
+  }
 });
 
-
-
-//check login
-fetch("/check-login")
-  .then(res => res.json())
-  .then(data => {
-    const loginBtn = document.getElementById("loginBtn");
-
-    if (data.loggedIn) {
-      loginBtn.innerText = "Dashboard";
-      loginBtn.removeAttribute("data-bs-toggle");
-      loginBtn.removeAttribute("data-bs-target");
-
-      loginBtn.href = "/dashboard.html";
+// Login
+const loginForm = document.getElementById("loginForm");
+if (loginForm) loginForm.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  if (!email || !password) return alert("Please enter email and password.");
+  try {
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ email, password }),
+      credentials: "include"
+    });
+    const data = await res.json().catch(()=>null);
+    if (res.ok) {
+      if (data?.token) localStorage.setItem("token", data.token);
+      const modalEl = document.getElementById('loginModal');
+      const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+      modal.hide();
+      window.location.href = data?.redirect || "/dashboard.html";
+    } else {
+      alert(data?.message || "Login failed");
     }
-  });
+  } catch (err) {
+    console.error(err);
+    alert("Network error during login.");
+  }
+});
 
-
-
-
-
+// check-login (session)
+(async function checkLogin() {
+  try {
+    const res = await fetch("/check-login", { credentials: "include" });
+    if (!res.ok) return;
+    const data = await res.json().catch(()=>null);
+    const navLogin = document.getElementById("navLoginBtn");
+    if (data && data.loggedIn && navLogin) {
+      navLogin.innerText = "Dashboard";
+      navLogin.removeAttribute("data-bs-toggle");
+      navLogin.removeAttribute("data-bs-target");
+      navLogin.setAttribute("href", "/dashboard.html");
+    }
+  } catch (err) {
+    console.debug("check-login failed", err);
+  }
+})();
 </script>
 </body>
 </html>
