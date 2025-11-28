@@ -11,7 +11,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <style>
-    .loading { 
+    #loadingScreen { 
       display: flex;
       align-items: center;
       justify-content: center;
@@ -19,16 +19,18 @@
       font-size: 18px;
       background: #f8f9fa;
     }
-    .loading.hidden { display: none; }
-    .navbar { visibility: hidden; }
-    .navbar.show { visibility: visible; }
-    .masthead { visibility: hidden; }
-    .masthead.show { visibility: visible; }
+    #loadingScreen.hidden { display: none !important; }
+    
+    #mainNav { opacity: 0; transition: opacity 0.3s; }
+    #mainNav.show { opacity: 1; }
+    
+    .dashboard-content { opacity: 0; transition: opacity 0.3s; }
+    .dashboard-content.show { opacity: 1; }
   </style>
 </head>
 <body id="page-top">
 
-<div class="loading" id="loadingScreen">
+<div id="loadingScreen">
   <p>Loading your dashboard...</p>
 </div>
 
@@ -37,32 +39,48 @@
     <a class="navbar-brand" href="index.html"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
     <div class="collapse navbar-collapse" id="navbarResponsive">
       <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
-        <li class="nav-item"><a class="nav-link" href="#account">Account Details</a></li>
-        <li class="nav-item"><a class="nav-link" href="#orders">Orders</a></li>
-        <li class="nav-item"><a class="nav-link" href="/logout" id="logoutBtn">Logout</a></li>
+        <li class="nav-item"><a class="nav-link">Welcome, <span id="navUserName">User</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
-<header class="masthead">
-  <div class="container">
-    <div class="masthead-subheading">Welcome to Your Dashboard</div>
+<section class="dashboard-content">
+  <div class="container" style="margin-top: 100px;">
+    <h2>Welcome to Your Dashboard</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card p-4">
+          <h5>Account Details</h5>
+          <p><strong>Name:</strong> <span id="name"></span></p>
+          <p><strong>Email:</strong> <span id="email"></span></p>
+          <p><strong>Phone:</strong> <span id="phone"></span></p>
+          <p><strong>Address:</strong> <span id="address"></span></p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card p-4">
+          <h5>Quick Links</h5>
+          <ul>
+            <li><a href="#products">Browse Products</a></li>
+            <li><a href="#orders">My Orders</a></li>
+            <li><a href="/logout">Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <p>Name: <span id="name"></span></p>
-  <p>Email: <span id="email"></span></p>
-  <p>Phone: <span id="phone"></span></p>
-  <p>Address: <span id="address"></span></p>
-</header>
+</section>
 
 <script>
   (async function checkAuth() {
     const token = localStorage.getItem("token");
     const loadingScreen = document.getElementById("loadingScreen");
     const navbar = document.getElementById("mainNav");
-    const header = document.querySelector(".masthead");
+    const dashContent = document.querySelector(".dashboard-content");
 
     try {
       const headers = token ? { Authorization: "Bearer " + token } : {};
@@ -77,14 +95,19 @@
       const data = await res.json().catch(() => null);
       const u = data?.user || {};
 
-      document.getElementById("name").textContent = u.name || u.email || "";
-      document.getElementById("email").textContent = u.email || "";
-      document.getElementById("phone").textContent = u.phone || "";
-      document.getElementById("address").textContent = u.address || "";
+      // ✅ FIXED: Set user data in all places
+      document.getElementById("name").textContent = u.name || "N/A";
+      document.getElementById("email").textContent = u.email || "N/A";
+      document.getElementById("phone").textContent = u.phone || "N/A";
+      document.getElementById("address").textContent = u.address || "N/A";
+      document.getElementById("navUserName").textContent = u.name || u.email || "User";
 
+      // ✅ Show content
       loadingScreen.classList.add("hidden");
-      navbar.classList.add("show");
-      header.classList.add("show");
+      setTimeout(() => {
+        navbar.classList.add("show");
+        dashContent.classList.add("show");
+      }, 100);
 
     } catch (err) {
       console.error("Auth check failed:", err);
