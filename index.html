@@ -428,7 +428,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
   }
 });
 
-// ✅ Contact Form Handler
+// ✅ Contact Form Handler - OPTIMIZED
 document.getElementById("contactForm").addEventListener("submit", async function (e) {
   e.preventDefault();
   
@@ -442,7 +442,7 @@ document.getElementById("contactForm").addEventListener("submit", async function
   document.getElementById("submitSuccessMessage").classList.add("d-none");
   document.getElementById("submitErrorMessage").classList.add("d-none");
   
-  // Validation
+  // Quick validation
   let isValid = true;
   document.getElementById("nameError").textContent = "";
   document.getElementById("emailError").textContent = "";
@@ -486,22 +486,33 @@ document.getElementById("contactForm").addEventListener("submit", async function
   buttonSpinner.classList.remove("d-none");
   
   try {
+    // Set a 10-second timeout for the request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
     const response = await fetch("/contact", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ name, email, phone, message })
+      body: JSON.stringify({ name, email, phone, message }),
+      signal: controller.signal
     });
     
+    clearTimeout(timeoutId);
     const data = await response.json();
     
     if (response.ok && data.success) {
       // Show success message
       document.getElementById("submitSuccessMessage").classList.remove("d-none");
+      buttonText.textContent = "Message Sent!";
       
-      // Reset form
-      document.getElementById("contactForm").reset();
+      // Reset form after a short delay
+      setTimeout(() => {
+        document.getElementById("contactForm").reset();
+        buttonText.textContent = "Send Message";
+        submitButton.disabled = false;
+      }, 1500);
       
       // Scroll to success message
       document.getElementById("submitSuccessMessage").scrollIntoView({ behavior: "smooth" });
@@ -509,13 +520,22 @@ document.getElementById("contactForm").addEventListener("submit", async function
       // Show error message
       document.getElementById("submitErrorMessage").classList.remove("d-none");
       document.getElementById("errorText").textContent = data.message || "Error sending message. Please try again later.";
+      submitButton.disabled = false;
+      buttonText.textContent = "Send Message";
+      buttonSpinner.classList.add("d-none");
     }
   } catch (error) {
     console.error("Contact form error:", error);
-    document.getElementById("submitErrorMessage").classList.remove("d-none");
-    document.getElementById("errorText").textContent = "Network error. Please check your connection and try again.";
-  } finally {
-    // Reset button state
+    
+    // Check if it's a timeout or network error
+    if (error.name === "AbortError") {
+      document.getElementById("submitErrorMessage").classList.remove("d-none");
+      document.getElementById("errorText").textContent = "Request took too long. Please check your connection and try again.";
+    } else {
+      document.getElementById("submitErrorMessage").classList.remove("d-none");
+      document.getElementById("errorText").textContent = "Network error. Please check your connection and try again.";
+    }
+    
     submitButton.disabled = false;
     buttonText.textContent = "Send Message";
     buttonSpinner.classList.add("d-none");

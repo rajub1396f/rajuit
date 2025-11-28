@@ -31,6 +31,30 @@ app.use(session({
 const { neon } = require("@neondatabase/serverless");
 const sql = neon(process.env.NEON_DB);
 
+// ✅ Create persistent Gmail transporter (reuse across requests)
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+        pass: process.env.GMAIL_APP_PASSWORD || "lsbezqbwpypnxaxx"
+    },
+    pool: {
+        maxConnections: 1,
+        maxMessages: 5,
+        rateDelta: 2000,
+        rateLimit: 5
+    }
+});
+
+// Verify transporter connection on startup
+transporter.verify((error, success) => {
+    if (error) {
+        console.error("❌ Gmail transporter error:", error);
+    } else {
+        console.log("✅ Gmail transporter ready!");
+    }
+});
+
 // Test connection
 (async () => {
   try {
@@ -228,7 +252,7 @@ app.get("/", (req, res) => {
 app.use(express.static(path.join(__dirname)));
 app.use(express.static(path.join(__dirname, 'project')));
 
-// POST route for contact form
+// POST route for contact form - OPTIMIZED
 app.post("/contact", async (req, res) => {
     const { name, email, phone, message } = req.body;
 
@@ -240,14 +264,14 @@ app.post("/contact", async (req, res) => {
         });
     }
 
-    // Create transporter with environment variables
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-            pass: process.env.GMAIL_APP_PASSWORD || "lsbezqbwpypnxaxx" // 16-digit app password
-        }
-    });
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "Please enter a valid email address." 
+        });
+    }
 
     const mailOptions = {
         from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
@@ -260,23 +284,27 @@ app.post("/contact", async (req, res) => {
             <p><strong>Phone:</strong> ${phone}</p>
             <p><strong>Message:</strong></p>
             <p>${message.replace(/\n/g, '<br>')}</p>
+            <hr>
+            <p><small>Received at: ${new Date().toLocaleString()}</small></p>
         `,
-        replyTo: email // Allow easy reply to customer email
+        replyTo: email
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ 
-            success: true, 
-            message: "Message sent successfully! We'll get back to you soon." 
-        });
-    } catch (err) {
-        console.error("Contact form error:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Error sending message. Please try again later." 
-        });
-    }
+    // Send email asynchronously WITHOUT waiting for it to complete
+    // This allows immediate response to user
+    transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+            console.error("❌ Email send failed:", err.message);
+        } else {
+            console.log("✅ Email sent:", info.response);
+        }
+    });
+
+    // Respond immediately to user (within 100ms)
+    res.status(200).json({ 
+        success: true, 
+        message: "Message received! We'll get back to you shortly." 
+    });
 });
 
 
