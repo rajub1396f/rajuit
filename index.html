@@ -194,137 +194,78 @@
         <script src="js/scripts.js"></script>
 
         <script>
-// ✅ FIRST: Validate and clear bad tokens
-(function validateToken() {
-  const token = localStorage.getItem("token");
-  
-  if (!token) return; // No token - proceed normally
-  
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) throw new Error("Invalid format");
-    
-    const decoded = JSON.parse(atob(parts[1]));
-    if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Expired");
-    
-    // Token looks good, keep it
-    console.log("✅ Token valid");
-  } catch (err) {
-    console.log("🗑️ Clearing bad token:", err.message);
-    localStorage.removeItem("token");
-  }
-})();
-
-// ✅ Registration
-document.getElementById("registerForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
-  const name = document.getElementById("registerName").value.trim();
-  const email = document.getElementById("registerEmail").value.trim();
-  const password = document.getElementById("registerPassword").value;
-  const confirmPassword = document.getElementById("registerConfirmPassword").value;
-  const phone = document.getElementById("registerPhone").value.trim();
-
-  if (password !== confirmPassword) return alert("Passwords do not match");
-
-  try {
-    const res = await fetch('/register', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, confirmpassword: confirmPassword, phone }),
-      credentials: "include"
-    });
-    const data = await res.json().catch(()=>null);
-    if (res.ok) {
-      alert("Registration successful. Please login.");
-      bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
-      new bootstrap.Modal(document.getElementById('loginModal')).show();
-    } else {
-      alert(data?.message || "Registration failed");
-    }
-  } catch (err) {
-    alert("Network error");
-  }
-});
-
-// ✅ Login
-document.getElementById("loginForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value;
-
-  try {
-    const res = await fetch("/login", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ email, password }),
-      credentials: "include"
-    });
-    const data = await res.json().catch(()=>null);
-
-    if (res.ok && data?.token) {
-      localStorage.setItem("token", data.token);
-      bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
-      setTimeout(() => {
-        window.location.href = "/dashboard.html";
-      }, 300);
-    } else {
-      alert(data?.message || "Login failed");
-    }
-  } catch (err) {
-    alert("Network error");
-  }
-});
-
-// ✅ Forgot Password
-document.getElementById("forgotForm").addEventListener("submit", function (e) {
-  e.preventDefault();
-  alert("If your account exists, a reset link has been sent.");
-});
-
-// ✅ Update navbar when logged in
-function updateNavbarLogin() {
+(async function initAuth() {
   const navLogin = document.getElementById("navLoginBtn");
   if (!navLogin) return;
 
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    try {
-      const parts = token.split('.');
-      if (parts.length !== 3) throw new Error("Invalid format");
-
-      const decoded = JSON.parse(atob(parts[1]));
-      if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Expired");
-
-      // ✅ Token is valid - show username
-      navLogin.innerText = decoded.name || decoded.email || "User";
-      navLogin.removeAttribute("data-bs-toggle");
-      navLogin.removeAttribute("data-bs-target");
-      navLogin.addEventListener("click", (e) => {
-        e.preventDefault();
-        window.location.href = "/dashboard.html";
-      }, { capture: true });
-
-    } catch (err) {
-      console.log("Invalid token:", err.message);
-      localStorage.removeItem("token");
-      navLogin.innerText = "Login";
-      navLogin.setAttribute("data-bs-toggle", "modal");
-      navLogin.setAttribute("data-bs-target", "#loginModal");
-    }
-  } else {
-    // ✅ No token - show Login button
+  // Helper to show login button
+  function showLogin() {
+    localStorage.removeItem("token");
     navLogin.innerText = "Login";
     navLogin.setAttribute("data-bs-toggle", "modal");
     navLogin.setAttribute("data-bs-target", "#loginModal");
+    navLogin.removeAttribute("href");
   }
-}
 
-document.addEventListener("DOMContentLoaded", updateNavbarLogin);
+  // Try server-side session first
+  try {
+    const res = await fetch("/check-login", { credentials: "include" });
+    if (res.ok) {
+      const data = await res.json().catch(()=>null);
+      if (data && data.loggedIn) {
+        const name = data.user?.name || data.user?.email || "User";
+        navLogin.innerText = name;
+        navLogin.removeAttribute("data-bs-toggle");
+        navLogin.removeAttribute("data-bs-target");
+        navLogin.setAttribute("href", "/dashboard.html");
+        navLogin.addEventListener("click", (e) => { e.preventDefault(); window.location.href = "/dashboard.html"; }, { capture: true });
+        return;
+      }
+    }
+  } catch (err) {
+    console.debug("check-login failed", err);
+  }
 
-// Clear token on logout
-document.addEventListener("click", function(e) {
-  if (e.target.getAttribute("href") === "/logout") {
+  // Fallback: validate local token (format + expiry)
+  const token = localStorage.getItem("token");
+  if (!token) { showLogin(); return; }
+
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) throw new Error("Invalid token format");
+    const decoded = JSON.parse(atob(parts[1]));
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Token expired");
+
+    // Optional server validation
+    const apiRes = await fetch("/dashboard", {
+      method: "GET",
+      headers: { "Authorization": `Bearer ${token}` },
+      credentials: "include"
+    });
+
+    if (apiRes.ok) {
+      const apiData = await apiRes.json().catch(()=>null);
+      const name = apiData?.user?.name || decoded.name || decoded.email || "User";
+      navLogin.innerText = name;
+      navLogin.removeAttribute("data-bs-toggle");
+      navLogin.removeAttribute("data-bs-target");
+      navLogin.setAttribute("href", "/dashboard.html");
+      navLogin.addEventListener("click", (e) => { e.preventDefault(); window.location.href = "/dashboard.html"; }, { capture: true });
+      return;
+    } else {
+      showLogin();
+    }
+  } catch (err) {
+    console.log("Token invalid or expired:", err.message);
+    showLogin();
+  }
+})();
+
+// Ensure clicking server logout clears token
+document.addEventListener("click", function (e) {
+  const t = e.target;
+  if (!t) return;
+  if (t.getAttribute("href") === "/logout" || t.id === "logoutBtn") {
     localStorage.removeItem("token");
   }
 });
