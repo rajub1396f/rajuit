@@ -22,7 +22,7 @@
                         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
                         <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#" id="loginBtn" data-bs-toggle="modal"data-bs-target="#loginModal">Login</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#" id="navLoginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a></li>
                         
                     </ul>
                 </div>
@@ -511,7 +511,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form method="POST" action="/login">
+        <form id="loginForm" method="POST" action="/login">
           <div class="mb-3">
             <label for="loginEmail" class="form-label">Email</label>
             <input type="email" class="form-control" name="email" id="loginEmail" placeholder="Enter your email">
@@ -546,7 +546,7 @@
       </div>
 
       <div class="modal-body">
-        <form id="registerForm" action="https://127.0.0.1:5500/register" method="POST" >
+        <form id="registerForm" action="/register" method="POST" >
           <div class="mb-3">
             <label for="registerName" class="form-label">Full Name</label>
             <input type="text" class="form-control" name="name" id="registerName" placeholder="Enter your full name">
@@ -704,10 +704,16 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
     const data = await res.json().catch(()=>null);
     if (res.ok) {
       if (data?.token) localStorage.setItem("token", data.token);
+      
+      // Close modal properly before redirect
       const modalEl = document.getElementById('loginModal');
-      const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-      modal.hide();
-      window.location.href = data?.redirect || "/dashboard.html";
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+      
+      // Small delay to ensure modal closes, then redirect
+      setTimeout(() => {
+        window.location.href = data?.redirect || "/dashboard.html";
+      }, 300);
     } else {
       alert(data?.message || "Login failed");
     }
