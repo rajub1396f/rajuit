@@ -621,6 +621,8 @@
 </div>
 <!-- ========================================================== -->
 
+// Replace the entire script at the bottom with this:
+
 <script>
 // === Make login box draggable ===
 const loginBox = document.querySelector(".login-box");
@@ -705,7 +707,7 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
     const data = await res.json().catch(()=>null);
     
     if (res.ok && data?.token) {
-      // ✅ Store token before redirect
+      // ✅ Store token IMMEDIATELY
       localStorage.setItem("token", data.token);
       
       // Close modal
@@ -713,10 +715,10 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
       const modal = bootstrap.Modal.getInstance(modalEl);
       if (modal) modal.hide();
       
-      // ✅ Redirect to dashboard
+      // ✅ Redirect with small delay
       setTimeout(() => {
         window.location.href = "/dashboard.html";
-      }, 500);
+      }, 300);
     } else {
       alert(data?.message || "Login failed");
     }
@@ -726,28 +728,48 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
   }
 });
 
-// Check login status on page load
-(async function checkLogin() {
-  try {
-    const res = await fetch("/check-login", { credentials: "include" });
-    if (!res.ok) return;
-    const data = await res.json().catch(()=>null);
-    const navLogin = document.getElementById("navLoginBtn");
-    
-    if (data && data.loggedIn && navLogin) {
-      // ✅ Show user name instead of "Login"
-      navLogin.innerText = `${data.user?.name || data.user?.email || "User"}`;
-      
-      // ✅ Keep it as link to dashboard (not modal)
-      navLogin.removeAttribute("data-bs-toggle");
-      navLogin.removeAttribute("data-bs-target");
-      navLogin.setAttribute("href", "/dashboard.html");
-      navLogin.style.cursor = "pointer";
+// ✅ Check login status function
+function updateNavbarLogin() {
+  const navLogin = document.getElementById("navLoginBtn");
+  if (!navLogin) return;
+  
+  const token = localStorage.getItem("token");
+  
+  if (token) {
+    // Try to get user name from token
+    try {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const decoded = JSON.parse(atob(parts[1]));
+        navLogin.innerText = decoded.name || decoded.email || "User";
+        navLogin.removeAttribute("data-bs-toggle");
+        navLogin.removeAttribute("data-bs-target");
+        navLogin.setAttribute("href", "/dashboard.html");
+        navLogin.style.cursor = "pointer";
+        return;
+      }
+    } catch (err) {
+      console.debug("Token decode failed", err);
     }
-  } catch (err) {
-    console.debug("check-login failed", err);
   }
-})();
+  
+  // Fallback: check session
+  fetch("/check-login", { credentials: "include" })
+    .then(res => res.ok ? res.json() : null)
+    .catch(() => null)
+    .then(data => {
+      if (data && data.loggedIn) {
+        navLogin.innerText = data.user?.name || data.user?.email || "User";
+        navLogin.removeAttribute("data-bs-toggle");
+        navLogin.removeAttribute("data-bs-target");
+        navLogin.setAttribute("href", "/dashboard.html");
+        navLogin.style.cursor = "pointer";
+      }
+    });
+}
+
+// ✅ RUN ON PAGE LOAD
+document.addEventListener("DOMContentLoaded", updateNavbarLogin);
 </script>
     </body>
 </html>
