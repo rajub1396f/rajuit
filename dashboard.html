@@ -10,8 +10,28 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
+  <style>
+    .loading { 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-size: 18px;
+      background: #f8f9fa;
+    }
+    .loading.hidden { display: none; }
+    .navbar { visibility: hidden; }
+    .navbar.show { visibility: visible; }
+    .masthead { visibility: hidden; }
+    .masthead.show { visibility: visible; }
+  </style>
 </head>
 <body id="page-top">
+
+<div class="loading" id="loadingScreen">
+  <p>Loading your dashboard...</p>
+</div>
+
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
   <div class="container">
     <a class="navbar-brand" href="index.html"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
@@ -37,66 +57,46 @@
   <p>Address: <span id="address"></span></p>
 </header>
 
-<script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
 <script>
-  (async function() {
+  (async function checkAuth() {
     const token = localStorage.getItem("token");
+    const loadingScreen = document.getElementById("loadingScreen");
+    const navbar = document.getElementById("mainNav");
+    const header = document.querySelector(".masthead");
+
     try {
       const headers = token ? { Authorization: "Bearer " + token } : {};
       const res = await fetch("/dashboard", { headers, credentials: "include" });
+
       if (!res.ok) {
         localStorage.removeItem("token");
         window.location.href = "/";
+        return;
       }
+
+      const data = await res.json().catch(() => null);
+      const u = data?.user || {};
+
+      document.getElementById("name").textContent = u.name || u.email || "";
+      document.getElementById("email").textContent = u.email || "";
+      document.getElementById("phone").textContent = u.phone || "";
+      document.getElementById("address").textContent = u.address || "";
+
+      loadingScreen.classList.add("hidden");
+      navbar.classList.add("show");
+      header.classList.add("show");
+
     } catch (err) {
+      console.error("Auth check failed:", err);
       localStorage.removeItem("token");
       window.location.href = "/";
     }
   })();
 
-  // Prevent back button cached page
   window.addEventListener("pageshow", function(event) {
     if (event.persisted) window.location.reload();
   });
-
-  async function validateAndFill() {
-    const token = localStorage.getItem("token");
-    try {
-      const headers = token ? { Authorization: "Bearer " + token } : {};
-      const res = await fetch("/dashboard", { headers, credentials: "include" });
-      if (res.ok) {
-        const data = await res.json().catch(()=>null);
-        const u = data?.user || {};
-        document.getElementById("name").textContent = u.name || u.email || "";
-        document.getElementById("email").textContent = u.email || "";
-        document.getElementById("phone").textContent = u.phone || "";
-        document.getElementById("address").textContent = u.address || "";
-        return;
-      }
-    } catch (err) {
-      console.debug("Server dashboard check failed", err);
-    }
-
-    // Fallback: decode token locally if present
-    if (token) {
-      try {
-        const u = jwt_decode(token);
-        document.getElementById("name").textContent = u.name || "";
-        document.getElementById("email").textContent = u.email || "";
-        document.getElementById("phone").textContent = u.phone || "";
-        document.getElementById("address").textContent = u.address || "";
-        return;
-      } catch (err) {
-        console.debug("Token decode failed", err);
-      }
-    }
-
-    // Not authenticated — redirect
-    localStorage.removeItem("token");
-    window.location.href = "/";
-  }
-
-  validateAndFill();
 </script>
+
 </body>
 </html>
