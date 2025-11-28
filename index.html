@@ -733,11 +733,16 @@ if (loginForm) loginForm.addEventListener("submit", async function (e) {
     if (!res.ok) return;
     const data = await res.json().catch(()=>null);
     const navLogin = document.getElementById("navLoginBtn");
+    
     if (data && data.loggedIn && navLogin) {
-      navLogin.innerText = "Dashboard";
+      // ✅ Show user name instead of "Login"
+      navLogin.innerText = `${data.user?.name || data.user?.email || "User"}`;
+      
+      // ✅ Keep it as link to dashboard (not modal)
       navLogin.removeAttribute("data-bs-toggle");
       navLogin.removeAttribute("data-bs-target");
       navLogin.setAttribute("href", "/dashboard.html");
+      navLogin.style.cursor = "pointer";
     }
   } catch (err) {
     console.debug("check-login failed", err);
