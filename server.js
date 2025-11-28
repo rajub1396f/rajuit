@@ -253,99 +253,41 @@ app.use(express.static(path.join(__dirname)));
 app.use(express.static(path.join(__dirname, 'project')));
 
 // POST route for contact form - OPTIMIZED
-app.post("/contact", async (req, res) => {
-    const { name, email, phone, message } = req.body;
-
-    // Validate input
-    if (!name || !email || !phone || !message) {
-        return res.status(400).json({ 
-            success: false, 
-            message: "All fields are required." 
-        });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({ 
-            success: false, 
-            message: "Please enter a valid email address." 
-        });
-    }
-
-    const mailOptions = {
-        from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-        to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-        subject: `New Contact Form Inquiry from ${name}`,
-        html: `
-            <h2>New Contact Form Submission</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Phone:</strong> ${phone}</p>
-            <p><strong>Message:</strong></p>
-            <p>${message.replace(/\n/g, '<br>')}</p>
-            <hr>
-            <p><small>Received at: ${new Date().toLocaleString()}</small></p>
-        `,
-        replyTo: email
-    };
-
-    // Log receipt of contact request for debugging
-    console.log(`📨 /contact received at ${new Date().toISOString()} from: ${email} name: ${name}`);
-    // Show mailOptions summary (avoid logging full message body in production)
-    console.log({ to: mailOptions.to, from: mailOptions.from, subject: mailOptions.subject, replyTo: mailOptions.replyTo });
-
-    // Send email asynchronously WITHOUT waiting for it to complete
-    // This allows immediate response to user. Log full error/stack if it fails and persist failures to disk for diagnosis.
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        const errText = err && err.stack ? err.stack : String(err);
-        console.error("❌ Email send failed:", errText);
-        // Persist failure details to file for later inspection
-        const fs = require('fs');
-        const logEntry = `[${new Date().toISOString()}] FAILED EMAIL SEND\nRequest: ${JSON.stringify({name,email,phone,subject: mailOptions.subject})}\nError: ${errText}\n----\n`;
-        try {
-          fs.appendFileSync(path.join(__dirname, 'failed-emails.log'), logEntry);
-        } catch (fsErr) {
-          console.error('Failed to write failed-emails.log:', fsErr && fsErr.stack ? fsErr.stack : fsErr);
-        }
-      } else {
-        console.log("✅ Email sent:", info && info.response ? info.response : info);
-      }
-    });
-
-    // Respond immediately to user (within 100ms)
-    res.status(200).json({ 
-      success: true, 
-      message: "Message received! We'll get back to you shortly." 
-    });
-
-  });
-
-  // DEBUG endpoint: sends email synchronously and returns transporter response (use for troubleshooting only)
-  app.post("/contact-debug", async (req, res) => {
-    const { name, email, phone, message } = req.body;
-    if (!name || !email || !phone || !message) {
-      return res.status(400).json({ success: false, message: "All fields are required." });
-    }
-
-    const mailOptions = {
-      from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-      to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-      subject: `DEBUG: Test Contact Form from ${name}`,
-      html: `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Phone:</strong> ${phone}</p><p>${message.replace(/\n/g,'<br>')}</p>`,
-      replyTo: email
-    };
+app.post("/send", async (req, res) => {
+    const { name, email, message } = req.body;
 
     try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log("✅ Debug email sent:", info);
-      return res.status(200).json({ success: true, info });
-    } catch (err) {
-      console.error("❌ Debug email failed:", err && err.stack ? err.stack : err);
-      return res.status(500).json({ success: false, message: err.message || 'Send failed', error: err });
+        // Create Gmail transporter
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: "rajuit1396@gmail.com",
+                pass: "lsbezqbwpypnxaxx"
+            }
+        });
+
+        // Email content
+        const mailOptions = {
+            from: email,
+            to: "rajuit1396@gmail.com",
+            subject: "New Contact Form Message",
+            html: `
+                <h3>New message from: ${name}</h3>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Message:</strong><br>${message}</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        
+        res.json({ success: true, message: "Message sent successfully!" });
+
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: "Failed to send message." });
     }
 });
+
 
 
 const PORT = process.env.PORT || 5500;

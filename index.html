@@ -428,7 +428,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
   }
 });
 
-// ✅ Contact Form Handler - OPTIMIZED
+// ✅ Contact Form Handler - OPTIMIZED with detailed logging
 document.getElementById("contactForm").addEventListener("submit", async function (e) {
   e.preventDefault();
   
@@ -437,6 +437,8 @@ document.getElementById("contactForm").addEventListener("submit", async function
   const email = document.getElementById("contactEmail").value.trim();
   const phone = document.getElementById("contactPhone").value.trim();
   const message = document.getElementById("contactMessage").value.trim();
+  
+  console.log("📋 Form submitted with:", { name, email, phone, message });
   
   // Clear previous messages
   document.getElementById("submitSuccessMessage").classList.add("d-none");
@@ -473,8 +475,11 @@ document.getElementById("contactForm").addEventListener("submit", async function
   }
   
   if (!isValid) {
+    console.warn("❌ Form validation failed");
     return;
   }
+  
+  console.log("✅ Form validation passed");
   
   // Show loading state
   const submitButton = document.getElementById("submitButton");
@@ -485,10 +490,17 @@ document.getElementById("contactForm").addEventListener("submit", async function
   buttonText.textContent = "Sending...";
   buttonSpinner.classList.remove("d-none");
   
+  console.log("🚀 Starting fetch to /contact endpoint...");
+  
   try {
     // Set a 10-second timeout for the request
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => {
+      console.warn("⏱️ Request timeout (10 seconds) - aborting fetch");
+      controller.abort();
+    }, 10000);
+    
+    console.log("📤 Sending POST request with body:", JSON.stringify({ name, email, phone, message }));
     
     const response = await fetch("/contact", {
       method: "POST",
@@ -500,10 +512,15 @@ document.getElementById("contactForm").addEventListener("submit", async function
     });
     
     clearTimeout(timeoutId);
+    
+    console.log("📨 Response received - status:", response.status, "ok:", response.ok);
+    
     const data = await response.json();
+    console.log("📄 Response JSON:", data);
     
     if (response.ok && data.success) {
       // Show success message
+      console.log("✨ Success! Showing success message");
       document.getElementById("submitSuccessMessage").classList.remove("d-none");
       buttonText.textContent = "Message Sent!";
       
@@ -512,12 +529,14 @@ document.getElementById("contactForm").addEventListener("submit", async function
         document.getElementById("contactForm").reset();
         buttonText.textContent = "Send Message";
         submitButton.disabled = false;
+        buttonSpinner.classList.add("d-none");
       }, 1500);
       
       // Scroll to success message
       document.getElementById("submitSuccessMessage").scrollIntoView({ behavior: "smooth" });
     } else {
       // Show error message
+      console.error("❌ Response not ok or not success:", data);
       document.getElementById("submitErrorMessage").classList.remove("d-none");
       document.getElementById("errorText").textContent = data.message || "Error sending message. Please try again later.";
       submitButton.disabled = false;
@@ -525,13 +544,18 @@ document.getElementById("contactForm").addEventListener("submit", async function
       buttonSpinner.classList.add("d-none");
     }
   } catch (error) {
-    console.error("Contact form error:", error);
+    console.error("💥 Fetch error caught:", error);
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
     
     // Check if it's a timeout or network error
     if (error.name === "AbortError") {
+      console.error("⏱️ AbortError - request timed out");
       document.getElementById("submitErrorMessage").classList.remove("d-none");
       document.getElementById("errorText").textContent = "Request took too long. Please check your connection and try again.";
     } else {
+      console.error("🌐 Network or other error");
       document.getElementById("submitErrorMessage").classList.remove("d-none");
       document.getElementById("errorText").textContent = "Network error. Please check your connection and try again.";
     }
