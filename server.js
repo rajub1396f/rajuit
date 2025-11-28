@@ -9,12 +9,10 @@ require("dotenv").config();
 
 const app = express();
 
-// Middleware
+// Middleware (CORS, JSON parsing)
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname)));
-app.use(express.static(path.join(__dirname, 'project'))); // folder name
 
 // SESSION SETUP (localhost)
 app.use(session({
@@ -54,7 +52,6 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
-    // Check if email exists
     const existing = await sql`SELECT id FROM users WHERE email = ${email} LIMIT 1`;
     if (existing && existing.length > 0) {
       return res.status(409).json({ message: "Email already registered" });
@@ -114,7 +111,6 @@ app.post("/login", async (req, res) => {
 
     const token = jwt.sign(payload, process.env.JWT_SECRET || "SECRET_KEY", { expiresIn: "2d" });
 
-    // set session for legacy session-based checks
     req.session.user = { id: storedUser.id, name: storedUser.name, email: storedUser.email };
 
     return res.json({
@@ -130,7 +126,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// check-login route (used by client to detect session-based login)
+// check-login route
 app.get("/check-login", (req, res) => {
   if (req.session && req.session.user) {
     return res.json({ loggedIn: true, user: req.session.user });
@@ -138,10 +134,10 @@ app.get("/check-login", (req, res) => {
   return res.json({ loggedIn: false });
 });
 
-// Verify token middleware (accepts JWT or session)
+// Verify token middleware
 function verifyToken(req, res, next) {
   const header = req.headers["authorization"];
-  const token = header?.split(" ")[1];  // ✅ Correct split
+  const token = header?.split(" ")[1];
 
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
@@ -157,32 +153,12 @@ function verifyToken(req, res, next) {
   }
 }
 
-// New middleware: Check auth for HTML file serving (uses session OR token)
-function authCheckHTML(req, res, next) {
-  const header = req.headers["authorization"];
-  const token = header?.split(" ")[1];
-  if (token) {
-    jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
-      if (err) return res.redirect("/");
-      req.user = decoded;
-      next();
-    });
-  } else if (req.session && req.session.user) {
-    req.user = req.session.user;
-    next();
-  } else {
-    return res.redirect("/");
-  }
-}
-
-// Serve dashboard.html ONLY if authenticated
+// ✅ PROTECTED ROUTES (BEFORE static files)
 app.get("/dashboard.html", (req, res) => {
-  // Check session first (for browser navigation)
   if (req.session && req.session.user) {
     return res.sendFile(path.join(__dirname, "dashboard.html"));
   }
   
-  // Check Authorization header (for fetch calls with token)
   const header = req.headers["authorization"];
   const token = header?.split(" ")[1];
   
@@ -192,12 +168,10 @@ app.get("/dashboard.html", (req, res) => {
       return res.sendFile(path.join(__dirname, "dashboard.html"));
     });
   } else {
-    // Not authenticated - redirect home
     return res.redirect("/");
   }
 });
 
-// Dashboard API (returns JSON for fetch calls)
 app.get("/dashboard", verifyToken, async (req, res) => {
   if (req.user && req.user.id) {
     try {
@@ -212,22 +186,23 @@ app.get("/dashboard", verifyToken, async (req, res) => {
   return res.json({ message: "Welcome!", user: req.user });
 });
 
-// Logout route (session)
 app.get("/logout", (req, res) => {
     req.session.destroy(() => {
-        // clear possible cookie; redirect to home
         res.clearCookie('connect.sid', { path: '/' });
         res.redirect("/");
     });
 });
 
-// Home route - redirect ONLY if session exists (not just any login)
 app.get("/", (req, res) => {
     if (req.session && req.session.user) {
         return res.redirect('/dashboard.html');
     }
     res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+// ✅ STATIC FILES LAST (so routes execute first)
+app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'project')));
 
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => {
