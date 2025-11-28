@@ -37,12 +37,16 @@
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
   <div class="container">
     <a class="navbar-brand" href="index.html"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      Menu
+      <i class="fas fa-bars ms-1"></i>
+    </button>
     <div class="collapse navbar-collapse" id="navbarResponsive">
       <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
         <li class="nav-item">
-          <a class="nav-link" id="navUserLink" href="/dashboard.html">Welcome, <span id="navUserName">User</span></a>
+          <a class="nav-link" id="navUserLink" href="#">Welcome, <span id="navUserName">User</span></a>
         </li>
         <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
       </ul>
@@ -77,6 +81,9 @@
   </div>
 </section>
 
+<!-- ✅ Add Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
   (async function checkAuth() {
     const token = localStorage.getItem("token");
@@ -85,10 +92,16 @@
     const dashContent = document.querySelector(".dashboard-content");
 
     try {
-      const headers = token ? { Authorization: "Bearer " + token } : {};
-      const res = await fetch("/dashboard", { headers, credentials: "include" });
+      // ✅ FIXED: Proper Authorization header format
+      const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+      
+      const res = await fetch("/dashboard", { 
+        headers, 
+        credentials: "include" 
+      });
 
       if (!res.ok) {
+        console.error("Dashboard auth failed:", res.status);
         localStorage.removeItem("token");
         window.location.href = "/";
         return;
@@ -97,7 +110,7 @@
       const data = await res.json().catch(() => null);
       const u = data?.user || {};
 
-      // ✅ FIXED: Set user data in all places
+      // ✅ Set user data
       document.getElementById("name").textContent = u.name || "N/A";
       document.getElementById("email").textContent = u.email || "N/A";
       document.getElementById("phone").textContent = u.phone || "N/A";

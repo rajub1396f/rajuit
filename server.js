@@ -176,8 +176,20 @@ function authCheckHTML(req, res, next) {
 }
 
 // Serve dashboard.html ONLY if authenticated
-app.get("/dashboard.html", authCheckHTML, (req, res) => {
-  res.sendFile(path.join(__dirname, "dashboard.html"));
+app.get("/dashboard.html", (req, res) => {
+  const header = req.headers["authorization"];
+  const token = header?.split(" ")[1];
+
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
+      if (err) return res.redirect("/");
+      return res.sendFile(path.join(__dirname, "dashboard.html"));
+    });
+  } else if (req.session && req.session.user) {
+    return res.sendFile(path.join(__dirname, "dashboard.html"));
+  } else {
+    return res.redirect("/");
+  }
 });
 
 // Dashboard API (returns JSON for fetch calls)
