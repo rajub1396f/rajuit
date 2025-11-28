@@ -198,7 +198,20 @@ app.get("/dashboard", verifyToken, async (req, res) => {
 app.get("/logout", (req, res) => {
     req.session.destroy(() => {
         res.clearCookie('connect.sid', { path: '/' });
-        res.redirect("/");
+        // ✅ Send HTML that clears localStorage before redirect
+        res.send(`
+          <script>
+            localStorage.removeItem("token");
+            window.location.href = "/";
+          </script>
+        `);
+    });
+});
+
+app.post("/api/logout", (req, res) => {
+    req.session.destroy(() => {
+        res.clearCookie('connect.sid', { path: '/' });
+        res.json({ success: true, redirect: "/" });
     });
 });
 

@@ -282,6 +282,22 @@ function updateNavbarLogin() {
 }
 
 document.addEventListener("DOMContentLoaded", updateNavbarLogin);
+
+// Clear token on page load if user was just logged out
+window.addEventListener("load", function() {
+    // Check if we just came from /logout redirect
+    if (document.referrer.includes("/logout")) {
+      localStorage.removeItem("token");
+      updateNavbarLogin(); // Update navbar to show Login button
+    }
+  });
+
+  // OR: Listen for logout link clicks
+  document.addEventListener("click", function(e) {
+    if (e.target.getAttribute("href") === "/logout") {
+      localStorage.removeItem("token");
+    }
+  });
         </script>
     </body>
 </html>
