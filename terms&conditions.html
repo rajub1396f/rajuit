@@ -1,218 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <title>Raju IT</title>
-        <link href="css/styles.css" rel="stylesheet" />
-        <link href="css/login.css" rel="stylesheet" />
-        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    </head>
-    <body id="page-top">
-        <!-- Navigation-->
-        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
-            <div class="container">
-                <a class="navbar-brand" href="index.html"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                    Menu
-                    <i class="fas fa-bars ms-1"></i>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarResponsive">
-                  <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
-                    
-                    <li class="nav-item" id="authContainer">
-                      <a class="nav-link" href="#" id="navLoginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
-                    </li>
-                  </ul>
-                </div>
-            </div>
-        </nav>
-        
-        <!-- Masthead-->
-        <header class="masthead">
-            <div class="container">
-                <div class="masthead-subheading">Welcome To Our Shop!</div>
-                <div class="masthead-heading text-uppercase">It's Nice To Meet You</div>
-                <a class="btn btn-primary btn-xl text-uppercase" href="#products">Buy Products</a>
-            </div>
-        </header>
-  <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
+<head>
+  <meta charset="UTF-8">
+  <title>Terms & Conditions - Rajuit Online</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
-    #loadingScreen { 
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      font-size: 18px;
-      background: #f8f9fa;
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #141e30, #243b55);
     }
-    #loadingScreen.hidden { display: none !important; }
-    
-    #mainNav { opacity: 0; transition: opacity 0.3s; }
-    #mainNav.show { opacity: 1; }
-    
-    .dashboard-content { opacity: 0; transition: opacity 0.3s; }
-    .dashboard-content.show { opacity: 1; }
+
+    .terms-box {
+      max-width: 900px;
+      margin: 50px auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      text-align: center;
+      color: #1e3c72;
+      margin-bottom: 15px;
+    }
+
+    .intro {
+      text-align: center;
+      font-size: 16px;
+      color: #444;
+      margin-bottom: 35px;
+    }
+
+    .section {
+      margin-bottom: 25px;
+      padding: 20px;
+      border-left: 5px solid #1e88e5;
+      background: #f7fbff;
+      border-radius: 8px;
+    }
+
+    .section h2 {
+      margin: 0 0 10px;
+      color: #0d47a1;
+      font-size: 20px;
+    }
+
+    .section ul {
+      padding-left: 20px;
+      margin: 10px 0 0;
+    }
+
+    .section li {
+      margin-bottom: 8px;
+      font-size: 15px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .contact-box {
+      background: #0d47a1;
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .contact-box p {
+      margin: 8px 0;
+      font-size: 15px;
+    }
+
+    .contact-box a {
+      color: #ffeb3b;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .badge-box {
+      margin-top: 30px;
+      background: #e8f5e9;
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 5px solid #4caf50;
+    }
+
+    .badge-box ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .badge-box li {
+      margin: 8px 0;
+      font-size: 15px;
+      color: #2e7d32;
+      font-weight: bold;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    @media (max-width: 600px) {
+      .terms-box {
+        margin: 20px;
+        padding: 20px;
+      }
+    }
   </style>
 </head>
-<body id="page-top">
+<body>
 
-<div id="loadingScreen">
-  <p>Loading your dashboard...</p>
-</div>
+  <div class="terms-box">
+    
+    <h1>📜 Terms & Conditions – Rajuit Online</h1>
+    <p class="intro">
+      Welcome to Rajuit Online. By accessing and using our website, you agree to accept and follow these Terms & Conditions.
+      Please read them carefully before using our services.
+    </p>
 
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
-  <div class="container">
-    <a class="navbar-brand" href="index.html"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-      Menu
-      <i class="fas fa-bars ms-1"></i>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarResponsive">
-      <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
-        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
-        <li class="nav-item">
-          <a class="nav-link" id="navUserLink" href="#">Welcome, <span id="navUserName">User</span></a>
-        </li>
-        <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn">Logout</a></li>
+    <div class="section">
+      <h2>✅ 1. Website Use</h2>
+      <ul>
+        <li>You are at least 18 years old, or under the supervision of a parent or legal guardian.</li>
+        <li>You agree not to use this website for any illegal or unauthorized purpose.</li>
       </ul>
     </div>
-  </div>
-</nav>
 
-<section class="dashboard-content">
-  <div class="container" style="margin-top: 100px;">
-    <h2>Welcome to Your Dashboard</h2>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="card p-4">
-          <h5>Account Details</h5>
-          <p><strong>Name:</strong> <span id="name"></span></p>
-          <p><strong>Email:</strong> <span id="email"></span></p>
-          <p><strong>Phone:</strong> <span id="phone"></span></p>
-          <p><strong>Address:</strong> <span id="address"></span></p>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card p-4">
-          <h5>Quick Links</h5>
-          <ul>
-            <li><a href="#products">Browse Products</a></li>
-            <li><a href="#orders">My Orders</a></li>
-            <li><a href="/logout">Logout</a></li>
-          </ul>
-        </div>
-      </div>
+    <div class="section">
+      <h2>✅ 2. Product Information</h2>
+      <ul>
+        <li>We try our best to display accurate product information.</li>
+        <li>Small variations in color and design may occur.</li>
+        <li>We reserve the right to change product details or prices at any time.</li>
+      </ul>
     </div>
+
+    <div class="section">
+      <h2>✅ 3. Orders & Payments</h2>
+      <ul>
+        <li>All orders are subject to availability.</li>
+        <li>We reserve the right to cancel or refuse any order.</li>
+        <li>Payments must be completed through approved payment methods.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>✅ 4. Shipping & Delivery</h2>
+      <ul>
+        <li>Delivery time depends on your location and courier service.</li>
+        <li>We are not responsible for delays caused by logistics, weather, or unforeseen issues.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>✅ 5. Returns & Refunds</h2>
+      <ul>
+        <li>Returns and refunds follow our Return & Refund Policy.</li>
+        <li>Items must be returned unused and in original condition.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>✅ 6. Account Responsibility</h2>
+      <ul>
+        <li>You must keep your login details secure.</li>
+        <li>You are responsible for all activities under your account.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>✅ 7. Intellectual Property</h2>
+      <ul>
+        <li>All text, images, logo, and designs belong to Rajuit Online.</li>
+        <li>They may not be copied or reused without written permission.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>✅ 8. Prohibited Activities</h2>
+      <ul>
+        <li>Fraud or scams</li>
+        <li>Uploading viruses or harmful software</li>
+        <li>Hacking or damaging the website</li>
+        <li>Commercial misuse without permission</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>✅ 9. Limitation of Liability</h2>
+      <ul>
+        <li>Indirect or accidental damages</li>
+        <li>Loss of data</li>
+        <li>Delivery delays by third-party services</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>✅ 10. Changes to These Terms</h2>
+      <p>We reserve the right to update or modify these Terms & Conditions at any time. Changes will be posted on this page.</p>
+    </div>
+
+    <div class="section">
+      <h2>✅ 11. Governing Law</h2>
+      <p>These Terms & Conditions are governed by the laws of your country and region.</p>
+    </div>
+
+    <div class="contact-box">
+      <h2>✅ 12. Contact Us</h2>
+      <p><strong>Website:</strong> <a href="https://rajuit.online">https://rajuit.online</a></p>
+      <p><strong>Email:</strong> rajuit1396@gmail.com</p>
+      <p><strong>Phone / WhatsApp:</strong> +966-539082027</p>
+    </div>
+
+    <div class="badge-box">
+      <ul>
+        <li>✅ AdSense Safe</li>
+        <li>✅ Suitable for eCommerce / Clothing Website</li>
+        <li>✅ Professional & Legally Valid</li>
+        <li>✅ Easy to Understand for Customers</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      © 2025 Rajuit Online. All Rights Reserved.
+    </div>
+
   </div>
-</section>
-
-<!-- ✅ Add Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-  (async function checkAuth() {
-    const token = localStorage.getItem("token");
-    const loadingScreen = document.getElementById("loadingScreen");
-    const navbar = document.getElementById("mainNav");
-    const dashContent = document.querySelector(".dashboard-content");
-
-    console.log("🔍 Token stored:", token ? "YES" : "NO");
-    if (token) {
-      const parts = token.split('.');
-      console.log("🔍 Token parts:", parts.length, "(should be 3)");
-    }
-
-    try {
-      const headers = token ? { "Authorization": `Bearer ${token}` } : {};
-      console.log("🔍 Fetch headers:", headers);
-      
-      const res = await fetch("/dashboard", { 
-        headers, 
-        credentials: "include" 
-      });
-
-      console.log("🔍 Response status:", res.status);
-      const data = await res.json().catch(() => null);
-      console.log("🔍 Response data:", data);
-
-      if (!res.ok) {
-        console.error("❌ Dashboard auth failed:", res.status, data);
-        
-        // ✅ Try session fallback (stay on page, don't redirect)
-        try {
-          const sessionRes = await fetch("/check-login", { credentials: "include" });
-          const sessionData = await sessionRes.json();
-          
-          if (sessionData?.loggedIn) {
-            console.log("✅ Session valid, loading dashboard");
-            // Session is valid, just hide loading and show content
-            loadingScreen.classList.add("hidden");
-            setTimeout(() => {
-              navbar.classList.add("show");
-              dashContent.classList.add("show");
-            }, 100);
-            
-            // Fill with session data
-            const u = sessionData.user || {};
-            document.getElementById("name").textContent = u.name || "N/A";
-            document.getElementById("email").textContent = u.email || "N/A";
-            document.getElementById("navUserName").textContent = u.name || u.email || "User";
-            return;
-          }
-        } catch (e) {
-          console.error("Session check failed:", e);
-        }
-        
-        // No session and token invalid - redirect home
-        localStorage.removeItem("token");
-        window.location.href = "/";
-        return;
-      }
-
-      const u = data?.user || {};
-
-      // ✅ Set user data
-      document.getElementById("name").textContent = u.name || "N/A";
-      document.getElementById("email").textContent = u.email || "N/A";
-      document.getElementById("phone").textContent = u.phone || "N/A";
-      document.getElementById("address").textContent = u.address || "N/A";
-      document.getElementById("navUserName").textContent = u.name || u.email || "User";
-
-      // ✅ Show content
-      loadingScreen.classList.add("hidden");
-      setTimeout(() => {
-        navbar.classList.add("show");
-        dashContent.classList.add("show");
-      }, 100);
-
-    } catch (err) {
-      console.error("❌ Auth check failed:", err);
-      localStorage.removeItem("token");
-      window.location.href = "/";
-    }
-  })();
-
-  window.addEventListener("pageshow", function(event) {
-    if (event.persisted) window.location.reload();
-  });
-
-  document.getElementById("logoutBtn").addEventListener("click", async (e) => {
-    e.preventDefault();
-    localStorage.removeItem("token");
-    const res = await fetch("/api/logout", { 
-      method: "POST", 
-      credentials: "include" 
-    });
-    window.location.href = "/";
-  });
-</script>
 
 </body>
 </html>
