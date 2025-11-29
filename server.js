@@ -16,6 +16,12 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// View Engine (EJS or HTML)
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+
+
 // SESSION SETUP (localhost)
 app.use(session({
     secret: process.env.SESSION_SECRET || "yoursecret",
@@ -287,6 +293,24 @@ app.post("/send", async (req, res) => {
         res.json({ success: false, message: "Failed to send message." });
     }
 });
+
+// Routes
+app.get("/", (req, res) => {
+  res.redirect("/products");
+});
+
+app.get("/products", (req, res) => {
+  res.render("products");
+});
+
+app.get("/products/female", (req, res) => {
+  res.render("female");
+});
+
+app.get("/products/male", (req, res) => {
+  res.render("male");
+});
+
 
 
 
