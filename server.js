@@ -340,7 +340,7 @@ app.post("/send", async (req, res) => {
             service: "gmail",
             auth: {
                 user: "rajuit1396@gmail.com",
-                pass: "lsbezqbwpypnxaxx"
+                pass: "etxcbwzsekhdciba"
             }
         });
 
@@ -367,13 +367,16 @@ app.post("/send", async (req, res) => {
             `
         };
 
+        console.log("📤 Sending email...");
         await transporter.sendMail(mailOptions);
         
+        console.log("✅ Email sent successfully!");
         res.json({ success: true, message: "Message sent successfully!" });
 
     } catch (error) {
-        console.error(error);
-        res.json({ success: false, message: "Failed to send message." });
+        console.error("❌ Email sending error:", error.message);
+        console.error("Full error:", error);
+        res.status(500).json({ success: false, message: "Failed to send message.", error: error.message });
     }
 });
 
