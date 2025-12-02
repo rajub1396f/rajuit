@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <title>Products - Raju IT</title>
+        <link href="css/styles.css" rel="stylesheet" />
+        <link href="css/login.css" rel="stylesheet" />
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <style>
+            .sub-navbar {
+                background-color: #343a40;
+                padding: 15px 0;
+                margin-top: 72px;
+                position: sticky;
+                top: 72px;
+                z-index: 999;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            
+            .sub-navbar .nav-pills {
+                justify-content: center;
+            }
+            
+            .sub-navbar .nav-link {
+                color: #fff;
+                padding: 10px 30px;
+                margin: 0 10px;
+                border-radius: 25px;
+                font-weight: 600;
+                text-transform: uppercase;
+                transition: all 0.3s;
+            }
+            
+            .sub-navbar .nav-link:hover {
+                background-color: #ffc800;
+                color: #212529;
+            }
+            
+            .sub-navbar .nav-link.active {
+                background-color: #ffc800;
+                color: #212529;
+            }
+            
+            .products-section {
+                padding: 50px 0;
+                min-height: 60vh;
+            }
+            
+            .product-card {
+                transition: transform 0.3s, box-shadow 0.3s;
+                height: 100%;
+            }
+            
+            .product-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            }
+            
+            .product-card .card-img-top {
+                height: 300px;
+                object-fit: cover;
+            }
+            
+            .product-card .card-body {
+                text-align: center;
+            }
+            
+            .product-card .btn {
+                margin-top: 10px;
+            }
+            
+            .collection-section {
+                display: none;
+            }
+            
+            .collection-section.active {
+                display: block;
+            }
+            
+            @media (max-width: 768px) {
+                .sub-navbar {
+                    margin-top: 56px;
+                    top: 56px;
+                }
+                
+                .sub-navbar .nav-link {
+                    padding: 8px 20px;
+                    margin: 5px;
+                    font-size: 14px;
+                }
+            }
+        </style>
+    </head>
+    <body id="page-top">
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+            <div class="container">
+                <a class="navbar-brand" href="index.html"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars ms-1"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+                        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="products.html">Products</a></li>
+                        <li class="nav-item"><a class="nav-link" href="index.html#about">About Us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="index.html#contact">Contact Us</a></li>
+                        <li class="nav-item" id="wishlistContainer" style="display: none;">
+                            <a class="nav-link" href="#" id="wishlistBtn" title="Wishlist">
+                                <i class="fas fa-heart"></i>
+                                <span class="badge bg-danger" id="wishlistCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" id="cartContainer" style="display: none;">
+                            <a class="nav-link" href="#" id="cartBtn" title="Cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="badge bg-primary" id="cartCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" id="authContainer">
+                            <a class="nav-link" href="#" id="navLoginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sub Navigation -->
+        <div class="sub-navbar">
+            <div class="container">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-collection="female" onclick="switchCollection('female'); return false;">
+                            <i class="fas fa-female me-2"></i>Female Collection
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-collection="male" onclick="switchCollection('male'); return false;">
+                            <i class="fas fa-male me-2"></i>Male Collection
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Female Collection -->
+        <section class="products-section collection-section active" id="femaleCollection">
+            <div class="container">
+                <h2 class="text-center fw-bold mb-5">Female Collection</h2>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Stylish Dress">
+                            <div class="card-body">
+                                <h5 class="card-title">Stylish Dress</h5>
+                                <p class="text-muted mb-1">Premium Quality</p>
+                                <h6 class="text-primary fw-bold">SAR 299</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Hand Bag">
+                            <div class="card-body">
+                                <h5 class="card-title">Designer Hand Bag</h5>
+                                <p class="text-muted mb-1">Luxury Collection</p>
+                                <h6 class="text-primary fw-bold">SAR 199</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Women Watch">
+                            <div class="card-body">
+                                <h5 class="card-title">Women Watch</h5>
+                                <p class="text-muted mb-1">Elegant Style</p>
+                                <h6 class="text-primary fw-bold">SAR 379</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Abaya">
+                            <div class="card-body">
+                                <h5 class="card-title">Designer Abaya</h5>
+                                <p class="text-muted mb-1">Traditional Wear</p>
+                                <h6 class="text-primary fw-bold">SAR 599</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Heels">
+                            <div class="card-body">
+                                <h5 class="card-title">High Heels</h5>
+                                <p class="text-muted mb-1">Comfort & Style</p>
+                                <h6 class="text-primary fw-bold">SAR 249</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Jewelry">
+                            <div class="card-body">
+                                <h5 class="card-title">Gold Jewelry Set</h5>
+                                <p class="text-muted mb-1">Premium Quality</p>
+                                <h6 class="text-primary fw-bold">SAR 899</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Male Collection -->
+        <section class="products-section collection-section" id="maleCollection">
+            <div class="container">
+                <h2 class="text-center fw-bold mb-5">Male Collection</h2>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="T-Shirt">
+                            <div class="card-body">
+                                <h5 class="card-title">Men's T-Shirt</h5>
+                                <p class="text-muted mb-1">Casual Wear</p>
+                                <h6 class="text-primary fw-bold">SAR 159</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="Jacket">
+                            <div class="card-body">
+                                <h5 class="card-title">Men's Jacket</h5>
+                                <p class="text-muted mb-1">Winter Collection</p>
+                                <h6 class="text-primary fw-bold">SAR 439</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="Watch">
+                            <div class="card-body">
+                                <h5 class="card-title">Men's Watch</h5>
+                                <p class="text-muted mb-1">Sport Edition</p>
+                                <h6 class="text-primary fw-bold">SAR 399</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="Thobe">
+                            <div class="card-body">
+                                <h5 class="card-title">Traditional Thobe</h5>
+                                <p class="text-muted mb-1">Formal Wear</p>
+                                <h6 class="text-primary fw-bold">SAR 499</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="Shoes">
+                            <div class="card-body">
+                                <h5 class="card-title">Formal Shoes</h5>
+                                <p class="text-muted mb-1">Leather Quality</p>
+                                <h6 class="text-primary fw-bold">SAR 329</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="Sunglasses">
+                            <div class="card-body">
+                                <h5 class="card-title">Designer Sunglasses</h5>
+                                <p class="text-muted mb-1">UV Protection</p>
+                                <h6 class="text-primary fw-bold">SAR 279</h6>
+                                <button class="btn btn-dark btn-sm">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer-->
+        <footer class="footer py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-4 text-lg-start">Copyright &copy; Raju It 2025</div>
+                    <div class="col-lg-4 my-3 my-lg-0">
+                        <a class="btn btn-dark btn-social mx-2" href="https://www.instagram.com/rajuit1396/?igsh=MWZlOHk4bWxrY3hwMg%3D%3D&fbclid=IwY2xjawOXwtFleHRuA2FlbQIxMABicmlkETFXaXRyMnR5aWF3eHB2SVl4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmKxgCF0yvOPwVkc5ovEt0JNh-K_DZ4egj27cYWVsba8m6bRIbTOszGrRkTA_aem_wyHdzWPSdl7DxeJ2So-lUw&brid=JbRWKsUzQoW71PD4MGNTnw" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a class="btn btn-dark btn-social mx-2" href="https://www.facebook.com/profile.php?id=61584622701133" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a class="link-dark text-decoration-none me-3 text-white" href="privacy&policy.html">Privacy Policy</a>
+                        <a class="link-dark text-decoration-none text-white" href="terms&conditions.html">Terms & Conditions</a>
+                        <a class="link-dark text-decoration-none text-white" href="return&refund.html">Return & Refund Policy</a>
+                        <a class="link-dark text-decoration-none text-white" href="shippingpolicy.html">Shipping Policy</a>
+                        <a class="link-dark text-decoration-none text-white" href="disclaimer.html">Disclaimer</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <script>
+            // Collection switching function
+            function switchCollection(collection) {
+                // Hide all collections
+                document.querySelectorAll('.collection-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Show selected collection
+                if (collection === 'female') {
+                    document.getElementById('femaleCollection').classList.add('active');
+                } else if (collection === 'male') {
+                    document.getElementById('maleCollection').classList.add('active');
+                }
+                
+                // Update active nav link
+                document.querySelectorAll('.sub-navbar .nav-link').forEach(link => {
+                    link.classList.remove('active');
+                });
+                document.querySelector(`[data-collection="${collection}"]`).classList.add('active');
+            }
+
+            // Auth check and display logic (same as index.html)
+            (async function initAuth() {
+                const authContainer = document.getElementById("authContainer");
+                const navLogin = document.getElementById("navLoginBtn");
+                if (!navLogin || !authContainer) return;
+
+                function showLogin() {
+                    localStorage.removeItem("token");
+                    navLogin.innerText = "Login";
+                    navLogin.setAttribute("data-bs-toggle", "modal");
+                    navLogin.setAttribute("data-bs-target", "#loginModal");
+                    navLogin.removeAttribute("href");
+                    const logoutBtn = document.getElementById("logoutBtn");
+                    if (logoutBtn) logoutBtn.remove();
+                }
+
+                function showLogout(userName) {
+                    navLogin.innerText = userName;
+                    navLogin.removeAttribute("data-bs-toggle");
+                    navLogin.removeAttribute("data-bs-target");
+                    navLogin.setAttribute("href", "/dashboard.html");
+                    navLogin.addEventListener("click", (e) => { 
+                        e.preventDefault(); 
+                        window.location.href = "/dashboard.html"; 
+                    }, { capture: true });
+
+                    let logoutBtn = document.getElementById("logoutBtn");
+                    if (!logoutBtn) {
+                        logoutBtn = document.createElement("li");
+                        logoutBtn.className = "nav-item";
+                        logoutBtn.id = "logoutBtn";
+                        logoutBtn.innerHTML = '<a class="nav-link" href="/logout">Logout</a>';
+                        authContainer.parentElement.appendChild(logoutBtn);
+                    }
+                    
+                    const cartContainer = document.getElementById("cartContainer");
+                    const wishlistContainer = document.getElementById("wishlistContainer");
+                    if (cartContainer) cartContainer.style.display = "block";
+                    if (wishlistContainer) wishlistContainer.style.display = "block";
+                }
+
+                try {
+                    const res = await fetch("/check-login", { credentials: "include" });
+                    if (res.ok) {
+                        const data = await res.json().catch(()=>null);
+                        if (data && data.loggedIn) {
+                            const name = data.user?.name || data.user?.email || "User";
+                            showLogout(name);
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.debug("check-login failed", err);
+                }
+
+                const token = localStorage.getItem("token");
+                if (!token) { showLogin(); return; }
+
+                try {
+                    const parts = token.split('.');
+                    if (parts.length !== 3) throw new Error("Invalid token format");
+                    const decoded = JSON.parse(atob(parts[1]));
+                    if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Token expired");
+
+                    const apiRes = await fetch("/dashboard", {
+                        method: "GET",
+                        headers: { "Authorization": `Bearer ${token}` },
+                        credentials: "include"
+                    });
+
+                    if (apiRes.ok) {
+                        const apiData = await apiRes.json();
+                        const name = apiData?.user?.name || apiData?.user?.email || "User";
+                        showLogout(name);
+                    } else {
+                        showLogin();
+                    }
+                } catch (err) {
+                    console.debug("Token validation failed", err);
+                    showLogin();
+                }
+            })();
+        </script>
+    </body>
+</html>
