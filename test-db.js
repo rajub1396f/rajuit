@@ -51,6 +51,23 @@ const sql = neon(process.env.NEON_DB);
       console.log('✅ Users table created successfully!');
     }
     
+    // Check if address column exists, if not add it
+    try {
+      const addressCheck = await sql`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'address'
+      `;
+      
+      if (addressCheck.length === 0) {
+        console.log('Adding address column...');
+        await sql`ALTER TABLE users ADD COLUMN address TEXT`;
+        console.log('✅ Address column added successfully!');
+      }
+    } catch (err) {
+      console.log('Note: Could not check/add address column:', err.message);
+    }
+    
     // Check if last_profile_edit column exists, if not add it
     try {
       const columnCheck = await sql`
@@ -62,7 +79,7 @@ const sql = neon(process.env.NEON_DB);
       if (columnCheck.length === 0) {
         console.log('Adding last_profile_edit column...');
         await sql`ALTER TABLE users ADD COLUMN last_profile_edit TIMESTAMP`;
-        console.log('✅ Column added successfully!');
+        console.log('✅ Last_profile_edit column added successfully!');
       }
     } catch (err) {
       console.log('Note: Could not check/add last_profile_edit column:', err.message);
