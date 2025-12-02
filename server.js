@@ -541,23 +541,43 @@ app.post("/create-order", verifyToken, async (req, res) => {
     `;
 
     // Send invoice email to customer
+    let emailSent = false;
+    let emailError = null;
+    
     try {
-      await transporter.sendMail({
-        from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+      console.log(`📧 Attempting to send invoice to ${user.email}...`);
+      console.log(`📤 Using SMTP: ${process.env.GMAIL_USER || "rajuit1396@gmail.com"}`);
+      
+      const mailOptions = {
+        from: `"Raju IT" <${process.env.GMAIL_USER || "rajuit1396@gmail.com"}>`,
         to: user.email,
         subject: `Order Confirmation & Invoice #${orderId.toString().padStart(6, '0')} - Raju IT`,
-        html: invoiceHtml
+        html: invoiceHtml,
+        text: `Your order #${orderId} has been placed successfully. Thank you for shopping with Raju IT!`
+      };
+      
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`✅ Invoice email sent successfully to ${user.email}`);
+      console.log(`📨 Message ID: ${info.messageId}`);
+      emailSent = true;
+    } catch (error) {
+      console.error("❌ Error sending invoice email:", error);
+      console.error("❌ Error details:", {
+        message: error.message,
+        code: error.code,
+        command: error.command,
+        response: error.response
       });
-      console.log(`✅ Invoice sent to ${user.email}`);
-    } catch (emailError) {
-      console.error("❌ Error sending invoice email:", emailError);
+      emailError = error.message;
     }
 
     res.json({ 
       success: true, 
       message: "Order created successfully", 
       orderId,
-      invoiceHtml
+      invoiceHtml,
+      emailSent,
+      emailError: emailSent ? null : `Email could not be sent: ${emailError}. You can download your invoice from the order confirmation page.`
     });
   } catch (err) {
     console.error("❌ Create order error:", err);

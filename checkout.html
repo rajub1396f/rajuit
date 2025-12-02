@@ -771,13 +771,21 @@
                         sessionStorage.setItem(`invoice_${result.orderId}`, result.invoiceHtml);
                     }
                     
+                    // Prepare success message
+                    let successMessage = `✅ Order placed successfully!\n\nOrder ID: #${result.orderId}\n`;
+                    
+                    if (result.emailSent) {
+                        successMessage += `Invoice has been sent to your email.\n\n`;
+                    } else if (result.emailError) {
+                        successMessage += `⚠️ ${result.emailError}\n\n`;
+                    } else {
+                        successMessage += `Note: Email sending is pending. You can download invoice below.\n\n`;
+                    }
+                    
+                    successMessage += `Click OK to view/download invoice, or Cancel to go to dashboard.`;
+                    
                     // Show success message with option to view invoice
-                    const viewInvoice = confirm(
-                        `✅ Order placed successfully!\n\n` +
-                        `Order ID: #${result.orderId}\n` +
-                        `Invoice has been sent to your email.\n\n` +
-                        `Click OK to view/download invoice, or Cancel to go to dashboard.`
-                    );
+                    const viewInvoice = confirm(successMessage);
                     
                     if (viewInvoice) {
                         // Redirect to invoice page
