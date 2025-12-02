@@ -74,23 +74,30 @@ transporter.verify((error, success) => {
 // Register Route
 app.post("/register", async (req, res) => {
   try {
+    console.log("📝 Registration request received:", req.body);
     const { name, email, password, confirmpassword, phone } = req.body;
 
     if (!name || !email || !password) {
+      console.log("❌ Missing required fields");
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     if (password !== confirmpassword) {
+      console.log("❌ Passwords do not match");
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
+    console.log("🔍 Checking if email exists:", email);
     const existing = await sql`SELECT id FROM users WHERE email = ${email} LIMIT 1`;
     if (existing && existing.length > 0) {
+      console.log("❌ Email already registered");
       return res.status(409).json({ message: "Email already registered" });
     }
 
+    console.log("🔐 Hashing password...");
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    console.log("💾 Inserting user into database...");
     const result = await sql`
       INSERT INTO users (name, email, password, phone)
       VALUES (${name}, ${email}, ${hashedPassword}, ${phone})
@@ -98,6 +105,7 @@ app.post("/register", async (req, res) => {
     `;
 
     const inserted = result[0] || null;
+    console.log("✅ User registered successfully:", inserted);
 
     res.status(201).json({
       message: "User registered successfully",
@@ -105,8 +113,8 @@ app.post("/register", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Register error:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Register error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
@@ -293,26 +301,6 @@ app.post("/send", async (req, res) => {
         res.json({ success: false, message: "Failed to send message." });
     }
 });
-
-// Routes
-app.get("/", (req, res) => {
-  res.redirect("/products");
-});
-
-app.get("/products", (req, res) => {
-  res.render("products");
-});
-
-app.get("/products/female", (req, res) => {
-  res.render("female");
-});
-
-app.get("/products/male", (req, res) => {
-  res.render("male");
-});
-
-
-
 
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => {
