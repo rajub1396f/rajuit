@@ -146,12 +146,60 @@
       </div>
       <div class="col-md-6">
         <div class="card p-4">
-          <h5>Quick Links</h5>
-          <ul>
-            <li><a href="#products">Browse Products</a></li>
-            <li><a href="#orders">My Orders</a></li>
-            <li><a href="/logout">Logout</a></li>
-          </ul>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Shipping Address</h5>
+            <button class="btn btn-sm btn-primary" id="editShippingBtn" onclick="enableShippingEdit()">Edit</button>
+          </div>
+          
+          <div id="shippingViewMode">
+            <p><strong>Full Name:</strong> <span id="shippingName"></span></p>
+            <p><strong>Phone:</strong> <span id="shippingPhone"></span></p>
+            <p><strong>Address Line 1:</strong> <span id="shippingAddress1"></span></p>
+            <p><strong>Address Line 2:</strong> <span id="shippingAddress2"></span></p>
+            <p><strong>City:</strong> <span id="shippingCity"></span></p>
+            <p><strong>State/Province:</strong> <span id="shippingState"></span></p>
+            <p><strong>Postal Code:</strong> <span id="shippingPostal"></span></p>
+            <p><strong>Country:</strong> <span id="shippingCountry"></span></p>
+          </div>
+          
+          <form id="shippingEditMode" style="display: none;">
+            <div class="mb-3">
+              <label class="form-label"><strong>Full Name:</strong></label>
+              <input type="text" class="form-control" id="editShippingName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Phone:</strong></label>
+              <input type="tel" class="form-control" id="editShippingPhone" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Address Line 1:</strong></label>
+              <input type="text" class="form-control" id="editShippingAddress1" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Address Line 2:</strong></label>
+              <input type="text" class="form-control" id="editShippingAddress2">
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>City:</strong></label>
+              <input type="text" class="form-control" id="editShippingCity" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>State/Province:</strong></label>
+              <input type="text" class="form-control" id="editShippingState" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Postal Code:</strong></label>
+              <input type="text" class="form-control" id="editShippingPostal" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Country:</strong></label>
+              <input type="text" class="form-control" id="editShippingCountry" required>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success">Save Address</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelShippingEdit()">Cancel</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -595,6 +643,110 @@
       }
     }
   }
+
+  // Shipping Address Functions
+  function enableShippingEdit() {
+    // Populate edit form
+    document.getElementById('editShippingName').value = document.getElementById('shippingName').textContent !== 'N/A' ? document.getElementById('shippingName').textContent : '';
+    document.getElementById('editShippingPhone').value = document.getElementById('shippingPhone').textContent !== 'N/A' ? document.getElementById('shippingPhone').textContent : '';
+    document.getElementById('editShippingAddress1').value = document.getElementById('shippingAddress1').textContent !== 'N/A' ? document.getElementById('shippingAddress1').textContent : '';
+    document.getElementById('editShippingAddress2').value = document.getElementById('shippingAddress2').textContent !== 'N/A' ? document.getElementById('shippingAddress2').textContent : '';
+    document.getElementById('editShippingCity').value = document.getElementById('shippingCity').textContent !== 'N/A' ? document.getElementById('shippingCity').textContent : '';
+    document.getElementById('editShippingState').value = document.getElementById('shippingState').textContent !== 'N/A' ? document.getElementById('shippingState').textContent : '';
+    document.getElementById('editShippingPostal').value = document.getElementById('shippingPostal').textContent !== 'N/A' ? document.getElementById('shippingPostal').textContent : '';
+    document.getElementById('editShippingCountry').value = document.getElementById('shippingCountry').textContent !== 'N/A' ? document.getElementById('shippingCountry').textContent : '';
+    
+    // Toggle views
+    document.getElementById('shippingViewMode').style.display = 'none';
+    document.getElementById('shippingEditMode').style.display = 'block';
+    document.getElementById('editShippingBtn').style.display = 'none';
+  }
+
+  function cancelShippingEdit() {
+    document.getElementById('shippingViewMode').style.display = 'block';
+    document.getElementById('shippingEditMode').style.display = 'none';
+    document.getElementById('editShippingBtn').style.display = 'block';
+  }
+
+  // Handle shipping form submission
+  document.getElementById('shippingEditMode').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const token = localStorage.getItem("token");
+    const shippingData = {
+      shippingName: document.getElementById('editShippingName').value,
+      shippingPhone: document.getElementById('editShippingPhone').value,
+      shippingAddress1: document.getElementById('editShippingAddress1').value,
+      shippingAddress2: document.getElementById('editShippingAddress2').value,
+      shippingCity: document.getElementById('editShippingCity').value,
+      shippingState: document.getElementById('editShippingState').value,
+      shippingPostal: document.getElementById('editShippingPostal').value,
+      shippingCountry: document.getElementById('editShippingCountry').value
+    };
+
+    try {
+      const res = await fetch('/update-shipping', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify(shippingData)
+      });
+
+      const result = await res.json().catch(() => ({ message: 'Invalid server response' }));
+      
+      if (res.ok) {
+        // Update display
+        document.getElementById('shippingName').textContent = shippingData.shippingName;
+        document.getElementById('shippingPhone').textContent = shippingData.shippingPhone;
+        document.getElementById('shippingAddress1').textContent = shippingData.shippingAddress1;
+        document.getElementById('shippingAddress2').textContent = shippingData.shippingAddress2 || 'N/A';
+        document.getElementById('shippingCity').textContent = shippingData.shippingCity;
+        document.getElementById('shippingState').textContent = shippingData.shippingState;
+        document.getElementById('shippingPostal').textContent = shippingData.shippingPostal;
+        document.getElementById('shippingCountry').textContent = shippingData.shippingCountry;
+        
+        cancelShippingEdit();
+        alert('Shipping address updated successfully!');
+      } else {
+        alert(result.message || 'Failed to update shipping address.');
+      }
+    } catch (err) {
+      console.error('Shipping update error:', err);
+      alert('Error updating shipping address: ' + err.message);
+    }
+  });
+
+  // Load shipping address on page load
+  (async function loadShippingAddress() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await fetch('/get-shipping', {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const s = data.shipping || {};
+        
+        document.getElementById('shippingName').textContent = s.shipping_name || 'N/A';
+        document.getElementById('shippingPhone').textContent = s.shipping_phone || 'N/A';
+        document.getElementById('shippingAddress1').textContent = s.shipping_address1 || 'N/A';
+        document.getElementById('shippingAddress2').textContent = s.shipping_address2 || 'N/A';
+        document.getElementById('shippingCity').textContent = s.shipping_city || 'N/A';
+        document.getElementById('shippingState').textContent = s.shipping_state || 'N/A';
+        document.getElementById('shippingPostal').textContent = s.shipping_postal || 'N/A';
+        document.getElementById('shippingCountry').textContent = s.shipping_country || 'N/A';
+      }
+    } catch (err) {
+      console.error('Error loading shipping address:', err);
+    }
+  })();
 </script>
 
 </body>

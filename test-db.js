@@ -85,6 +85,37 @@ const sql = neon(process.env.NEON_DB);
       console.log('Note: Could not check/add last_profile_edit column:', err.message);
     }
     
+    // Check and add shipping address columns
+    const shippingColumns = [
+      'shipping_name',
+      'shipping_phone', 
+      'shipping_address1',
+      'shipping_address2',
+      'shipping_city',
+      'shipping_state',
+      'shipping_postal',
+      'shipping_country'
+    ];
+    
+    for (const columnName of shippingColumns) {
+      try {
+        const check = await sql`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'users' AND column_name = ${columnName}
+        `;
+        
+        if (check.length === 0) {
+          console.log(`Adding ${columnName} column...`);
+          // Use raw SQL for ALTER TABLE
+          await sql.query(`ALTER TABLE users ADD COLUMN ${columnName} TEXT`);
+          console.log(`✅ ${columnName} column added successfully!`);
+        }
+      } catch (err) {
+        console.log(`Note: Could not check/add ${columnName} column:`, err.message);
+      }
+    }
+    
   } catch (err) {
     console.error('❌ Error:', err.message);
     console.error('Full error:', err);

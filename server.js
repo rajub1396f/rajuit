@@ -7,7 +7,6 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
-const sgMail = require('@sendgrid/mail');
 
 const app = express();
 
@@ -38,13 +37,7 @@ app.use(session({
 const { neon } = require("@neondatabase/serverless");
 const sql = neon(process.env.NEON_DB);
 
-// ✅ Configure SendGrid (for Render deployment)
-if (process.env.SENDGRID_API_KEY) {
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    console.log("✅ SendGrid configured");
-}
-
-// ✅ Create Gmail transporter (for local testing)
+// ✅ Create Gmail transporter
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
@@ -58,8 +51,8 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Verify Gmail transporter (only if not using SendGrid)
-if (!process.env.SENDGRID_API_KEY) {
+// Verify Gmail transporter
+if (true) {
     transporter.verify((error, success) => {
         if (error) {
             console.error("❌ Gmail transporter error:", error.message);
@@ -305,6 +298,61 @@ app.post("/update-profile", verifyToken, async (req, res) => {
   }
 });
 
+// Get Shipping Address
+app.get("/get-shipping", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const result = await sql`
+      SELECT shipping_name, shipping_phone, shipping_address1, shipping_address2, 
+             shipping_city, shipping_state, shipping_postal, shipping_country
+      FROM users 
+      WHERE id = ${userId} 
+      LIMIT 1
+    `;
+
+    res.json({ shipping: result[0] || {} });
+  } catch (err) {
+    console.error("❌ Get shipping error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+// Update Shipping Address
+app.post("/update-shipping", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { shippingName, shippingPhone, shippingAddress1, shippingAddress2, 
+            shippingCity, shippingState, shippingPostal, shippingCountry } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const result = await sql`
+      UPDATE users 
+      SET shipping_name = ${shippingName},
+          shipping_phone = ${shippingPhone},
+          shipping_address1 = ${shippingAddress1},
+          shipping_address2 = ${shippingAddress2 || null},
+          shipping_city = ${shippingCity},
+          shipping_state = ${shippingState},
+          shipping_postal = ${shippingPostal},
+          shipping_country = ${shippingCountry}
+      WHERE id = ${userId}
+      RETURNING id
+    `;
+
+    res.json({ message: "Shipping address updated successfully" });
+  } catch (err) {
+    console.error("❌ Update shipping error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
 app.get("/logout", (req, res) => {
     req.session.destroy(() => {
         res.clearCookie('connect.sid', { path: '/' });
@@ -360,33 +408,18 @@ app.post("/send", async (req, res) => {
     `;
 
     try {
-        console.log("📤 Sending email...");
+        console.log("📤 Sending email via Gmail...");
         
-        // Use SendGrid if API key is available (for Render)
-        if (process.env.SENDGRID_API_KEY) {
-            const msg = {
-                to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-                from: process.env.SENDGRID_FROM_EMAIL || process.env.GMAIL_USER || "rajuit1396@gmail.com",
-                subject: "New Contact Form Message from Raju IT Website",
-                html: emailHtml,
-                replyTo: email
-            };
-            
-            await sgMail.send(msg);
-            console.log("✅ Email sent via SendGrid!");
-        } else {
-            // Use Gmail for local testing
-            const mailOptions = {
-                from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-                to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-                subject: "New Contact Form Message from Raju IT Website",
-                html: emailHtml,
-                replyTo: email
-            };
-            
-            await transporter.sendMail(mailOptions);
-            console.log("✅ Email sent via Gmail!");
-        }
+        const mailOptions = {
+            from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+            to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+            subject: "New Contact Form Message from Raju IT Website",
+            html: emailHtml,
+            replyTo: email
+        };
+        
+        await transporter.sendMail(mailOptions);
+        console.log("✅ Email sent successfully via Gmail!");
         
         res.json({ success: true, message: "Message sent successfully!" });
 
