@@ -36,6 +36,24 @@
       color: #ffc800 !important;
     }
     
+    /* Dropdown styling */
+    .dropdown-menu {
+      background-color: #212529;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      min-width: 10rem;
+    }
+    
+    .dropdown-item {
+      color: #fff;
+      padding: 0.5rem 1rem;
+      transition: all 0.3s;
+    }
+    
+    .dropdown-item:hover {
+      background-color: #ffc800;
+      color: #212529;
+    }
+    
     .dashboard-content { opacity: 0; transition: opacity 0.3s; }
     .dashboard-content.show { opacity: 1; }
   </style>
@@ -57,10 +75,14 @@
       <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
-        <li class="nav-item">
-          <a class="nav-link" id="navUserLink" href="#" style="text-transform: none;">Hello, <span id="navUserName">User</span></a>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navUserLink" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-transform: none;">
+            Hello, <span id="navUserName">User</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navUserLink">
+            <li><a class="dropdown-item" href="#" id="logoutBtn">Logout</a></li>
+          </ul>
         </li>
-        <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn">Logout</a></li>
       </ul>
     </div>
   </div>
