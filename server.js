@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
+const sgMail = require('@sendgrid/mail');
 
 const app = express();
 
@@ -37,28 +38,36 @@ app.use(session({
 const { neon } = require("@neondatabase/serverless");
 const sql = neon(process.env.NEON_DB);
 
-// ✅ Create persistent Gmail transporter (reuse across requests)
+// ✅ Configure SendGrid (for Render deployment)
+if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log("✅ SendGrid configured");
+}
+
+// ✅ Create Gmail transporter (for local testing)
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
     secure: false,
     auth: {
         user: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-        pass: process.env.GMAIL_APP_PASSWORD || "txcbwzsekhdciba"
+        pass: process.env.GMAIL_APP_PASSWORD || "otldvhcmpxmlqgyn"
     },
     tls: {
         rejectUnauthorized: false
     }
 });
 
-// Verify transporter connection on startup
-transporter.verify((error, success) => {
-    if (error) {
-        console.error("❌ Gmail transporter error:", error);
-    } else {
-        console.log("✅ Gmail transporter ready!");
-    }
-});
+// Verify Gmail transporter (only if not using SendGrid)
+if (!process.env.SENDGRID_API_KEY) {
+    transporter.verify((error, success) => {
+        if (error) {
+            console.error("❌ Gmail transporter error:", error.message);
+        } else {
+            console.log("✅ Gmail transporter ready!");
+        }
+    });
+}
 
 // Test connection
 (async () => {
@@ -333,34 +342,52 @@ app.post("/send", async (req, res) => {
 
     console.log("📧 Contact form submission:", { name, email, phone });
 
-    try {
-        // Email content
-        const mailOptions = {
-            from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-            to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-            subject: "New Contact Form Message from Raju IT Website",
-            html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
-                    <div style="background-color: white; padding: 20px; border-radius: 5px;">
-                        <h2 style="color: #ffc800;">New Contact Form Submission</h2>
-                        <hr style="border: 1px solid #eee;">
-                        <p><strong>Name:</strong> ${name}</p>
-                        <p><strong>Email:</strong> ${email}</p>
-                        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-                        <hr style="border: 1px solid #eee;">
-                        <h3>Message:</h3>
-                        <p style="background-color: #f9f9f9; padding: 15px; border-left: 3px solid #ffc800;">${message}</p>
-                        <hr style="border: 1px solid #eee;">
-                        <p style="color: #999; font-size: 12px;">This email was sent from the Raju IT contact form.</p>
-                    </div>
-                </div>
-            `
-        };
+    const emailHtml = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+            <div style="background-color: white; padding: 20px; border-radius: 5px;">
+                <h2 style="color: #ffc800;">New Contact Form Submission</h2>
+                <hr style="border: 1px solid #eee;">
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+                <hr style="border: 1px solid #eee;">
+                <h3>Message:</h3>
+                <p style="background-color: #f9f9f9; padding: 15px; border-left: 3px solid #ffc800;">${message}</p>
+                <hr style="border: 1px solid #eee;">
+                <p style="color: #999; font-size: 12px;">This email was sent from the Raju IT contact form.</p>
+            </div>
+        </div>
+    `;
 
+    try {
         console.log("📤 Sending email...");
-        await transporter.sendMail(mailOptions);
         
-        console.log("✅ Email sent successfully!");
+        // Use SendGrid if API key is available (for Render)
+        if (process.env.SENDGRID_API_KEY) {
+            const msg = {
+                to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+                from: process.env.SENDGRID_FROM_EMAIL || process.env.GMAIL_USER || "rajuit1396@gmail.com",
+                subject: "New Contact Form Message from Raju IT Website",
+                html: emailHtml,
+                replyTo: email
+            };
+            
+            await sgMail.send(msg);
+            console.log("✅ Email sent via SendGrid!");
+        } else {
+            // Use Gmail for local testing
+            const mailOptions = {
+                from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+                to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+                subject: "New Contact Form Message from Raju IT Website",
+                html: emailHtml,
+                replyTo: email
+            };
+            
+            await transporter.sendMail(mailOptions);
+            console.log("✅ Email sent via Gmail!");
+        }
+        
         res.json({ success: true, message: "Message sent successfully!" });
 
     } catch (error) {
