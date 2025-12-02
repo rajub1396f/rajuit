@@ -559,10 +559,29 @@
     if (cartContainer) cartContainer.style.display = "block";
     if (wishlistContainer) wishlistContainer.style.display = "block";
     
+    // ✅ Update cart and wishlist counts
+    updateBadgeCounts();
+    
     // ✅ Show WhatsApp widget after login
     const whatsappWidget = document.getElementById("whatsappWidget");
     if (whatsappWidget) {
       whatsappWidget.style.display = "block";
+    }
+  }
+
+  // Update badge counts function
+  function updateBadgeCounts() {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    
+    const cartCount = document.getElementById('cartCount');
+    const wishlistCount = document.getElementById('wishlistCount');
+    
+    if (cartCount) {
+      cartCount.textContent = cartItems.length;
+    }
+    if (wishlistCount) {
+      wishlistCount.textContent = wishlistItems.length;
     }
   }
 

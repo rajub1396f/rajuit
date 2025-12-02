@@ -768,6 +768,22 @@
     }
   }
 
+  // Update badge counts function
+  function updateBadgeCounts() {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    
+    const cartCount = document.getElementById('cartCount');
+    const wishlistCount = document.getElementById('wishlistCount');
+    
+    if (cartCount) {
+      cartCount.textContent = cartItems.length;
+    }
+    if (wishlistCount) {
+      wishlistCount.textContent = wishlistItems.length;
+    }
+  }
+
   // Shipping Address Functions
   function enableShippingEdit() {
     // Populate edit form
@@ -942,9 +958,14 @@
         }
       }
     } catch (err) {
-      console.error('Error loading orders:', err);
+      console.error('Error loading shipping address:', err);
     }
   })();
+
+  // Update badge counts on page load
+  window.addEventListener('DOMContentLoaded', () => {
+    updateBadgeCounts();
+  });
 </script>
 
 </body>
