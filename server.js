@@ -42,7 +42,7 @@ const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-        pass: process.env.GMAIL_APP_PASSWORD || "lsbezqbwpypnxaxx"
+        pass: process.env.GMAIL_APP_PASSWORD || "etxcbwzsekhdciba"
     },
     pool: {
         maxConnections: 1,
