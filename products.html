@@ -891,9 +891,17 @@
                 }
             }
 
-            // Load cart/wishlist counts on page load
+            // Load cart/wishlist counts on page load and check URL parameters
             window.addEventListener('DOMContentLoaded', () => {
                 updateBadgeCounts();
+                
+                // Check if collection is specified in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const collection = urlParams.get('collection');
+                
+                if (collection === 'male' || collection === 'female') {
+                    switchCollection(collection);
+                }
             });
 
             // Auth check and display logic (same as index.html)
