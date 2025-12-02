@@ -710,10 +710,33 @@
             
             const shippingAddress = `${shippingData.firstName} ${shippingData.lastName}, ${shippingData.address1}${shippingData.address2 ? ', ' + shippingData.address2 : ''}, ${shippingData.city}, ${shippingData.state} ${shippingData.postalCode}, ${shippingData.country}. Phone: ${shippingData.phone}`;
             
-            // Disable button
+            // Disable button and show processing message
             const btn = event.target;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+            
+            // Show processing message
+            const processingMessage = document.createElement('div');
+            processingMessage.id = 'processingMessage';
+            processingMessage.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(33, 37, 41, 0.95); color: white; padding: 30px 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 99999; text-align: center; min-width: 300px;';
+            processingMessage.innerHTML = `
+                <div style="font-size: 3em; margin-bottom: 15px;">
+                    <i class="fas fa-spinner fa-spin" style="color: #ffc800;"></i>
+                </div>
+                <h3 style="margin: 0 0 10px 0; font-size: 1.5em;">Processing Your Order</h3>
+                <p style="margin: 0; font-size: 1.1em; color: #dee2e6;">Please wait a minute while we complete your order...</p>
+                <div style="margin-top: 20px; font-size: 0.9em; color: #adb5bd;">
+                    <i class="fas fa-info-circle me-2"></i>Do not refresh or close this page
+                </div>
+            `;
+            
+            // Add overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'processingOverlay';
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99998;';
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(processingMessage);
             
             try {
                 const response = await fetch('/create-order', {
@@ -732,6 +755,12 @@
                 });
                 
                 const result = await response.json();
+                
+                // Remove processing message and overlay
+                const msgElement = document.getElementById('processingMessage');
+                const overlayElement = document.getElementById('processingOverlay');
+                if (msgElement) msgElement.remove();
+                if (overlayElement) overlayElement.remove();
                 
                 if (response.ok) {
                     // Clear cart
@@ -764,6 +793,13 @@
                 }
             } catch (error) {
                 console.error('Order error:', error);
+                
+                // Remove processing message and overlay
+                const msgElement = document.getElementById('processingMessage');
+                const overlayElement = document.getElementById('processingOverlay');
+                if (msgElement) msgElement.remove();
+                if (overlayElement) overlayElement.remove();
+                
                 alert('Error placing order: ' + error.message);
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Place Order';
