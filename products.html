@@ -8,6 +8,20 @@
         <link href="css/login.css" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
         <style>
+            /* Navbar styling to match dashboard */
+            #mainNav {
+                background-color: #212529 !important;
+            }
+            
+            #mainNav .navbar-nav .nav-item .nav-link {
+                color: #fff !important;
+            }
+            
+            #mainNav .navbar-nav .nav-item .nav-link:hover,
+            #mainNav .navbar-nav .nav-item .nav-link.active {
+                color: #ffc800 !important;
+            }
+            
             .sub-navbar {
                 background-color: #343a40;
                 padding: 15px 0;
@@ -76,6 +90,17 @@
             
             .collection-section.active {
                 display: block;
+            }
+            
+            /* Footer styling to match dashboard */
+            .footer {
+                background-color: #212529;
+                margin-top: 80px;
+            }
+            
+            .footer .text-lg-start,
+            .footer .text-lg-end a {
+                color: #fff !important;
             }
             
             @media (max-width: 768px) {
