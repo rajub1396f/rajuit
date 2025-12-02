@@ -25,11 +25,11 @@
     <h2>Login</h2>
 
     <div class="input-box">
-      <input type="email" placeholder="Enter your email" required>
+      <input type="email" name="email" placeholder="Enter your email" required>
     </div>
 
     <div class="input-box">
-      <input type="password" placeholder="Enter your password" required>
+      <input type="password" name="password" placeholder="Enter your password" required>
     </div>
 
     <div class="remember-forgot">
@@ -45,32 +45,27 @@
   </form>
 
   <!-- Register Form (Hidden initially) -->
-  <form id="registerForm" style="display: none;"">
+  <form id="registerForm" style="display: none;">
     <h2>Register</h2>
 
     <div class="input-box">
-      <input type="text" placeholder="Full Name" required>
+      <input type="text" name="name" placeholder="Full Name" required>
     </div>
 
     <div class="input-box">
-      <input type="email" placeholder="Email" required>
+      <input type="email" name="email" placeholder="Email" required>
     </div>
 
     <div class="input-box">
-      <input type="password" placeholder="Password" required>
+      <input type="password" name="password" placeholder="Password" required>
     </div>
 
     <div class="input-box">
-      <input type="tel" placeholder="Phone Number" required>
+      <input type="password" name="confirmpassword" placeholder="Confirm Password" required>
     </div>
 
     <div class="input-box">
-      <select required>
-        <option value="">Select Gender</option>
-        <option>Male</option>
-        <option>Female</option>
-        <option>Other</option>
-      </select>
+      <input type="tel" name="phone" placeholder="Phone Number" required>
     </div>
 
     <button type="submit" class="btn">Register</button>
@@ -92,5 +87,97 @@
       </div>
     </footer>
   </div>
+
+  <script>
+    // Toggle between login and register forms
+    document.getElementById('showRegister').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('registerForm').style.display = 'block';
+    });
+
+    document.getElementById('showLogin').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('registerForm').style.display = 'none';
+      document.getElementById('loginForm').style.display = 'block';
+    });
+
+    // Handle Login Form Submission
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const data = {
+        email: formData.get('email'),
+        password: formData.get('password')
+      };
+
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          // Store token in localStorage
+          localStorage.setItem('token', result.token);
+          alert('Login successful!');
+          window.location.href = result.redirect || '/dashboard.html';
+        } else {
+          alert(result.message || 'Login failed');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('An error occurred during login');
+      }
+    });
+
+    // Handle Register Form Submission
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const data = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+        confirmpassword: formData.get('confirmpassword'),
+        phone: formData.get('phone')
+      };
+
+      // Check if passwords match
+      if (data.password !== data.confirmpassword) {
+        alert('Passwords do not match!');
+        return;
+      }
+
+      try {
+        const response = await fetch('/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert('Registration successful! Please login.');
+          // Switch to login form
+          document.getElementById('registerForm').style.display = 'none';
+          document.getElementById('loginForm').style.display = 'block';
+          // Reset form
+          e.target.reset();
+        } else {
+          alert(result.message || 'Registration failed');
+        }
+      } catch (error) {
+        console.error('Register error:', error);
+        alert('An error occurred during registration');
+      }
+    });
+  </script>
 </body>
 </html>
