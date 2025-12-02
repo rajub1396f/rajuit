@@ -238,14 +238,19 @@ app.get("/dashboard", verifyToken, async (req, res) => {
 // Update Profile Route
 app.post("/update-profile", verifyToken, async (req, res) => {
   try {
-    const userId = req.user.id;
+    console.log("📝 Update profile request received");
+    console.log("Request body:", req.body);
+    console.log("User from token:", req.user);
+    
+    const userId = req.user?.id;
     const { name, phone, address } = req.body;
 
     if (!userId) {
+      console.log("❌ No user ID found");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    console.log("📝 Update profile request for user:", userId);
+    console.log("📝 Updating profile for user:", userId);
 
     // Check last edit date
     const userRows = await sql`SELECT last_profile_edit FROM users WHERE id = ${userId} LIMIT 1`;

@@ -328,7 +328,10 @@
         body: JSON.stringify(data)
       });
 
-      const result = await res.json();
+      const result = await res.json().catch(() => ({ message: 'Invalid server response' }));
+      
+      console.log('Update response status:', res.status);
+      console.log('Update response data:', result);
 
       if (res.ok) {
         // Update display
@@ -344,11 +347,12 @@
         cancelEdit();
         alert('Profile updated successfully!');
       } else {
-        alert(result.message || 'Failed to update profile');
+        console.error('Update failed:', result);
+        alert(result.message || 'Failed to update profile. Check console for details.');
       }
     } catch (err) {
       console.error('Update error:', err);
-      alert('Error updating profile');
+      alert('Error updating profile: ' + err.message);
     }
   });
 
