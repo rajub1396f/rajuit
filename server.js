@@ -224,7 +224,7 @@ app.get("/dashboard.html", (req, res) => {
 app.get("/dashboard", verifyToken, async (req, res) => {
   if (req.user && req.user.id) {
     try {
-      const userRows = await sql`SELECT id, name, email, phone, address FROM users WHERE id = ${req.user.id} LIMIT 1`;
+      const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${req.user.id} LIMIT 1`;
       const user = (userRows && userRows[0]) || req.user;
       return res.json({ message: "Welcome!", user });
     } catch (err) {
@@ -233,6 +233,63 @@ app.get("/dashboard", verifyToken, async (req, res) => {
     }
   }
   return res.json({ message: "Welcome!", user: req.user });
+});
+
+// Update Profile Route
+app.post("/update-profile", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { name, phone, address } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    console.log("📝 Update profile request for user:", userId);
+
+    // Check last edit date
+    const userRows = await sql`SELECT last_profile_edit FROM users WHERE id = ${userId} LIMIT 1`;
+    
+    if (userRows && userRows[0] && userRows[0].last_profile_edit) {
+      const lastEdit = new Date(userRows[0].last_profile_edit);
+      const now = new Date();
+      const daysSinceEdit = Math.floor((now - lastEdit) / (1000 * 60 * 60 * 24));
+      
+      if (daysSinceEdit < 7) {
+        const daysLeft = 7 - daysSinceEdit;
+        console.log(`❌ User tried to edit before 7 days. Days left: ${daysLeft}`);
+        return res.status(403).json({ 
+          message: `You can only edit your profile once every 7 days. Please try again in ${daysLeft} day(s).`,
+          daysLeft
+        });
+      }
+    }
+
+    // Update profile
+    console.log("💾 Updating profile...");
+    const result = await sql`
+      UPDATE users 
+      SET name = ${name}, 
+          phone = ${phone || null}, 
+          address = ${address || null},
+          last_profile_edit = NOW()
+      WHERE id = ${userId}
+      RETURNING id, name, email, phone, address, last_profile_edit;
+    `;
+
+    const updatedUser = result[0];
+    console.log("✅ Profile updated successfully:", updatedUser);
+
+    res.json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+      lastEditDate: updatedUser.last_profile_edit
+    });
+
+  } catch (err) {
+    console.error("❌ Update profile error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 app.get("/logout", (req, res) => {

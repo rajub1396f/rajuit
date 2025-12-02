@@ -94,11 +94,42 @@
     <div class="row">
       <div class="col-md-6">
         <div class="card p-4">
-          <h5>Account Details</h5>
-          <p><strong>Name:</strong> <span id="name"></span></p>
-          <p><strong>Email:</strong> <span id="email"></span></p>
-          <p><strong>Phone:</strong> <span id="phone"></span></p>
-          <p><strong>Address:</strong> <span id="address"></span></p>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Account Details</h5>
+            <button class="btn btn-sm btn-primary" id="editBtn" onclick="enableEdit()">Edit</button>
+          </div>
+          
+          <div id="viewMode">
+            <p><strong>Name:</strong> <span id="name"></span></p>
+            <p><strong>Email:</strong> <span id="email"></span></p>
+            <p><strong>Phone:</strong> <span id="phone"></span></p>
+            <p><strong>Address:</strong> <span id="address"></span></p>
+            <p id="lastEditInfo" class="text-muted small mt-3"></p>
+          </div>
+          
+          <form id="editMode" style="display: none;">
+            <div class="mb-3">
+              <label class="form-label"><strong>Name:</strong></label>
+              <input type="text" class="form-control" id="editName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Email:</strong></label>
+              <input type="email" class="form-control" id="editEmail" readonly disabled>
+              <small class="text-muted">Email cannot be changed</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Phone:</strong></label>
+              <input type="tel" class="form-control" id="editPhone">
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Address:</strong></label>
+              <textarea class="form-control" id="editAddress" rows="3"></textarea>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success">Save Changes</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+            </div>
+          </form>
         </div>
       </div>
       <div class="col-md-6">
@@ -206,6 +237,10 @@
       document.getElementById("phone").textContent = u.phone || "N/A";
       document.getElementById("address").textContent = u.address || "N/A";
       document.getElementById("navUserName").textContent = u.name || u.email || "User";
+      
+      // Set last edit date
+      userLastEditDate = u.last_profile_edit || null;
+      updateLastEditInfo();
 
       // ✅ Show content
       loadingScreen.classList.add("hidden");
@@ -234,6 +269,104 @@
     });
     window.location.href = "/";
   });
+
+  // Edit Profile Functions
+  let userLastEditDate = null;
+
+  function enableEdit() {
+    const now = new Date();
+    
+    // Check if 7 days have passed since last edit
+    if (userLastEditDate) {
+      const lastEdit = new Date(userLastEditDate);
+      const daysSinceEdit = Math.floor((now - lastEdit) / (1000 * 60 * 60 * 24));
+      
+      if (daysSinceEdit < 7) {
+        const daysLeft = 7 - daysSinceEdit;
+        alert(`You can edit your profile again in ${daysLeft} day(s). Last edited on ${lastEdit.toLocaleDateString()}`);
+        return;
+      }
+    }
+    
+    // Populate edit form
+    document.getElementById('editName').value = document.getElementById('name').textContent;
+    document.getElementById('editEmail').value = document.getElementById('email').textContent;
+    document.getElementById('editPhone').value = document.getElementById('phone').textContent || '';
+    document.getElementById('editAddress').value = document.getElementById('address').textContent !== 'N/A' ? document.getElementById('address').textContent : '';
+    
+    // Toggle views
+    document.getElementById('viewMode').style.display = 'none';
+    document.getElementById('editMode').style.display = 'block';
+    document.getElementById('editBtn').style.display = 'none';
+  }
+
+  function cancelEdit() {
+    document.getElementById('viewMode').style.display = 'block';
+    document.getElementById('editMode').style.display = 'none';
+    document.getElementById('editBtn').style.display = 'block';
+  }
+
+  // Handle edit form submission
+  document.getElementById('editMode').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const token = localStorage.getItem("token");
+    const data = {
+      name: document.getElementById('editName').value,
+      phone: document.getElementById('editPhone').value,
+      address: document.getElementById('editAddress').value
+    };
+
+    try {
+      const res = await fetch('/update-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        // Update display
+        document.getElementById('name').textContent = data.name;
+        document.getElementById('phone').textContent = data.phone || 'N/A';
+        document.getElementById('address').textContent = data.address || 'N/A';
+        document.getElementById('navUserName').textContent = data.name;
+        
+        // Update last edit date
+        userLastEditDate = result.lastEditDate || new Date().toISOString();
+        updateLastEditInfo();
+        
+        cancelEdit();
+        alert('Profile updated successfully!');
+      } else {
+        alert(result.message || 'Failed to update profile');
+      }
+    } catch (err) {
+      console.error('Update error:', err);
+      alert('Error updating profile');
+    }
+  });
+
+  function updateLastEditInfo() {
+    const lastEditInfoEl = document.getElementById('lastEditInfo');
+    if (userLastEditDate) {
+      const lastEdit = new Date(userLastEditDate);
+      const now = new Date();
+      const daysSinceEdit = Math.floor((now - lastEdit) / (1000 * 60 * 60 * 24));
+      const daysUntilNext = Math.max(0, 7 - daysSinceEdit);
+      
+      if (daysUntilNext > 0) {
+        lastEditInfoEl.textContent = `Last edited: ${lastEdit.toLocaleDateString()}. You can edit again in ${daysUntilNext} day(s).`;
+      } else {
+        lastEditInfoEl.textContent = `Last edited: ${lastEdit.toLocaleDateString()}. You can edit your profile now.`;
+      }
+    }
+  }
 </script>
 
 </body>

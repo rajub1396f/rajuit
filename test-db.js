@@ -43,11 +43,29 @@ const sql = neon(process.env.NEON_DB);
           password VARCHAR(255) NOT NULL,
           phone VARCHAR(50),
           address TEXT,
+          last_profile_edit TIMESTAMP,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `;
       
       console.log('✅ Users table created successfully!');
+    }
+    
+    // Check if last_profile_edit column exists, if not add it
+    try {
+      const columnCheck = await sql`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'last_profile_edit'
+      `;
+      
+      if (columnCheck.length === 0) {
+        console.log('Adding last_profile_edit column...');
+        await sql`ALTER TABLE users ADD COLUMN last_profile_edit TIMESTAMP`;
+        console.log('✅ Column added successfully!');
+      }
+    } catch (err) {
+      console.log('Note: Could not check/add last_profile_edit column:', err.message);
     }
     
   } catch (err) {
