@@ -395,7 +395,7 @@ app.get("/get-orders", verifyToken, async (req, res) => {
 app.post("/create-order", verifyToken, async (req, res) => {
   try {
     const userId = req.user?.id;
-    const { items, totalAmount, shippingAddress } = req.body;
+    const { items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
     if (!userId) {
       return res.status(401).json({ message: "User not authenticated" });
@@ -405,14 +405,19 @@ app.post("/create-order", verifyToken, async (req, res) => {
       return res.status(400).json({ message: "No items in order" });
     }
 
+    // Get user details
+    const userResult = await sql`SELECT name, email FROM users WHERE id = ${userId}`;
+    const user = userResult[0];
+
     // Create order
     const orderResult = await sql`
       INSERT INTO orders (user_id, total_amount, status, shipping_address)
       VALUES (${userId}, ${totalAmount}, 'pending', ${shippingAddress})
-      RETURNING id
+      RETURNING id, created_at
     `;
 
     const orderId = orderResult[0].id;
+    const orderDate = new Date(orderResult[0].created_at);
 
     // Insert order items
     for (const item of items) {
@@ -422,13 +427,297 @@ app.post("/create-order", verifyToken, async (req, res) => {
       `;
     }
 
+    // Generate invoice HTML
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = 50;
+    const tax = subtotal * 0.15;
+    const total = subtotal + shipping + tax;
+
+    const invoiceHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .invoice-header { background: #212529; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .invoice-header h1 { margin: 0; font-size: 2.5em; }
+        .invoice-header p { margin: 5px 0; }
+        .invoice-details { background: #f8f9fa; padding: 20px; border-left: 5px solid #ffc800; margin: 20px 0; }
+        .invoice-details-row { display: flex; justify-content: space-between; margin: 10px 0; }
+        .invoice-details strong { color: #212529; }
+        .section-title { background: #ffc800; color: #212529; padding: 10px 20px; font-weight: bold; margin: 20px 0 10px 0; }
+        .info-box { background: white; border: 1px solid #dee2e6; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #343a40; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #dee2e6; }
+        tr:hover { background: #f8f9fa; }
+        .text-right { text-align: right; }
+        .totals { margin-top: 20px; float: right; width: 300px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6; }
+        .totals-row.total { background: #212529; color: white; padding: 12px; margin-top: 10px; font-size: 1.2em; font-weight: bold; }
+        .footer { text-align: center; margin-top: 50px; padding: 20px; background: #f8f9fa; color: #6c757d; }
+        .thank-you { text-align: center; font-size: 1.5em; color: #28a745; margin: 30px 0; }
+    </style>
+</head>
+<body>
+    <div class="invoice-header">
+        <h1>INVOICE</h1>
+        <p>Raju IT - Premium Fashion Store</p>
+        <p>📧 rajuit1396@gmail.com | 📱 +966539082027</p>
+    </div>
+    
+    <div class="invoice-details">
+        <div class="invoice-details-row">
+            <div><strong>Invoice Number:</strong> #INV-${orderId.toString().padStart(6, '0')}</div>
+            <div><strong>Order Number:</strong> #ORD-${orderId.toString().padStart(6, '0')}</div>
+        </div>
+        <div class="invoice-details-row">
+            <div><strong>Invoice Date:</strong> ${orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div><strong>Payment Method:</strong> ${paymentMethod === 'cod' ? 'Cash on Delivery' : paymentMethod === 'card' ? 'Credit/Debit Card' : 'Bank Transfer'}</div>
+        </div>
+    </div>
+    
+    <div class="section-title">CUSTOMER INFORMATION</div>
+    <div class="info-box">
+        <strong>${user.name}</strong><br>
+        Email: ${user.email}<br>
+        ${shippingAddress}
+    </div>
+    
+    <div class="section-title">ORDER ITEMS</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th class="text-right">Price</th>
+                <th class="text-right">Quantity</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${items.map(item => `
+            <tr>
+                <td>${item.name}</td>
+                <td class="text-right">SAR ${item.price.toFixed(2)}</td>
+                <td class="text-right">${item.quantity}</td>
+                <td class="text-right">SAR ${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>
+            `).join('')}
+        </tbody>
+    </table>
+    
+    <div style="clear: both;"></div>
+    <div class="totals">
+        <div class="totals-row">
+            <span>Subtotal:</span>
+            <span>SAR ${subtotal.toFixed(2)}</span>
+        </div>
+        <div class="totals-row">
+            <span>Shipping:</span>
+            <span>SAR ${shipping.toFixed(2)}</span>
+        </div>
+        <div class="totals-row">
+            <span>Tax (15%):</span>
+            <span>SAR ${tax.toFixed(2)}</span>
+        </div>
+        <div class="totals-row total">
+            <span>TOTAL:</span>
+            <span>SAR ${total.toFixed(2)}</span>
+        </div>
+    </div>
+    
+    <div style="clear: both;"></div>
+    <div class="thank-you">Thank You for Your Order! 🎉</div>
+    
+    <div class="footer">
+        <p><strong>Terms & Conditions:</strong></p>
+        <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
+        For questions about this invoice, contact us at rajuit1396@gmail.com or +966539082027</p>
+        <p style="margin-top: 20px;">© 2025 Raju IT. All rights reserved.</p>
+    </div>
+</body>
+</html>
+    `;
+
+    // Send invoice email to customer
+    try {
+      await transporter.sendMail({
+        from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+        to: user.email,
+        subject: `Order Confirmation & Invoice #${orderId.toString().padStart(6, '0')} - Raju IT`,
+        html: invoiceHtml
+      });
+      console.log(`✅ Invoice sent to ${user.email}`);
+    } catch (emailError) {
+      console.error("❌ Error sending invoice email:", emailError);
+    }
+
     res.json({ 
       success: true, 
       message: "Order created successfully", 
-      orderId 
+      orderId,
+      invoiceHtml
     });
   } catch (err) {
     console.error("❌ Create order error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+// Get invoice for a specific order
+app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const orderId = req.params.orderId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Get order details
+    const orderResult = await sql`
+      SELECT o.*, u.name, u.email 
+      FROM orders o
+      JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId} AND o.user_id = ${userId}
+    `;
+
+    if (!orderResult || orderResult.length === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const order = orderResult[0];
+
+    // Get order items
+    const itemsResult = await sql`
+      SELECT product_name as name, product_image as image, quantity, price
+      FROM order_items
+      WHERE order_id = ${orderId}
+    `;
+
+    const items = itemsResult;
+    const orderDate = new Date(order.created_at);
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = 50;
+    const tax = subtotal * 0.15;
+    const total = parseFloat(order.total_amount);
+
+    // Generate invoice HTML
+    const invoiceHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .invoice-header { background: #212529; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .invoice-header h1 { margin: 0; font-size: 2.5em; }
+        .invoice-header p { margin: 5px 0; }
+        .invoice-details { background: #f8f9fa; padding: 20px; border-left: 5px solid #ffc800; margin: 20px 0; }
+        .invoice-details-row { display: flex; justify-content: space-between; margin: 10px 0; }
+        .invoice-details strong { color: #212529; }
+        .section-title { background: #ffc800; color: #212529; padding: 10px 20px; font-weight: bold; margin: 20px 0 10px 0; }
+        .info-box { background: white; border: 1px solid #dee2e6; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #343a40; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #dee2e6; }
+        tr:hover { background: #f8f9fa; }
+        .text-right { text-align: right; }
+        .totals { margin-top: 20px; float: right; width: 300px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6; }
+        .totals-row.total { background: #212529; color: white; padding: 12px; margin-top: 10px; font-size: 1.2em; font-weight: bold; }
+        .footer { text-align: center; margin-top: 50px; padding: 20px; background: #f8f9fa; color: #6c757d; }
+        .thank-you { text-align: center; font-size: 1.5em; color: #28a745; margin: 30px 0; }
+    </style>
+</head>
+<body>
+    <div class="invoice-header">
+        <h1>INVOICE</h1>
+        <p>Raju IT - Premium Fashion Store</p>
+        <p>📧 rajuit1396@gmail.com | 📱 +966539082027</p>
+    </div>
+    
+    <div class="invoice-details">
+        <div class="invoice-details-row">
+            <div><strong>Invoice Number:</strong> #INV-${orderId.toString().padStart(6, '0')}</div>
+            <div><strong>Order Number:</strong> #ORD-${orderId.toString().padStart(6, '0')}</div>
+        </div>
+        <div class="invoice-details-row">
+            <div><strong>Invoice Date:</strong> ${orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div><strong>Status:</strong> ${order.status}</div>
+        </div>
+    </div>
+    
+    <div class="section-title">CUSTOMER INFORMATION</div>
+    <div class="info-box">
+        <strong>${order.name}</strong><br>
+        Email: ${order.email}<br>
+        ${order.shipping_address}
+    </div>
+    
+    <div class="section-title">ORDER ITEMS</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th class="text-right">Price</th>
+                <th class="text-right">Quantity</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${items.map(item => `
+            <tr>
+                <td>${item.name}</td>
+                <td class="text-right">SAR ${item.price.toFixed(2)}</td>
+                <td class="text-right">${item.quantity}</td>
+                <td class="text-right">SAR ${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>
+            `).join('')}
+        </tbody>
+    </table>
+    
+    <div style="clear: both;"></div>
+    <div class="totals">
+        <div class="totals-row">
+            <span>Subtotal:</span>
+            <span>SAR ${subtotal.toFixed(2)}</span>
+        </div>
+        <div class="totals-row">
+            <span>Shipping:</span>
+            <span>SAR ${shipping.toFixed(2)}</span>
+        </div>
+        <div class="totals-row">
+            <span>Tax (15%):</span>
+            <span>SAR ${tax.toFixed(2)}</span>
+        </div>
+        <div class="totals-row total">
+            <span>TOTAL:</span>
+            <span>SAR ${total.toFixed(2)}</span>
+        </div>
+    </div>
+    
+    <div style="clear: both;"></div>
+    <div class="thank-you">Thank You for Your Order! 🎉</div>
+    
+    <div class="footer">
+        <p><strong>Terms & Conditions:</strong></p>
+        <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
+        For questions about this invoice, contact us at rajuit1396@gmail.com or +966539082027</p>
+        <p style="margin-top: 20px;">© 2025 Raju IT. All rights reserved.</p>
+    </div>
+</body>
+</html>
+    `;
+
+    res.json({ 
+      success: true, 
+      invoiceHtml,
+      orderId
+    });
+  } catch (err) {
+    console.error("❌ Get invoice error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });

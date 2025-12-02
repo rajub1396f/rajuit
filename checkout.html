@@ -737,11 +737,26 @@
                     // Clear cart
                     localStorage.removeItem('cart');
                     
-                    // Show success message
-                    alert('Order placed successfully! Order ID: #' + result.orderId);
+                    // Store invoice HTML in session storage
+                    if (result.invoiceHtml) {
+                        sessionStorage.setItem(`invoice_${result.orderId}`, result.invoiceHtml);
+                    }
                     
-                    // Redirect to dashboard
-                    window.location.href = '/dashboard.html';
+                    // Show success message with option to view invoice
+                    const viewInvoice = confirm(
+                        `✅ Order placed successfully!\n\n` +
+                        `Order ID: #${result.orderId}\n` +
+                        `Invoice has been sent to your email.\n\n` +
+                        `Click OK to view/download invoice, or Cancel to go to dashboard.`
+                    );
+                    
+                    if (viewInvoice) {
+                        // Redirect to invoice page
+                        window.location.href = `/invoice.html?id=${result.orderId}`;
+                    } else {
+                        // Redirect to dashboard
+                        window.location.href = '/dashboard.html';
+                    }
                 } else {
                     alert(result.message || 'Failed to place order. Please try again.');
                     btn.disabled = false;
