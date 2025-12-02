@@ -23,6 +23,18 @@
                     <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
                     <li class="nav-item"><a class="nav-link" href="#about">About Us</a></li>
                     <li class="nav-item"><a class="nav-link" href="#contact">Contact Us</a></li>
+                    <li class="nav-item" id="wishlistContainer" style="display: none;">
+                      <a class="nav-link" href="#" id="wishlistBtn" title="Wishlist">
+                        <i class="fas fa-heart"></i>
+                        <span class="badge bg-danger" id="wishlistCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
+                      </a>
+                    </li>
+                    <li class="nav-item" id="cartContainer" style="display: none;">
+                      <a class="nav-link" href="#" id="cartBtn" title="Cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="badge bg-primary" id="cartCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
+                      </a>
+                    </li>
                     <li class="nav-item" id="authContainer">
                       <a class="nav-link" href="#" id="navLoginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
                     </li>
@@ -540,6 +552,12 @@
       logoutBtn.innerHTML = '<a class="nav-link" href="/logout">Logout</a>';
       authContainer.parentElement.appendChild(logoutBtn);
     }
+    
+    // ✅ Show cart and wishlist after login
+    const cartContainer = document.getElementById("cartContainer");
+    const wishlistContainer = document.getElementById("wishlistContainer");
+    if (cartContainer) cartContainer.style.display = "block";
+    if (wishlistContainer) wishlistContainer.style.display = "block";
     
     // ✅ Show WhatsApp widget after login
     const whatsappWidget = document.getElementById("whatsappWidget");
