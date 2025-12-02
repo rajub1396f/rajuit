@@ -330,7 +330,9 @@ app.use(express.static(path.join(__dirname, 'project')));
 
 // POST route for contact form - OPTIMIZED
 app.post("/send", async (req, res) => {
-    const { name, email, message } = req.body;
+    const { name, email, phone, message } = req.body;
+
+    console.log("📧 Contact form submission:", { name, email, phone });
 
     try {
         // Create Gmail transporter
@@ -346,11 +348,22 @@ app.post("/send", async (req, res) => {
         const mailOptions = {
             from: email,
             to: "rajuit1396@gmail.com",
-            subject: "New Contact Form Message",
+            subject: "New Contact Form Message from Raju IT Website",
             html: `
-                <h3>New message from: ${name}</h3>
-                <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Message:</strong><br>${message}</p>
+                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+                    <div style="background-color: white; padding: 20px; border-radius: 5px;">
+                        <h2 style="color: #ffc800;">New Contact Form Submission</h2>
+                        <hr style="border: 1px solid #eee;">
+                        <p><strong>Name:</strong> ${name}</p>
+                        <p><strong>Email:</strong> ${email}</p>
+                        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+                        <hr style="border: 1px solid #eee;">
+                        <h3>Message:</h3>
+                        <p style="background-color: #f9f9f9; padding: 15px; border-left: 3px solid #ffc800;">${message}</p>
+                        <hr style="border: 1px solid #eee;">
+                        <p style="color: #999; font-size: 12px;">This email was sent from the Raju IT contact form.</p>
+                    </div>
+                </div>
             `
         };
 

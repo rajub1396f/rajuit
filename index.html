@@ -504,7 +504,71 @@ document.getElementById("registerForm").addEventListener("submit", async functio
   }
 });
 
-// ✅ Contact Form Handler - OPTIMIZED with detailed logging
+// ✅ Contact Form Handler
+document.getElementById('contactForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const submitBtn = document.getElementById('submitButton');
+  const buttonText = document.getElementById('buttonText');
+  const buttonSpinner = document.getElementById('buttonSpinner');
+  const successMsg = document.getElementById('submitSuccessMessage');
+  const errorMsg = document.getElementById('submitErrorMessage');
+  const errorText = document.getElementById('errorText');
+  
+  // Clear previous messages
+  successMsg.classList.add('d-none');
+  errorMsg.classList.add('d-none');
+  
+  // Show loading state
+  submitBtn.disabled = true;
+  buttonText.textContent = 'Sending...';
+  buttonSpinner.classList.remove('d-none');
+  
+  // Get form data
+  const formData = new FormData(e.target);
+  const data = {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    phone: formData.get('phone'),
+    message: formData.get('message')
+  };
+  
+  try {
+    const response = await fetch('/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok && result.success) {
+      // Show success message
+      successMsg.classList.remove('d-none');
+      e.target.reset(); // Clear form
+      
+      // Scroll to success message
+      successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      // Show error message
+      errorText.textContent = result.message || 'Error sending message. Please try again later.';
+      errorMsg.classList.remove('d-none');
+      errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  } catch (error) {
+    console.error('Contact form error:', error);
+    errorText.textContent = 'Network error. Please check your connection and try again.';
+    errorMsg.classList.remove('d-none');
+    errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } finally {
+    // Reset button state
+    submitBtn.disabled = false;
+    buttonText.textContent = 'Send Message';
+    buttonSpinner.classList.add('d-none');
+  }
+});
 
         </script>
     </body>
