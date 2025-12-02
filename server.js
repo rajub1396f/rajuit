@@ -335,19 +335,10 @@ app.post("/send", async (req, res) => {
     console.log("📧 Contact form submission:", { name, email, phone });
 
     try {
-        // Create Gmail transporter
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: "rajuit1396@gmail.com",
-                pass: "etxcbwzsekhdciba"
-            }
-        });
-
         // Email content
         const mailOptions = {
-            from: email,
-            to: "rajuit1396@gmail.com",
+            from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+            to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
             subject: "New Contact Form Message from Raju IT Website",
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
