@@ -280,7 +280,7 @@
                   </div>
                   <div class="mb-3">
                     <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
-                    <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Confirm your password" required>
+                    <input type="password" class="form-control" name="confirmpassword" id="registerConfirmPassword" placeholder="Confirm your password" required>
                   </div>
                   <div class="mb-3">
                     <label for="registerPhone" class="form-label">Phone Number</label>
@@ -445,6 +445,62 @@ document.getElementById("loginForm").addEventListener("submit", async function (
   } catch (err) {
     console.error(err);
     alert("Network error during login");
+  }
+});
+
+// ✅ Register Form Handler
+document.getElementById("registerForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  const data = {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+    confirmpassword: formData.get('confirmpassword'),
+    phone: formData.get('phone')
+  };
+
+  console.log("📝 Registering user:", data.email);
+
+  // Validate passwords match
+  if (data.password !== data.confirmpassword) {
+    alert("Passwords do not match!");
+    return;
+  }
+
+  try {
+    const res = await fetch("/register", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(data),
+      credentials: "include"
+    });
+    
+    const result = await res.json().catch(()=>null);
+
+    if (res.ok) {
+      alert("Registration successful! Please login.");
+      
+      // Close register modal
+      const registerModalEl = document.getElementById('registerModal');
+      const registerModal = bootstrap.Modal.getInstance(registerModalEl);
+      if (registerModal) registerModal.hide();
+      
+      // Reset form
+      e.target.reset();
+      
+      // Open login modal after a short delay
+      setTimeout(() => {
+        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+        loginModal.show();
+      }, 500);
+    } else {
+      alert(result?.message || "Registration failed");
+    }
+  } catch (err) {
+    console.error("Register error:", err);
+    alert("Network error during registration");
   }
 });
 
