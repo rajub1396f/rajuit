@@ -7,6 +7,123 @@
         <link href="css/styles.css" rel="stylesheet" />
         <link href="css/login.css" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <style>
+            /* Cart and Wishlist Dropdown Styling */
+            .cart-dropdown, .wishlist-dropdown {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                width: 350px;
+                max-height: 400px;
+                overflow-y: auto;
+                z-index: 9999;
+                display: none;
+                margin-top: 10px;
+            }
+            
+            .cart-dropdown.show, .wishlist-dropdown.show {
+                display: block;
+            }
+            
+            .dropdown-header {
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+                font-weight: bold;
+                background: #f8f9fa;
+                border-radius: 8px 8px 0 0;
+            }
+            
+            .dropdown-items {
+                max-height: 250px;
+                overflow-y: auto;
+            }
+            
+            .dropdown-item-card {
+                padding: 12px 15px;
+                border-bottom: 1px solid #f1f1f1;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                transition: background 0.2s;
+            }
+            
+            .dropdown-item-card:hover {
+                background: #f8f9fa;
+            }
+            
+            .dropdown-item-card:last-child {
+                border-bottom: none;
+            }
+            
+            .item-image {
+                width: 60px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 4px;
+            }
+            
+            .item-details {
+                flex: 1;
+            }
+            
+            .item-name {
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 4px;
+                font-size: 14px;
+            }
+            
+            .item-price {
+                color: #666;
+                font-size: 13px;
+            }
+            
+            .item-quantity {
+                color: #999;
+                font-size: 12px;
+            }
+            
+            .item-remove {
+                background: none;
+                border: none;
+                color: #dc3545;
+                cursor: pointer;
+                font-size: 18px;
+                padding: 5px;
+            }
+            
+            .item-remove:hover {
+                color: #a71d2a;
+            }
+            
+            .dropdown-footer {
+                padding: 15px;
+                border-top: 1px solid #eee;
+                background: #f8f9fa;
+                border-radius: 0 0 8px 8px;
+            }
+            
+            .empty-message {
+                padding: 30px 15px;
+                text-align: center;
+                color: #999;
+            }
+            
+            .empty-message i {
+                font-size: 48px;
+                margin-bottom: 10px;
+                opacity: 0.5;
+            }
+            
+            /* Position dropdown containers */
+            .nav-item {
+                position: relative;
+            }
+        </style>
     </head>
     <body id="page-top">
         <!-- Navigation-->
@@ -28,12 +145,14 @@
                         <i class="fas fa-heart"></i>
                         <span class="badge bg-danger" id="wishlistCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
                       </a>
+                      <div class="wishlist-dropdown" id="wishlistDropdown"></div>
                     </li>
                     <li class="nav-item" id="cartContainer" style="display: none;">
                       <a class="nav-link" href="#" id="cartBtn" title="Cart">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge bg-primary" id="cartCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
                       </a>
+                      <div class="cart-dropdown" id="cartDropdown"></div>
                     </li>
                     <li class="nav-item" id="authContainer">
                       <a class="nav-link" href="#" id="navLoginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
@@ -584,6 +703,178 @@
       wishlistCount.textContent = wishlistItems.length;
     }
   }
+
+  // Cart and Wishlist Dropdown Functions
+  function toggleCartDropdown() {
+    const dropdown = document.getElementById('cartDropdown');
+    const wishlistDropdown = document.getElementById('wishlistDropdown');
+    
+    // Close wishlist if open
+    if (wishlistDropdown) {
+      wishlistDropdown.classList.remove('show');
+    }
+    
+    if (dropdown) {
+      dropdown.classList.toggle('show');
+      if (dropdown.classList.contains('show')) {
+        renderCartDropdown();
+      }
+    }
+  }
+
+  function toggleWishlistDropdown() {
+    const dropdown = document.getElementById('wishlistDropdown');
+    const cartDropdown = document.getElementById('cartDropdown');
+    
+    // Close cart if open
+    if (cartDropdown) {
+      cartDropdown.classList.remove('show');
+    }
+    
+    if (dropdown) {
+      dropdown.classList.toggle('show');
+      if (dropdown.classList.contains('show')) {
+        renderWishlistDropdown();
+      }
+    }
+  }
+
+  function renderCartDropdown() {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const dropdown = document.getElementById('cartDropdown');
+    
+    if (!dropdown) return;
+    
+    if (cartItems.length === 0) {
+      dropdown.innerHTML = `
+        <div class="empty-message">
+          <i class="fas fa-shopping-cart"></i>
+          <p>Your cart is empty</p>
+        </div>
+      `;
+      return;
+    }
+    
+    const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    dropdown.innerHTML = `
+      <div class="dropdown-header">
+        Shopping Cart (${cartItems.length} items)
+      </div>
+      <div class="dropdown-items">
+        ${cartItems.map((item, index) => `
+          <div class="dropdown-item-card">
+            <img src="/assets/img/products/aaa777.jpg" alt="${item.name}" class="item-image">
+            <div class="item-details">
+              <div class="item-name">${item.name}</div>
+              <div class="item-price">SAR ${item.price}</div>
+              <div class="item-quantity">Quantity: ${item.quantity}</div>
+            </div>
+            <button class="item-remove" onclick="removeFromCart(${index})" title="Remove">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `).join('')}
+      </div>
+      <div class="dropdown-footer">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <strong style="color: #333;">Total: SAR ${total.toFixed(2)}</strong>
+          <button class="btn btn-primary btn-sm" onclick="window.location.href='checkout.html'">Checkout</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderWishlistDropdown() {
+    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    const dropdown = document.getElementById('wishlistDropdown');
+    
+    if (!dropdown) return;
+    
+    if (wishlistItems.length === 0) {
+      dropdown.innerHTML = `
+        <div class="empty-message">
+          <i class="fas fa-heart"></i>
+          <p>Your wishlist is empty</p>
+        </div>
+      `;
+      return;
+    }
+    
+    dropdown.innerHTML = `
+      <div class="dropdown-header">
+        Wishlist (${wishlistItems.length} items)
+      </div>
+      <div class="dropdown-items">
+        ${wishlistItems.map((item, index) => `
+          <div class="dropdown-item-card">
+            <img src="/assets/img/products/aaa777.jpg" alt="${item}" class="item-image">
+            <div class="item-details">
+              <div class="item-name">${item}</div>
+            </div>
+            <button class="item-remove" onclick="removeFromWishlist(${index})" title="Remove">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `).join('')}
+      </div>
+      <div class="dropdown-footer">
+        <button class="btn btn-outline-primary btn-sm w-100" onclick="window.location.href='products.html'">Continue Shopping</button>
+      </div>
+    `;
+  }
+
+  function removeFromCart(index) {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    cartItems.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+    updateBadgeCounts();
+    renderCartDropdown();
+  }
+
+  function removeFromWishlist(index) {
+    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    wishlistItems.splice(index, 1);
+    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+    updateBadgeCounts();
+    renderWishlistDropdown();
+  }
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', function(e) {
+    const cartBtn = document.getElementById('cartBtn');
+    const wishlistBtn = document.getElementById('wishlistBtn');
+    const cartDropdown = document.getElementById('cartDropdown');
+    const wishlistDropdown = document.getElementById('wishlistDropdown');
+    
+    if (cartBtn && !cartBtn.contains(e.target) && cartDropdown && !cartDropdown.contains(e.target)) {
+      cartDropdown.classList.remove('show');
+    }
+    
+    if (wishlistBtn && !wishlistBtn.contains(e.target) && wishlistDropdown && !wishlistDropdown.contains(e.target)) {
+      wishlistDropdown.classList.remove('show');
+    }
+  });
+
+  // Attach click events to cart and wishlist buttons
+  window.addEventListener('DOMContentLoaded', () => {
+    const cartBtn = document.getElementById('cartBtn');
+    const wishlistBtn = document.getElementById('wishlistBtn');
+    
+    if (cartBtn) {
+      cartBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleCartDropdown();
+      });
+    }
+    
+    if (wishlistBtn) {
+      wishlistBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleWishlistDropdown();
+      });
+    }
+  });
 
   // WhatsApp Chat Functions
   function toggleWhatsAppChat() {
