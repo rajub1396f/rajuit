@@ -39,16 +39,15 @@ const sql = neon(process.env.NEON_DB);
 
 // ✅ Create persistent Gmail transporter (reuse across requests)
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-        pass: process.env.GMAIL_APP_PASSWORD || "etxcbwzsekhdciba"
+        pass: process.env.GMAIL_APP_PASSWORD || "txcbwzsekhdciba"
     },
-    pool: {
-        maxConnections: 1,
-        maxMessages: 5,
-        rateDelta: 2000,
-        rateLimit: 5
+    tls: {
+        rejectUnauthorized: false
     }
 });
 
