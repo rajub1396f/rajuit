@@ -116,6 +116,61 @@ const sql = neon(process.env.NEON_DB);
       }
     }
     
+    // Create orders table if it doesn't exist
+    try {
+      const ordersTableCheck = await sql`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'orders'
+      `;
+      
+      if (ordersTableCheck.length === 0) {
+        console.log('Creating orders table...');
+        await sql`
+          CREATE TABLE orders (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id),
+            total_amount DECIMAL(10, 2) NOT NULL,
+            status VARCHAR(50) DEFAULT 'pending',
+            shipping_address TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        `;
+        console.log('✅ Orders table created successfully!');
+      } else {
+        console.log('Orders table already exists');
+      }
+      
+      // Create order_items table if it doesn't exist
+      const orderItemsTableCheck = await sql`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'order_items'
+      `;
+      
+      if (orderItemsTableCheck.length === 0) {
+        console.log('Creating order_items table...');
+        await sql`
+          CREATE TABLE order_items (
+            id SERIAL PRIMARY KEY,
+            order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+            product_name VARCHAR(255) NOT NULL,
+            product_image TEXT,
+            quantity INTEGER NOT NULL DEFAULT 1,
+            price DECIMAL(10, 2) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        `;
+        console.log('✅ Order_items table created successfully!');
+      } else {
+        console.log('Order_items table already exists');
+      }
+      
+    } catch (err) {
+      console.log('Note: Could not check/create orders tables:', err.message);
+    }
+    
   } catch (err) {
     console.error('❌ Error:', err.message);
     console.error('Full error:', err);

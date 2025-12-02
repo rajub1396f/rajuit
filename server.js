@@ -353,6 +353,86 @@ app.post("/update-shipping", verifyToken, async (req, res) => {
   }
 });
 
+// Get Orders
+app.get("/get-orders", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Get orders with items
+    const orders = await sql`
+      SELECT 
+        o.id, 
+        o.total_amount, 
+        o.status, 
+        o.shipping_address, 
+        o.created_at,
+        json_agg(
+          json_build_object(
+            'name', oi.product_name,
+            'image', oi.product_image,
+            'quantity', oi.quantity,
+            'price', oi.price
+          )
+        ) as items
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      WHERE o.user_id = ${userId}
+      GROUP BY o.id, o.total_amount, o.status, o.shipping_address, o.created_at
+      ORDER BY o.created_at DESC
+    `;
+
+    res.json({ orders });
+  } catch (err) {
+    console.error("❌ Get orders error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+// Create Order (for future purchase functionality)
+app.post("/create-order", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { items, totalAmount, shippingAddress } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: "No items in order" });
+    }
+
+    // Create order
+    const orderResult = await sql`
+      INSERT INTO orders (user_id, total_amount, status, shipping_address)
+      VALUES (${userId}, ${totalAmount}, 'pending', ${shippingAddress})
+      RETURNING id
+    `;
+
+    const orderId = orderResult[0].id;
+
+    // Insert order items
+    for (const item of items) {
+      await sql`
+        INSERT INTO order_items (order_id, product_name, product_image, quantity, price)
+        VALUES (${orderId}, ${item.name}, ${item.image || null}, ${item.quantity}, ${item.price})
+      `;
+    }
+
+    res.json({ 
+      success: true, 
+      message: "Order created successfully", 
+      orderId 
+    });
+  } catch (err) {
+    console.error("❌ Create order error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
 app.get("/logout", (req, res) => {
     req.session.destroy(() => {
         res.clearCookie('connect.sid', { path: '/' });

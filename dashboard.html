@@ -56,6 +56,115 @@
     
     .dashboard-content { opacity: 0; transition: opacity 0.3s; }
     .dashboard-content.show { opacity: 1; }
+    
+    /* Orders styling */
+    .order-card {
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      transition: box-shadow 0.3s;
+    }
+    
+    .order-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .order-id {
+      font-weight: bold;
+      color: #495057;
+    }
+    
+    .order-status {
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
+    .status-processing {
+      background-color: #cfe2ff;
+      color: #084298;
+    }
+    
+    .status-shipped {
+      background-color: #d1e7dd;
+      color: #0f5132;
+    }
+    
+    .status-delivered {
+      background-color: #d1e7dd;
+      color: #0a3622;
+    }
+    
+    .status-cancelled {
+      background-color: #f8d7da;
+      color: #842029;
+    }
+    
+    .order-details {
+      color: #6c757d;
+      font-size: 14px;
+    }
+    
+    .order-items {
+      margin-top: 10px;
+    }
+    
+    .order-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f1f1;
+    }
+    
+    .order-item:last-child {
+      border-bottom: none;
+    }
+    
+    .order-item-image {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-right: 15px;
+    }
+    
+    .order-item-details {
+      flex: 1;
+    }
+    
+    .order-item-name {
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+    
+    .order-item-quantity {
+      color: #6c757d;
+      font-size: 13px;
+    }
+    
+    .order-total {
+      font-weight: bold;
+      font-size: 16px;
+      color: #212529;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body id="page-top">
@@ -200,6 +309,21 @@
               <button type="button" class="btn btn-secondary" onclick="cancelShippingEdit()">Cancel</button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+    
+    <!-- My Orders Section -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card p-4">
+          <h5 class="mb-3">My Orders</h5>
+          <div id="ordersContainer">
+            <p class="text-muted text-center" id="noOrdersMessage">No orders yet. Start shopping to see your orders here!</p>
+            <div id="ordersList" style="display: none;">
+              <!-- Orders will be dynamically loaded here -->
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -745,6 +869,80 @@
       }
     } catch (err) {
       console.error('Error loading shipping address:', err);
+    }
+  })();
+
+  // Load orders on page load
+  (async function loadOrders() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await fetch('/get-orders', {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const orders = data.orders || [];
+        
+        const ordersList = document.getElementById('ordersList');
+        const noOrdersMessage = document.getElementById('noOrdersMessage');
+        
+        if (orders.length === 0) {
+          noOrdersMessage.style.display = 'block';
+          ordersList.style.display = 'none';
+        } else {
+          noOrdersMessage.style.display = 'none';
+          ordersList.style.display = 'block';
+          
+          ordersList.innerHTML = orders.map(order => `
+            <div class="order-card">
+              <div class="order-header">
+                <div>
+                  <div class="order-id">Order #${order.id}</div>
+                  <div class="order-details">
+                    ${new Date(order.created_at).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </div>
+                </div>
+                <span class="order-status status-${order.status.toLowerCase()}">
+                  ${order.status}
+                </span>
+              </div>
+              
+              <div class="order-items">
+                ${order.items ? order.items.map(item => `
+                  <div class="order-item">
+                    ${item.image ? `<img src="${item.image}" alt="${item.name}" class="order-item-image">` : ''}
+                    <div class="order-item-details">
+                      <div class="order-item-name">${item.name}</div>
+                      <div class="order-item-quantity">Quantity: ${item.quantity} × SAR ${item.price}</div>
+                    </div>
+                    <div class="order-item-price">SAR ${(item.quantity * item.price).toFixed(2)}</div>
+                  </div>
+                `).join('') : ''}
+              </div>
+              
+              <div class="order-total">
+                Total: SAR ${parseFloat(order.total_amount).toFixed(2)}
+              </div>
+              
+              ${order.shipping_address ? `
+                <div class="order-details mt-2">
+                  <strong>Shipping to:</strong> ${order.shipping_address}
+                </div>
+              ` : ''}
+            </div>
+          `).join('');
+        }
+      }
+    } catch (err) {
+      console.error('Error loading orders:', err);
     }
   })();
 </script>
