@@ -266,7 +266,7 @@
             <button class="btn btn-primary" onclick="window.print()">
                 <i class="fas fa-download me-2"></i>Download/Print Invoice
             </button>
-            <a href="dashboard.html" class="btn btn-secondary">
+            <a href="/dashboard" class="btn btn-secondary">
                 <i class="fas fa-home me-2"></i>Go to Dashboard
             </a>
         </div>
@@ -281,7 +281,7 @@
             document.getElementById('loading').innerHTML = `
                 <i class="fas fa-exclamation-circle"></i>
                 <p>No order ID provided</p>
-                <a href="dashboard.html" class="btn btn-primary">Go to Dashboard</a>
+                <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
             `;
         } else {
             // Load invoice from session storage (stored after order creation)
@@ -302,7 +302,7 @@
                 document.getElementById('loading').innerHTML = `
                     <i class="fas fa-exclamation-circle"></i>
                     <p>Please login to view invoice</p>
-                    <a href="/home.html" class="btn btn-primary" style="margin-top: 20px;">Go to Home</a>
+                    <a href="/" class="btn btn-primary" style="margin-top: 20px;">Go to Home</a>
                 `;
                 return;
             }
@@ -338,7 +338,7 @@
             document.getElementById('loading').innerHTML = `
                 <i class="fas fa-exclamation-circle"></i>
                 <p>${message}</p>
-                <a href="dashboard.html" class="btn btn-primary" style="margin-top: 20px;">Go to Dashboard</a>
+                <a href="/dashboard" class="btn btn-primary" style="margin-top: 20px;">Go to Dashboard</a>
             `;
         }
 

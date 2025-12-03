@@ -762,11 +762,32 @@ app.post("/api/logout", (req, res) => {
     });
 });
 
+// Middleware to remove .html extension and handle clean URLs
+app.use((req, res, next) => {
+    if (req.path.endsWith('.html')) {
+        // Redirect URLs with .html to clean URLs
+        const cleanPath = req.path.slice(0, -5);
+        return res.redirect(301, cleanPath);
+    }
+    next();
+});
+
 app.get("/", (req, res) => {
     if (req.session && req.session.user) {
-        return res.redirect('/dashboard.html');
+        return res.redirect('/dashboard');
     }
     res.sendFile(path.join(__dirname, 'home.html'));
+});
+
+// Handle clean URLs - serve .html files without extension
+app.use((req, res, next) => {
+    if (!req.path.includes('.') && req.path !== '/') {
+        const htmlPath = path.join(__dirname, req.path + '.html');
+        if (require('fs').existsSync(htmlPath)) {
+            return res.sendFile(htmlPath);
+        }
+    }
+    next();
 });
 
 // ✅ STATIC FILES LAST (so routes execute first)
