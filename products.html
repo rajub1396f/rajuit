@@ -260,6 +260,160 @@
             .nav-item {
                 position: relative;
             }
+
+            /* WhatsApp Widget Styles */
+            .whatsapp-widget {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+            }
+
+            .whatsapp-float {
+                width: 60px;
+                height: 60px;
+                background-color: #25d366;
+                color: #FFF;
+                border-radius: 50%;
+                border: none;
+                font-size: 30px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .whatsapp-float:hover {
+                background-color: #128c7e;
+                transform: scale(1.1);
+            }
+
+            .whatsapp-chat-box {
+                position: absolute;
+                bottom: 80px;
+                right: 0;
+                width: 350px;
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                overflow: hidden;
+                animation: slideUp 0.3s ease;
+            }
+
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .whatsapp-header {
+                background: #075e54;
+                color: white;
+                padding: 15px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .whatsapp-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+            }
+
+            .whatsapp-header-text h4 {
+                margin: 0;
+                font-size: 16px;
+            }
+
+            .whatsapp-header-text p {
+                margin: 0;
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .whatsapp-close {
+                margin-left: auto;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 0;
+                width: 30px;
+                height: 30px;
+            }
+
+            .whatsapp-body {
+                padding: 20px;
+                background: #e5ddd5;
+                min-height: 200px;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+
+            .whatsapp-message {
+                background: white;
+                padding: 10px 15px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            }
+
+            .whatsapp-message p {
+                margin: 0;
+                font-size: 14px;
+                color: #333;
+            }
+
+            .whatsapp-footer {
+                background: white;
+                padding: 10px;
+                display: flex;
+                gap: 10px;
+                border-top: 1px solid #ddd;
+            }
+
+            .whatsapp-footer input {
+                flex: 1;
+                border: 1px solid #ddd;
+                border-radius: 20px;
+                padding: 8px 15px;
+                font-size: 14px;
+                outline: none;
+            }
+
+            .whatsapp-footer button {
+                background: #25d366;
+                border: none;
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s;
+            }
+
+            .whatsapp-footer button:hover {
+                background: #128c7e;
+            }
+
+            @media screen and (max-width: 767px) {
+                .whatsapp-chat-box {
+                    width: calc(100vw - 40px);
+                    right: 0;
+                }
+                
+                .whatsapp-float {
+                    width: 50px;
+                    height: 50px;
+                    font-size: 25px;
+                }
+            }
         </style>
     </head>
     <body id="page-top">
@@ -653,6 +807,34 @@
           </div>
         </div>
 
+        <!-- WhatsApp Chat Widget (Shows only after login) -->
+        <div class="whatsapp-widget" id="whatsappWidget" style="display: none;">
+            <div class="whatsapp-chat-box" id="whatsappChatBox" style="display: none;">
+                <div class="whatsapp-header">
+                    <img src="https://ui-avatars.com/api/?name=Raju+IT&background=25d366&color=fff" alt="Support" class="whatsapp-avatar">
+                    <div class="whatsapp-header-text">
+                        <h4>Raju IT Support</h4>
+                        <p>Typically replies instantly</p>
+                    </div>
+                    <button class="whatsapp-close" onclick="toggleWhatsAppChat()">×</button>
+                </div>
+                <div class="whatsapp-body">
+                    <div class="whatsapp-message">
+                        <p>Hi there! 👋<br>How can we help you?</p>
+                    </div>
+                </div>
+                <div class="whatsapp-footer">
+                    <input type="text" id="whatsappInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendWhatsAppMessage()">
+                    <button onclick="sendWhatsAppMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            <button class="whatsapp-float" onclick="toggleWhatsAppChat()">
+                <i class="fab fa-whatsapp whatsapp-icon"></i>
+            </button>
+        </div>
+
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         
@@ -977,6 +1159,12 @@
                     const wishlistContainer = document.getElementById("wishlistContainer");
                     if (cartContainer) cartContainer.style.display = "block";
                     if (wishlistContainer) wishlistContainer.style.display = "block";
+                    
+                    // Show WhatsApp widget after login
+                    const whatsappWidget = document.getElementById("whatsappWidget");
+                    if (whatsappWidget) {
+                        whatsappWidget.style.display = "block";
+                    }
                 }
 
                 try {
@@ -1111,6 +1299,33 @@
                 e.preventDefault();
                 alert("Password reset functionality coming soon!");
             });
+
+            // WhatsApp Chat Functions - Make them globally accessible
+            window.toggleWhatsAppChat = function() {
+                const chatBox = document.getElementById('whatsappChatBox');
+                if (chatBox.style.display === 'none' || chatBox.style.display === '') {
+                    chatBox.style.display = 'block';
+                } else {
+                    chatBox.style.display = 'none';
+                }
+            }
+
+            window.sendWhatsAppMessage = function() {
+                const input = document.getElementById('whatsappInput');
+                const message = input.value.trim();
+                
+                if (message) {
+                    const encodedMessage = encodeURIComponent(message);
+                    const whatsappUrl = `https://wa.me/966539082027?text=${encodedMessage}`;
+                    window.open(whatsappUrl, '_blank');
+                    input.value = '';
+                    
+                    // Close chat box after sending
+                    setTimeout(() => {
+                        document.getElementById('whatsappChatBox').style.display = 'none';
+                    }, 500);
+                }
+            }
         </script>
     </body>
 </html>

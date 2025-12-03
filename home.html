@@ -922,8 +922,8 @@
     }
   });
 
-  // WhatsApp Chat Functions
-  function toggleWhatsAppChat() {
+  // WhatsApp Chat Functions - Make them globally accessible
+  window.toggleWhatsAppChat = function() {
     const chatBox = document.getElementById('whatsappChatBox');
     if (chatBox.style.display === 'none' || chatBox.style.display === '') {
       chatBox.style.display = 'block';
@@ -932,7 +932,7 @@
     }
   }
 
-  function sendWhatsAppMessage() {
+  window.sendWhatsAppMessage = function() {
     const input = document.getElementById('whatsappInput');
     const message = input.value.trim();
     
