@@ -766,7 +766,7 @@ app.get("/", (req, res) => {
     if (req.session && req.session.user) {
         return res.redirect('/dashboard.html');
     }
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'home.html'));
 });
 
 // ✅ STATIC FILES LAST (so routes execute first)
