@@ -166,6 +166,21 @@
       margin-top: 10px;
     }
     
+    .order-actions {
+      display: flex;
+      gap: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #dee2e6;
+    }
+    
+    .order-actions .btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    
     /* Cart and Wishlist Dropdown Styling */
     .cart-dropdown, .wishlist-dropdown {
         position: absolute;
@@ -1246,6 +1261,15 @@
                   <strong>Shipping to:</strong> ${order.shipping_address}
                 </div>
               ` : ''}
+              
+              <div class="order-actions mt-3">
+                <a href="invoice.html?id=${order.id}" class="btn btn-outline-primary btn-sm" target="_blank">
+                  <i class="fas fa-file-invoice"></i> View Invoice
+                </a>
+                <button onclick="downloadInvoice(${order.id})" class="btn btn-primary btn-sm">
+                  <i class="fas fa-download"></i> Download Invoice
+                </button>
+              </div>
             </div>
           `).join('');
         }
@@ -1254,6 +1278,51 @@
       console.error('Error loading shipping address:', err);
     }
   })();
+
+  // Download Invoice Function
+  async function downloadInvoice(orderId) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert('Please log in to download invoice');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/get-invoice/${orderId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const invoiceHtml = data.invoice;
+        
+        // Create a temporary iframe to print/download
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        
+        const iframeDoc = iframe.contentWindow.document;
+        iframeDoc.open();
+        iframeDoc.write(invoiceHtml);
+        iframeDoc.close();
+        
+        // Wait for content to load then print
+        setTimeout(() => {
+          iframe.contentWindow.print();
+          // Remove iframe after printing
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+          }, 1000);
+        }, 250);
+      } else {
+        alert('Unable to download invoice. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error downloading invoice:', err);
+      alert('Error downloading invoice. Please try again.');
+    }
+  }
 
   // Update badge counts on page load
   window.addEventListener('DOMContentLoaded', () => {
