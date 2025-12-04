@@ -702,7 +702,7 @@
     navLogin.innerText = userName;
     navLogin.removeAttribute("data-bs-toggle");
     navLogin.removeAttribute("data-bs-target");
-    navLogin.setAttribute("href", "/dashboard.html");
+    navLogin.setAttribute("href", "/dashboard");
     navLogin.addEventListener("click", (e) => { 
       e.preventDefault(); 
       window.location.href = "/dashboard.html"; 
@@ -1027,7 +1027,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
       // ✅ Longer delay to ensure modal closes
       setTimeout(() => {
         console.log("🔄 Redirecting to dashboard...");
-        window.location.href = "/dashboard.html";
+        window.location.href = "/dashboard";
       }, 600); // Increased from 300ms to 600ms
     } else {
       alert(data?.message || "Login failed");

@@ -794,7 +794,7 @@
                         window.location.href = `/invoice.html?id=${result.orderId}`;
                     } else {
                         // Redirect to dashboard
-                        window.location.href = '/dashboard.html';
+                        window.location.href = '/dashboard';
                     }
                 } else {
                     alert(result.message || 'Failed to place order. Please try again.');
@@ -888,7 +888,7 @@
                         const userName = data.user?.name || data.user?.email || 'User';
                         
                         navLoginBtn.textContent = userName;
-                        navLoginBtn.href = '/dashboard.html';
+                        navLoginBtn.href = '/dashboard';
                         
                         // Show cart and wishlist
                         if (cartContainer) cartContainer.style.display = 'block';

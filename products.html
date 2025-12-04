@@ -1136,14 +1136,14 @@
                     navLogin.innerText = userName;
                     navLogin.removeAttribute("data-bs-toggle");
                     navLogin.removeAttribute("data-bs-target");
-                    navLogin.setAttribute("href", "/dashboard.html");
+                    navLogin.setAttribute("href", "/dashboard");
                     
                     // Remove any previous click handlers and add new one
                     const newNavLogin = navLogin.cloneNode(true);
                     navLogin.parentNode.replaceChild(newNavLogin, navLogin);
                     newNavLogin.addEventListener("click", (e) => { 
                         e.preventDefault(); 
-                        window.location.href = "/dashboard.html"; 
+                        window.location.href = "/dashboard"; 
                     });
 
                     let logoutBtn = document.getElementById("logoutBtn");
