@@ -240,6 +240,21 @@ app.get("/dashboard", (req, res) => {
   }
 });
 
+// Get User Data API
+app.get("/api/user-data", verifyToken, async (req, res) => {
+  if (req.user && req.user.id) {
+    try {
+      const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${req.user.id} LIMIT 1`;
+      const user = (userRows && userRows[0]) || req.user;
+      return res.json({ message: "Welcome!", user });
+    } catch (err) {
+      console.error("User data fetch error:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
+  return res.json({ message: "Welcome!", user: req.user });
+});
+
 // Update Profile Route
 app.post("/update-profile", verifyToken, async (req, res) => {
   try {

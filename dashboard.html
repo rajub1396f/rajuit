@@ -726,7 +726,7 @@
       const headers = token ? { "Authorization": `Bearer ${token}` } : {};
       console.log("🔍 Fetch headers:", headers);
       
-      const res = await fetch("/dashboard", { 
+      const res = await fetch("/api/user-data", { 
         headers, 
         credentials: "include" 
       });
