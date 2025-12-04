@@ -497,15 +497,7 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="country" required>
-                                        <option value="">Select Country</option>
-                                        <option value="Saudi Arabia" selected>Saudi Arabia</option>
-                                        <option value="United Arab Emirates">United Arab Emirates</option>
-                                        <option value="Kuwait">Kuwait</option>
-                                        <option value="Qatar">Qatar</option>
-                                        <option value="Bahrain">Bahrain</option>
-                                        <option value="Oman">Oman</option>
-                                    </select>
+                                    <input type="text" class="form-control" id="country" value="Bangladesh" readonly required>
                                 </div>
                             </div>
                         </form>
@@ -848,7 +840,7 @@
                     document.getElementById('city').value = s.shipping_city || '';
                     document.getElementById('state').value = s.shipping_state || '';
                     document.getElementById('postalCode').value = s.shipping_postal || '';
-                    document.getElementById('country').value = s.shipping_country || 'Saudi Arabia';
+                    // Country is always Bangladesh (readonly field)
                 }
                 
                 // Also load user email
