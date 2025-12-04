@@ -222,18 +222,22 @@ app.get("/dashboard.html", (req, res) => {
   }
 });
 
-app.get("/dashboard", verifyToken, async (req, res) => {
-  if (req.user && req.user.id) {
-    try {
-      const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${req.user.id} LIMIT 1`;
-      const user = (userRows && userRows[0]) || req.user;
-      return res.json({ message: "Welcome!", user });
-    } catch (err) {
-      console.error("Dashboard fetch error:", err);
-      return res.status(500).json({ message: "Server error" });
-    }
+app.get("/dashboard", (req, res) => {
+  if (req.session && req.session.user) {
+    return res.sendFile(path.join(__dirname, "dashboard.html"));
   }
-  return res.json({ message: "Welcome!", user: req.user });
+  
+  const header = req.headers["authorization"];
+  const token = header?.split(" ")[1];
+  
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
+      if (err) return res.redirect("/");
+      return res.sendFile(path.join(__dirname, "dashboard.html"));
+    });
+  } else {
+    return res.redirect("/");
+  }
 });
 
 // Update Profile Route
