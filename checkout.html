@@ -482,12 +482,22 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
+                                    <label for="upzilla" class="form-label">Upzilla/Thana <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="upzilla" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label for="city" class="form-label">City/Zilla <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="city" required>
                                 </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="state" class="form-label">State/Province <span class="text-danger">*</span></label>
+                                    <label for="state" class="form-label">Division <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="state" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="postalCode" class="form-label">Postal Code <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="postalCode" required>
                                 </div>
                             </div>
                             <div class="row">
@@ -692,6 +702,7 @@
                 phone: document.getElementById('phone').value,
                 address1: document.getElementById('address1').value,
                 address2: document.getElementById('address2').value,
+                upzilla: document.getElementById('upzilla').value,
                 city: document.getElementById('city').value,
                 state: document.getElementById('state').value,
                 postalCode: document.getElementById('postalCode').value,
@@ -705,7 +716,7 @@
             const tax = subtotal * TAX_RATE;
             const total = subtotal + SHIPPING_COST + tax;
             
-            const shippingAddress = `${shippingData.firstName} ${shippingData.lastName}, ${shippingData.address1}${shippingData.address2 ? ', ' + shippingData.address2 : ''}, ${shippingData.city}, ${shippingData.state} ${shippingData.postalCode}, ${shippingData.country}. Phone: ${shippingData.phone}`;
+            const shippingAddress = `${shippingData.firstName} ${shippingData.lastName}, ${shippingData.address1}${shippingData.address2 ? ', ' + shippingData.address2 : ''}, ${shippingData.upzilla}, ${shippingData.city}, ${shippingData.state} ${shippingData.postalCode}, ${shippingData.country}. Phone: ${shippingData.phone}`;
             
             // Disable button and show processing message
             const btn = event.target;
@@ -837,6 +848,7 @@
                     document.getElementById('phone').value = s.shipping_phone || '';
                     document.getElementById('address1').value = s.shipping_address1 || '';
                     document.getElementById('address2').value = s.shipping_address2 || '';
+                    document.getElementById('upzilla').value = s.shipping_upzilla || '';
                     document.getElementById('city').value = s.shipping_city || '';
                     document.getElementById('state').value = s.shipping_state || '';
                     document.getElementById('postalCode').value = s.shipping_postal || '';
