@@ -818,15 +818,23 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Get order details
+    // Get order details - select specific columns to avoid issues
     const orderResult = await sql`
-      SELECT o.*, u.name, u.email 
+      SELECT 
+        o.id,
+        o.user_id,
+        o.total_amount,
+        o.status,
+        o.shipping_address,
+        o.created_at,
+        u.name,
+        u.email
       FROM orders o
       JOIN users u ON o.user_id = u.id
       WHERE o.id = ${orderId} AND o.user_id = ${userId}
     `;
 
-    console.log(`Order query result:`, orderResult);
+    console.log(`Order query completed, found ${orderResult.length} orders`);
 
     if (!orderResult || orderResult.length === 0) {
       console.log(`❌ Order #${orderId} not found for user ${userId}`);
