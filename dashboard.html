@@ -1280,9 +1280,15 @@
                 <a href="invoice.html?id=${order.id}" class="btn btn-outline-primary btn-sm" target="_blank">
                   <i class="fas fa-file-invoice"></i> View Invoice
                 </a>
-                <button onclick="downloadInvoice(${order.id})" class="btn btn-primary btn-sm">
-                  <i class="fas fa-download"></i> Download Invoice
-                </button>
+                ${order.invoice_pdf_url ? `
+                  <a href="${order.invoice_pdf_url}" class="btn btn-primary btn-sm" target="_blank" download>
+                    <i class="fas fa-download"></i> Download PDF
+                  </a>
+                ` : `
+                  <button onclick="downloadInvoice(${order.id})" class="btn btn-primary btn-sm">
+                    <i class="fas fa-download"></i> Download Invoice
+                  </button>
+                `}
               </div>
             </div>
           `).join('');

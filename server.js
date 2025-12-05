@@ -441,6 +441,7 @@ app.get("/get-orders", verifyToken, async (req, res) => {
         o.total_amount, 
         o.status, 
         o.shipping_address, 
+        o.invoice_pdf_url,
         o.created_at,
         json_agg(
           json_build_object(
@@ -453,7 +454,7 @@ app.get("/get-orders", verifyToken, async (req, res) => {
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
       WHERE o.user_id = ${userId}
-      GROUP BY o.id, o.total_amount, o.status, o.shipping_address, o.created_at
+      GROUP BY o.id, o.total_amount, o.status, o.shipping_address, o.invoice_pdf_url, o.created_at
       ORDER BY o.created_at DESC
     `;
 
@@ -484,7 +485,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
     const userResult = await sql`SELECT name, email FROM users WHERE id = ${userId}`;
     const user = userResult[0];
 
-    // Create order
+    // Create order (without PDF URL initially)
     const orderResult = await sql`
       INSERT INTO orders (user_id, total_amount, status, shipping_address)
       VALUES (${userId}, ${totalAmount}, 'pending', ${shippingAddress})
@@ -615,13 +616,21 @@ app.post("/create-order", verifyToken, async (req, res) => {
 </html>
     `;
 
-    // Generate PDF and upload to Cloudinary
+    // Generate PDF and upload to ImageKit
     let invoicePdfUrl = null;
     let pdfError = null;
     
     try {
       invoicePdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
       console.log(`✅ Invoice PDF uploaded: ${invoicePdfUrl}`);
+      
+      // Update order with PDF URL
+      await sql`
+        UPDATE orders 
+        SET invoice_pdf_url = ${invoicePdfUrl}
+        WHERE id = ${orderId}
+      `;
+      console.log(`✅ Order updated with PDF URL`);
     } catch (error) {
       console.error("❌ Error generating/uploading PDF:", error);
       pdfError = error.message;
@@ -929,6 +938,31 @@ app.post("/send", async (req, res) => {
         console.error("Full error:", error);
         res.status(500).json({ success: false, message: "Failed to send message.", error: error.message });
     }
+});
+
+// Migration endpoint to add invoice_pdf_url column
+app.get("/migrate-invoice-column", async (req, res) => {
+  try {
+    console.log("🔄 Adding invoice_pdf_url column to orders table...");
+    
+    await sql`
+      ALTER TABLE orders 
+      ADD COLUMN IF NOT EXISTS invoice_pdf_url TEXT
+    `;
+    
+    console.log("✅ Migration completed successfully");
+    res.json({ 
+      success: true, 
+      message: "invoice_pdf_url column added to orders table" 
+    });
+  } catch (error) {
+    console.error("❌ Migration error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Migration failed", 
+      error: error.message 
+    });
+  }
 });
 
 // Test endpoint to verify ImageKit and Puppeteer setup
