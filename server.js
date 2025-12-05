@@ -7,6 +7,8 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
+const puppeteer = require('puppeteer');
+const ImageKit = require('imagekit');
 
 const app = express();
 
@@ -36,6 +38,13 @@ app.use(session({
 
 const { neon } = require("@neondatabase/serverless");
 const sql = neon(process.env.NEON_DB);
+
+// Initialize ImageKit
+const imagekit = new ImageKit({
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
+});
 
 // ✅ Create Gmail transporter
 const transporter = nodemailer.createTransport({
@@ -71,6 +80,51 @@ if (true) {
     console.error("❌ Neon DB connection error:", err);
   }
 })();
+
+// Function to generate PDF and upload to ImageKit
+async function generateAndUploadInvoice(htmlContent, orderId) {
+  let browser;
+  try {
+    console.log(`📄 Generating PDF for order #${orderId}...`);
+    
+    // Launch puppeteer browser
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    
+    // Generate PDF as buffer
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }
+    });
+    
+    await browser.close();
+    console.log(`✅ PDF generated successfully`);
+    
+    // Upload PDF to ImageKit
+    console.log(`☁️ Uploading PDF to ImageKit...`);
+    const uploadResponse = await imagekit.upload({
+      file: pdfBuffer.toString('base64'),
+      fileName: `invoice_${orderId}_${Date.now()}.pdf`,
+      folder: '/invoices',
+      useUniqueFileName: true,
+      tags: ['invoice', `order_${orderId}`]
+    });
+    
+    console.log('✅ PDF uploaded to ImageKit:', uploadResponse.url);
+    return uploadResponse.url;
+    
+  } catch (error) {
+    if (browser) await browser.close();
+    console.error('❌ Error generating/uploading invoice:', error);
+    throw error;
+  }
+}
 
 // Register Route
 app.post("/register", async (req, res) => {
@@ -410,6 +464,8 @@ app.get("/get-orders", verifyToken, async (req, res) => {
   }
 });
 
+
+
 // Create Order (for future purchase functionality)
 app.post("/create-order", verifyToken, async (req, res) => {
   try {
@@ -559,6 +615,18 @@ app.post("/create-order", verifyToken, async (req, res) => {
 </html>
     `;
 
+    // Generate PDF and upload to Cloudinary
+    let invoicePdfUrl = null;
+    let pdfError = null;
+    
+    try {
+      invoicePdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
+      console.log(`✅ Invoice PDF uploaded: ${invoicePdfUrl}`);
+    } catch (error) {
+      console.error("❌ Error generating/uploading PDF:", error);
+      pdfError = error.message;
+    }
+
     // Send invoice email to customer
     let emailSent = false;
     let emailError = null;
@@ -571,8 +639,10 @@ app.post("/create-order", verifyToken, async (req, res) => {
         from: `"Raju IT" <${process.env.GMAIL_USER || "rajuit1396@gmail.com"}>`,
         to: user.email,
         subject: `Order Confirmation & Invoice #${orderId.toString().padStart(6, '0')} - Raju IT`,
-        html: invoiceHtml,
-        text: `Your order #${orderId} has been placed successfully. Thank you for shopping with Raju IT!`
+        html: invoicePdfUrl ? 
+          `${invoiceHtml}<br><br><div style="text-align: center; margin: 30px 0;"><a href="${invoicePdfUrl}" style="background: #ffc800; color: #212529; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">📥 Download Invoice PDF</a></div>` 
+          : invoiceHtml,
+        text: `Your order #${orderId} has been placed successfully. Thank you for shopping with Raju IT!${invoicePdfUrl ? `\n\nDownload your invoice: ${invoicePdfUrl}` : ''}`
       };
       
       const info = await transporter.sendMail(mailOptions);
@@ -595,8 +665,10 @@ app.post("/create-order", verifyToken, async (req, res) => {
       message: "Order created successfully", 
       orderId,
       invoiceHtml,
+      invoicePdfUrl,
       emailSent,
-      emailError: emailSent ? null : `Email could not be sent: ${emailError}. You can download your invoice from the order confirmation page.`
+      emailError: emailSent ? null : `Email could not be sent: ${emailError}. You can download your invoice from the order confirmation page.`,
+      pdfError: invoicePdfUrl ? null : `PDF could not be generated: ${pdfError}`
     });
   } catch (err) {
     console.error("❌ Create order error:", err);
