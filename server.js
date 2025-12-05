@@ -484,37 +484,45 @@ app.get("/get-orders", verifyToken, async (req, res) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Get orders with items
-    const orders = await sql`
+    // Get all orders for the user first
+    const ordersData = await sql`
       SELECT 
-        o.id, 
-        o.total_amount, 
-        o.status, 
-        o.shipping_address, 
-        o.invoice_pdf_url,
-        o.created_at,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'name', oi.product_name,
-              'image', oi.product_image,
-              'quantity', oi.quantity,
-              'price', oi.price
-            )
-          ) FILTER (WHERE oi.id IS NOT NULL),
-          '[]'
-        ) as items
-      FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      WHERE o.user_id = ${userId}
-      GROUP BY o.id, o.total_amount, o.status, o.shipping_address, o.invoice_pdf_url, o.created_at
-      ORDER BY o.created_at DESC
+        id, 
+        total_amount, 
+        status, 
+        shipping_address, 
+        invoice_pdf_url,
+        created_at
+      FROM orders
+      WHERE user_id = ${userId}
+      ORDER BY created_at DESC
     `;
 
-    console.log(`✅ Found ${orders.length} orders for user ${userId}`);
+    console.log(`✅ Found ${ordersData.length} orders for user ${userId}`);
+
+    // Get items for each order
+    const orders = await Promise.all(ordersData.map(async (order) => {
+      const items = await sql`
+        SELECT 
+          product_name as name,
+          product_image as image,
+          quantity,
+          price
+        FROM order_items
+        WHERE order_id = ${order.id}
+      `;
+      
+      return {
+        ...order,
+        items: items || []
+      };
+    }));
+
+    console.log(`✅ Returning ${orders.length} orders with items`);
     res.json({ orders });
   } catch (err) {
     console.error("❌ Get orders error:", err);
+    console.error("Stack:", err.stack);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
@@ -1208,6 +1216,39 @@ app.get("/debug-order/:orderId", verifyToken, async (req, res) => {
       hasPdfUrl: !!(orderResult[0]?.invoice_pdf_url)
     });
   } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Debug endpoint to check all orders for current user
+app.get("/debug-all-orders", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    
+    console.log(`🔍 Debug: Checking all orders for user ${userId}`);
+    
+    const allOrders = await sql`
+      SELECT * FROM orders WHERE user_id = ${userId} ORDER BY created_at DESC
+    `;
+    
+    const allItems = await sql`
+      SELECT * FROM order_items ORDER BY created_at DESC LIMIT 20
+    `;
+    
+    const orderCount = await sql`SELECT COUNT(*) as count FROM orders WHERE user_id = ${userId}`;
+    
+    res.json({
+      success: true,
+      userId: userId,
+      orderCount: parseInt(orderCount[0].count),
+      orders: allOrders,
+      recentItems: allItems
+    });
+  } catch (error) {
+    console.error('Debug orders error:', error);
     res.status(500).json({ 
       success: false, 
       error: error.message 
