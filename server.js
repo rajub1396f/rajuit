@@ -87,14 +87,25 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
   try {
     console.log(`📄 Generating PDF for order #${orderId}...`);
     
-    // Launch puppeteer browser
+    // Launch puppeteer browser with Render-compatible settings
     browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920x1080'
+      ],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
     });
     
     const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    await page.setContent(htmlContent, { 
+      waitUntil: 'networkidle0',
+      timeout: 30000 
+    });
     
     // Generate PDF as buffer
     const pdfBuffer = await page.pdf({
@@ -104,7 +115,7 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
     });
     
     await browser.close();
-    console.log(`✅ PDF generated successfully`);
+    console.log(`✅ PDF generated successfully (${pdfBuffer.length} bytes)`);
     
     // Upload PDF to ImageKit
     console.log(`☁️ Uploading PDF to ImageKit...`);
@@ -120,8 +131,15 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
     return uploadResponse.url;
     
   } catch (error) {
-    if (browser) await browser.close();
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error('Error closing browser:', closeError);
+      }
+    }
     console.error('❌ Error generating/uploading invoice:', error);
+    console.error('Error stack:', error.stack);
     throw error;
   }
 }
@@ -621,19 +639,32 @@ app.post("/create-order", verifyToken, async (req, res) => {
     let pdfError = null;
     
     try {
+      console.log(`🚀 Starting invoice generation for order #${orderId}...`);
       invoicePdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-      console.log(`✅ Invoice PDF uploaded: ${invoicePdfUrl}`);
+      console.log(`✅ Invoice PDF uploaded successfully: ${invoicePdfUrl}`);
       
       // Update order with PDF URL
-      await sql`
+      const updateResult = await sql`
         UPDATE orders 
         SET invoice_pdf_url = ${invoicePdfUrl}
         WHERE id = ${orderId}
+        RETURNING id
       `;
-      console.log(`✅ Order updated with PDF URL`);
+      
+      if (updateResult && updateResult.length > 0) {
+        console.log(`✅ Order #${orderId} updated with PDF URL`);
+      } else {
+        console.warn(`⚠️ Order #${orderId} update returned no rows`);
+      }
     } catch (error) {
-      console.error("❌ Error generating/uploading PDF:", error);
+      console.error(`❌ Error generating/uploading PDF for order #${orderId}:`, error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        orderId: orderId
+      });
       pdfError = error.message;
+      // Continue with order creation even if PDF fails
     }
 
     // Send invoice email to customer
@@ -965,10 +996,42 @@ app.get("/migrate-invoice-column", async (req, res) => {
   }
 });
 
+// Debug endpoint to check order details
+app.get("/debug-order/:orderId", verifyToken, async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const userId = req.user?.id;
+    
+    const orderResult = await sql`
+      SELECT * FROM orders 
+      WHERE id = ${orderId} AND user_id = ${userId}
+    `;
+    
+    const itemsResult = await sql`
+      SELECT * FROM order_items 
+      WHERE order_id = ${orderId}
+    `;
+    
+    res.json({
+      success: true,
+      order: orderResult[0] || null,
+      items: itemsResult,
+      hasPdfUrl: !!(orderResult[0]?.invoice_pdf_url)
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // Test endpoint to verify ImageKit and Puppeteer setup
 app.get("/test-invoice", async (req, res) => {
   try {
     console.log("🧪 Testing invoice generation...");
+    console.log("Puppeteer executable:", puppeteer.executablePath());
+    console.log("ImageKit endpoint:", process.env.IMAGEKIT_URL_ENDPOINT);
     
     const testHtml = `
 <!DOCTYPE html>
@@ -1001,10 +1064,12 @@ app.get("/test-invoice", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Test invoice error:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({ 
       success: false, 
       message: "Failed to generate test invoice", 
-      error: error.message 
+      error: error.message,
+      stack: error.stack
     });
   }
 });
