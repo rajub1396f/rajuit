@@ -448,7 +448,10 @@ app.post("/update-shipping", verifyToken, async (req, res) => {
 app.get("/get-orders", verifyToken, async (req, res) => {
   try {
     const userId = req.user?.id;
+    console.log(`📋 Fetching orders for user ID: ${userId}`);
+    
     if (!userId) {
+      console.log("❌ User not authenticated");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
@@ -461,13 +464,16 @@ app.get("/get-orders", verifyToken, async (req, res) => {
         o.shipping_address, 
         o.invoice_pdf_url,
         o.created_at,
-        json_agg(
-          json_build_object(
-            'name', oi.product_name,
-            'image', oi.product_image,
-            'quantity', oi.quantity,
-            'price', oi.price
-          )
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'name', oi.product_name,
+              'image', oi.product_image,
+              'quantity', oi.quantity,
+              'price', oi.price
+            )
+          ) FILTER (WHERE oi.id IS NOT NULL),
+          '[]'
         ) as items
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
@@ -476,6 +482,7 @@ app.get("/get-orders", verifyToken, async (req, res) => {
       ORDER BY o.created_at DESC
     `;
 
+    console.log(`✅ Found ${orders.length} orders for user ${userId}`);
     res.json({ orders });
   } catch (err) {
     console.error("❌ Get orders error:", err);
@@ -491,17 +498,23 @@ app.post("/create-order", verifyToken, async (req, res) => {
     const userId = req.user?.id;
     const { items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
+    console.log(`🛒 Create order request from user ID: ${userId}`);
+    console.log(`📦 Items count: ${items?.length}, Total: SAR ${totalAmount}`);
+
     if (!userId) {
+      console.log("❌ User not authenticated");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
     if (!items || items.length === 0) {
+      console.log("❌ No items in order");
       return res.status(400).json({ message: "No items in order" });
     }
 
     // Get user details
     const userResult = await sql`SELECT name, email FROM users WHERE id = ${userId}`;
     const user = userResult[0];
+    console.log(`👤 Creating order for: ${user.name} (${user.email})`);
 
     // Create order (without PDF URL initially)
     const orderResult = await sql`
@@ -512,14 +525,17 @@ app.post("/create-order", verifyToken, async (req, res) => {
 
     const orderId = orderResult[0].id;
     const orderDate = new Date(orderResult[0].created_at);
+    console.log(`✅ Order created with ID: ${orderId}`);
 
     // Insert order items
+    console.log(`📝 Inserting ${items.length} order items...`);
     for (const item of items) {
       await sql`
         INSERT INTO order_items (order_id, product_name, product_image, quantity, price)
         VALUES (${orderId}, ${item.name}, ${item.image || null}, ${item.quantity}, ${item.price})
       `;
     }
+    console.log(`✅ All order items inserted`);
 
     // Generate invoice HTML
     const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);

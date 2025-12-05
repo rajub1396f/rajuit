@@ -1213,25 +1213,35 @@
   // Load orders on page load
   (async function loadOrders() {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      console.log('No token found, user not logged in');
+      return;
+    }
 
     try {
+      console.log('Fetching orders...');
       const res = await fetch('/get-orders', {
         headers: { 'Authorization': `Bearer ${token}` },
         credentials: 'include'
       });
 
+      console.log('Orders response status:', res.status);
+
       if (res.ok) {
         const data = await res.json();
+        console.log('Orders data received:', data);
         const orders = data.orders || [];
+        console.log('Total orders:', orders.length);
         
         const ordersList = document.getElementById('ordersList');
         const noOrdersMessage = document.getElementById('noOrdersMessage');
         
         if (orders.length === 0) {
+          console.log('No orders found, showing message');
           noOrdersMessage.style.display = 'block';
           ordersList.style.display = 'none';
         } else {
+          console.log('Displaying orders');
           noOrdersMessage.style.display = 'none';
           ordersList.style.display = 'block';
           
@@ -1293,9 +1303,13 @@
             </div>
           `).join('');
         }
+      } else {
+        console.error('Failed to fetch orders:', res.status, res.statusText);
+        const errorData = await res.json().catch(() => ({}));
+        console.error('Error details:', errorData);
       }
     } catch (err) {
-      console.error('Error loading shipping address:', err);
+      console.error('Error loading orders:', err);
     }
   })();
 
