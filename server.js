@@ -500,30 +500,57 @@ app.get("/get-orders", verifyToken, async (req, res) => {
 
     console.log(`✅ Found ${ordersData.length} orders for user ${userId}`);
 
+    // If no orders, return empty array
+    if (ordersData.length === 0) {
+      console.log("No orders found, returning empty array");
+      return res.json({ orders: [] });
+    }
+
     // Get items for each order
-    const orders = await Promise.all(ordersData.map(async (order) => {
-      const items = await sql`
-        SELECT 
-          product_name as name,
-          product_image as image,
-          quantity,
-          price
-        FROM order_items
-        WHERE order_id = ${order.id}
-      `;
-      
-      return {
-        ...order,
-        items: items || []
-      };
-    }));
+    const orders = [];
+    for (const order of ordersData) {
+      try {
+        const items = await sql`
+          SELECT 
+            product_name as name,
+            product_image as image,
+            quantity,
+            price
+          FROM order_items
+          WHERE order_id = ${order.id}
+        `;
+        
+        orders.push({
+          id: order.id,
+          total_amount: order.total_amount,
+          status: order.status,
+          shipping_address: order.shipping_address,
+          invoice_pdf_url: order.invoice_pdf_url,
+          created_at: order.created_at,
+          items: items || []
+        });
+      } catch (itemErr) {
+        console.error(`Error fetching items for order ${order.id}:`, itemErr);
+        // Include order without items if item fetch fails
+        orders.push({
+          id: order.id,
+          total_amount: order.total_amount,
+          status: order.status,
+          shipping_address: order.shipping_address,
+          invoice_pdf_url: order.invoice_pdf_url,
+          created_at: order.created_at,
+          items: []
+        });
+      }
+    }
 
     console.log(`✅ Returning ${orders.length} orders with items`);
     res.json({ orders });
   } catch (err) {
     console.error("❌ Get orders error:", err);
+    console.error("Error message:", err.message);
     console.error("Stack:", err.stack);
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message, stack: err.stack });
   }
 });
 
