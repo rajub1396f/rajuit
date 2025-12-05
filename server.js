@@ -931,7 +931,52 @@ app.post("/send", async (req, res) => {
     }
 });
 
+// Test endpoint to verify ImageKit and Puppeteer setup
+app.get("/test-invoice", async (req, res) => {
+  try {
+    console.log("🧪 Testing invoice generation...");
+    
+    const testHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; }
+        h1 { color: #212529; }
+        .info { background: #f8f9fa; padding: 20px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>Test Invoice</h1>
+    <div class="info">
+        <p><strong>Test Order #12345</strong></p>
+        <p>Date: ${new Date().toLocaleDateString()}</p>
+        <p>This is a test invoice to verify PDF generation and ImageKit upload.</p>
+    </div>
+</body>
+</html>
+    `;
+    
+    const pdfUrl = await generateAndUploadInvoice(testHtml, 'TEST-' + Date.now());
+    
+    res.json({ 
+      success: true, 
+      message: "Test invoice generated successfully!", 
+      pdfUrl 
+    });
+  } catch (error) {
+    console.error("❌ Test invoice error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to generate test invoice", 
+      error: error.message 
+    });
+  }
+});
+
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`);
+    console.log(`✅ ImageKit configured: ${process.env.IMAGEKIT_URL_ENDPOINT}`);
 });
