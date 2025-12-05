@@ -948,9 +948,10 @@ app.post("/api/logout", (req, res) => {
 // Middleware to remove .html extension and handle clean URLs
 app.use((req, res, next) => {
     if (req.path.endsWith('.html')) {
-        // Redirect URLs with .html to clean URLs
+        // Redirect URLs with .html to clean URLs, preserving query parameters
         const cleanPath = req.path.slice(0, -5);
-        return res.redirect(301, cleanPath);
+        const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+        return res.redirect(301, cleanPath + queryString);
     }
     next();
 });

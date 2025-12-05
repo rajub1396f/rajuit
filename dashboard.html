@@ -1245,7 +1245,9 @@
           noOrdersMessage.style.display = 'none';
           ordersList.style.display = 'block';
           
-          ordersList.innerHTML = orders.map(order => `
+          ordersList.innerHTML = orders.map(order => {
+            console.log('Rendering order:', order.id, order);
+            return `
             <div class="order-card">
               <div class="order-header">
                 <div>
@@ -1301,7 +1303,8 @@
                 `}
               </div>
             </div>
-          `).join('');
+          `;
+          }).join('');
         }
       } else {
         console.error('Failed to fetch orders:', res.status, res.statusText);
