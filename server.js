@@ -968,6 +968,7 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
 </html>
     `;
 
+    console.log(`✅ Returning invoice for order #${orderId}`);
     res.json({ 
       success: true, 
       invoiceHtml,
@@ -975,7 +976,14 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Get invoice error:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("Error message:", err.message);
+    console.error("Error stack:", err.stack);
+    res.status(500).json({ 
+      message: "Server error", 
+      error: err.message,
+      stack: err.stack,
+      orderId: req.params.orderId
+    });
   }
 });
 

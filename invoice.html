@@ -333,19 +333,22 @@
                         showError('Invoice data not available');
                     }
                 } else {
-                    const error = await response.json();
-                    showError(error.message || 'Failed to load invoice');
+                    const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+                    console.error('Invoice fetch error:', error);
+                    showError(error.message || 'Failed to load invoice', error.error);
                 }
             } catch (error) {
                 console.error('Error loading invoice:', error);
-                showError('Error loading invoice');
+                showError('Error loading invoice', error.message);
             }
         }
 
-        function showError(message) {
+        function showError(message, details) {
+            console.error('Show error:', message, details);
             document.getElementById('loading').innerHTML = `
                 <i class="fas fa-exclamation-circle"></i>
                 <p>${message}</p>
+                ${details ? `<p style="font-size: 0.9em; color: #666; margin-top: 10px;">Details: ${details}</p>` : ''}
                 <a href="/dashboard" class="btn btn-primary" style="margin-top: 20px;">Go to Dashboard</a>
             `;
         }
