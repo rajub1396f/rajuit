@@ -765,7 +765,10 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     const userId = req.user?.id;
     const orderId = req.params.orderId;
 
+    console.log(`📄 Fetching invoice for order #${orderId}, user: ${userId}`);
+
     if (!userId) {
+      console.log("❌ User not authenticated");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
@@ -777,11 +780,15 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
       WHERE o.id = ${orderId} AND o.user_id = ${userId}
     `;
 
+    console.log(`Order query result:`, orderResult);
+
     if (!orderResult || orderResult.length === 0) {
+      console.log(`❌ Order #${orderId} not found for user ${userId}`);
       return res.status(404).json({ message: "Order not found" });
     }
 
     const order = orderResult[0];
+    console.log(`✅ Order found: #${order.id}, total: ${order.total_amount}`);
 
     // Get order items
     const itemsResult = await sql`
@@ -790,9 +797,11 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
       WHERE order_id = ${orderId}
     `;
 
-    const items = itemsResult;
+    console.log(`Found ${itemsResult.length} items for order #${orderId}`);
+
+    const items = itemsResult || [];
     const orderDate = new Date(order.created_at);
-    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     const shipping = 50;
     const tax = subtotal * 0.15;
     const total = parseFloat(order.total_amount);

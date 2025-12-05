@@ -277,13 +277,21 @@
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('id');
 
+        console.log('Invoice page loaded');
+        console.log('Full URL:', window.location.href);
+        console.log('Search params:', window.location.search);
+        console.log('Order ID from URL:', orderId);
+
         if (!orderId) {
+            console.error('No order ID provided in URL');
             document.getElementById('loading').innerHTML = `
                 <i class="fas fa-exclamation-circle"></i>
                 <p>No order ID provided</p>
+                <p style="font-size: 0.9em; color: #666;">URL: ${window.location.href}</p>
                 <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
             `;
         } else {
+            console.log(`Loading invoice for order #${orderId}`);
             // Load invoice from session storage (stored after order creation)
             const invoiceHtml = sessionStorage.getItem(`invoice_${orderId}`);
             
