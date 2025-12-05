@@ -91,6 +91,17 @@ if (true) {
     `;
     console.log("✅ Orders table ready");
     
+    // Add invoice_pdf_url column if it doesn't exist (for existing tables)
+    try {
+      await sql`
+        ALTER TABLE orders 
+        ADD COLUMN IF NOT EXISTS invoice_pdf_url TEXT
+      `;
+      console.log("✅ invoice_pdf_url column added/verified");
+    } catch (alterErr) {
+      console.log("Note: Column might already exist or other issue:", alterErr.message);
+    }
+    
     // Create order_items table if not exists
     await sql`
       CREATE TABLE IF NOT EXISTS order_items (
