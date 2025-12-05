@@ -71,13 +71,42 @@ if (true) {
     });
 }
 
-// Test connection
+// Test connection and create tables
 (async () => {
   try {
     await sql`SELECT 1`;
     console.log("✅ Connected to Neon DB!");
+    
+    // Create orders table if not exists
+    await sql`
+      CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        total_amount DECIMAL(10, 2) NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        shipping_address TEXT,
+        invoice_pdf_url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    console.log("✅ Orders table ready");
+    
+    // Create order_items table if not exists
+    await sql`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        product_name VARCHAR(255) NOT NULL,
+        product_image TEXT,
+        quantity INTEGER NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    console.log("✅ Order_items table ready");
+    
   } catch (err) {
-    console.error("❌ Neon DB connection error:", err);
+    console.error("❌ Database initialization error:", err);
   }
 })();
 
@@ -650,38 +679,34 @@ app.post("/create-order", verifyToken, async (req, res) => {
 </html>
     `;
 
-    // Generate PDF and upload to ImageKit
+    // Generate PDF and upload to ImageKit (async, non-blocking)
     let invoicePdfUrl = null;
     let pdfError = null;
     
-    try {
-      console.log(`🚀 Starting invoice generation for order #${orderId}...`);
-      invoicePdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-      console.log(`✅ Invoice PDF uploaded successfully: ${invoicePdfUrl}`);
-      
-      // Update order with PDF URL
-      const updateResult = await sql`
-        UPDATE orders 
-        SET invoice_pdf_url = ${invoicePdfUrl}
-        WHERE id = ${orderId}
-        RETURNING id
-      `;
-      
-      if (updateResult && updateResult.length > 0) {
-        console.log(`✅ Order #${orderId} updated with PDF URL`);
-      } else {
-        console.warn(`⚠️ Order #${orderId} update returned no rows`);
+    // Start PDF generation in background
+    (async () => {
+      try {
+        console.log(`🚀 Starting background invoice generation for order #${orderId}...`);
+        const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
+        console.log(`✅ Invoice PDF uploaded successfully: ${pdfUrl}`);
+        
+        // Update order with PDF URL
+        const updateResult = await sql`
+          UPDATE orders 
+          SET invoice_pdf_url = ${pdfUrl}
+          WHERE id = ${orderId}
+          RETURNING id
+        `;
+        
+        if (updateResult && updateResult.length > 0) {
+          console.log(`✅ Order #${orderId} updated with PDF URL`);
+        } else {
+          console.warn(`⚠️ Order #${orderId} update returned no rows`);
+        }
+      } catch (error) {
+        console.error(`❌ Background PDF generation failed for order #${orderId}:`, error.message);
       }
-    } catch (error) {
-      console.error(`❌ Error generating/uploading PDF for order #${orderId}:`, error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        orderId: orderId
-      });
-      pdfError = error.message;
-      // Continue with order creation even if PDF fails
-    }
+    })();
 
     // Send invoice email to customer
     let emailSent = false;
@@ -716,15 +741,17 @@ app.post("/create-order", verifyToken, async (req, res) => {
       emailError = error.message;
     }
 
+    console.log(`✅ Order #${orderId} created successfully, returning response to client`);
+    
     res.json({ 
       success: true, 
       message: "Order created successfully", 
       orderId,
       invoiceHtml,
-      invoicePdfUrl,
+      invoicePdfUrl: null, // PDF will be generated in background
       emailSent,
-      emailError: emailSent ? null : `Email could not be sent: ${emailError}. You can download your invoice from the order confirmation page.`,
-      pdfError: invoicePdfUrl ? null : `PDF could not be generated: ${pdfError}`
+      emailError: emailSent ? null : (emailError ? `Email could not be sent: ${emailError}. You can download your invoice from the order confirmation page.` : null),
+      pdfNote: "Invoice PDF is being generated and will be available shortly in your dashboard"
     });
   } catch (err) {
     console.error("❌ Create order error:", err);
