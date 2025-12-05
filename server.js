@@ -987,6 +987,142 @@ app.post("/send", async (req, res) => {
     }
 });
 
+// Check if tables exist and show structure
+app.get("/check-tables", async (req, res) => {
+  try {
+    console.log("🔍 Checking database tables...");
+    
+    // Check if orders table exists
+    const ordersTableCheck = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'orders'
+      ) as exists
+    `;
+    
+    const ordersExists = ordersTableCheck[0].exists;
+    console.log(`Orders table exists: ${ordersExists}`);
+    
+    let ordersColumns = null;
+    if (ordersExists) {
+      ordersColumns = await sql`
+        SELECT column_name, data_type, is_nullable
+        FROM information_schema.columns
+        WHERE table_name = 'orders'
+        ORDER BY ordinal_position
+      `;
+    }
+    
+    // Check if order_items table exists
+    const orderItemsTableCheck = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'order_items'
+      ) as exists
+    `;
+    
+    const orderItemsExists = orderItemsTableCheck[0].exists;
+    console.log(`Order_items table exists: ${orderItemsExists}`);
+    
+    let orderItemsColumns = null;
+    if (orderItemsExists) {
+      orderItemsColumns = await sql`
+        SELECT column_name, data_type, is_nullable
+        FROM information_schema.columns
+        WHERE table_name = 'order_items'
+        ORDER BY ordinal_position
+      `;
+    }
+    
+    // Count records
+    let ordersCount = 0;
+    let orderItemsCount = 0;
+    
+    if (ordersExists) {
+      const countResult = await sql`SELECT COUNT(*) as count FROM orders`;
+      ordersCount = parseInt(countResult[0].count);
+    }
+    
+    if (orderItemsExists) {
+      const countResult = await sql`SELECT COUNT(*) as count FROM order_items`;
+      orderItemsCount = parseInt(countResult[0].count);
+    }
+    
+    res.json({
+      success: true,
+      tables: {
+        orders: {
+          exists: ordersExists,
+          columns: ordersColumns,
+          recordCount: ordersCount
+        },
+        order_items: {
+          exists: orderItemsExists,
+          columns: orderItemsColumns,
+          recordCount: orderItemsCount
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error("❌ Check tables error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to check tables",
+      error: error.message
+    });
+  }
+});
+
+// Create tables if they don't exist
+app.get("/create-tables", async (req, res) => {
+  try {
+    console.log("🔨 Creating tables...");
+    
+    // Create orders table
+    await sql`
+      CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        total_amount DECIMAL(10, 2) NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        shipping_address TEXT,
+        invoice_pdf_url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    console.log("✅ Orders table created/verified");
+    
+    // Create order_items table
+    await sql`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER NOT NULL,
+        product_name VARCHAR(255) NOT NULL,
+        product_image TEXT,
+        quantity INTEGER NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+      )
+    `;
+    console.log("✅ Order_items table created/verified");
+    
+    res.json({
+      success: true,
+      message: "Tables created successfully"
+    });
+    
+  } catch (error) {
+    console.error("❌ Create tables error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create tables",
+      error: error.message
+    });
+  }
+});
+
 // Migration endpoint to add invoice_pdf_url column
 app.get("/migrate-invoice-column", async (req, res) => {
   try {
