@@ -1102,21 +1102,23 @@ document.getElementById("registerForm").addEventListener("submit", async functio
 });
 
 // ✅ Forgot Password Form Handler
-document.getElementById("forgotForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
-  
-  const email = document.getElementById("forgotEmail").value.trim();
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  const originalText = submitBtn.textContent;
-  
-  if (!email) {
-    alert("Please enter your email address");
-    return;
-  }
-  
-  // Disable button and show loading
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Sending...";
+const forgotFormElement = document.getElementById("forgotForm");
+if (forgotFormElement) {
+  forgotFormElement.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    
+    const email = document.getElementById("forgotEmail").value.trim();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    if (!email) {
+      alert("Please enter your email address");
+      return;
+    }
+    
+    // Disable button and show loading
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending...";
   
   try {
     const res = await fetch("/forgot-password", {
@@ -1148,7 +1150,10 @@ document.getElementById("forgotForm").addEventListener("submit", async function 
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
   }
-});
+  });
+} else {
+  console.error("Forgot form element not found!");
+}
 
 // ✅ Contact Form Handler
 document.getElementById('contactForm').addEventListener('submit', async (e) => {
