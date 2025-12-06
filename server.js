@@ -61,6 +61,9 @@ const BREVO_SENDER = {
 // Helper function to send email via Brevo
 async function sendBrevoEmail({ to, subject, htmlContent, replyTo = null }) {
     try {
+        console.log(`📧 Sending email via Brevo to: ${to}, subject: ${subject}`);
+        console.log(`🔑 Using sender: ${BREVO_SENDER.email} (${BREVO_SENDER.name})`);
+        
         let sendSmtpEmail = new brevo.SendSmtpEmail();
         sendSmtpEmail.sender = BREVO_SENDER;
         sendSmtpEmail.to = [{ email: to }];
@@ -71,10 +74,14 @@ async function sendBrevoEmail({ to, subject, htmlContent, replyTo = null }) {
         }
         
         const result = await brevoApiInstance.sendTransacEmail(sendSmtpEmail);
-        console.log('✅ Email sent via Brevo:', result.messageId);
+        console.log('✅ Email sent via Brevo successfully! MessageId:', result.messageId);
         return { success: true, messageId: result.messageId };
     } catch (error) {
-        console.error('❌ Brevo email error:', error);
+        console.error('❌ Brevo email error:', {
+            message: error.message,
+            response: error.response?.text || error.response?.body,
+            status: error.status
+        });
         throw error;
     }
 }
@@ -334,14 +341,20 @@ app.post("/forgot-password", async (req, res) => {
       </div>
     `;
 
-    await sendBrevoEmail({
-      to: email,
-      subject: "Password Reset Request - Raju IT",
-      htmlContent: emailHtml
-    });
+    try {
+      const emailResult = await sendBrevoEmail({
+        to: email,
+        subject: "Password Reset Request - Raju IT",
+        htmlContent: emailHtml
+      });
 
-    console.log(`✅ Password reset email sent to ${email}`);
-    res.json({ success: true, message: "If an account exists with this email, you will receive a password reset link." });
+      console.log(`✅ Password reset email sent to ${email}`, emailResult);
+      res.json({ success: true, message: "Password reset link sent! Check your email (including spam folder). The link expires in 1 hour." });
+    } catch (emailError) {
+      console.error(`❌ Failed to send password reset email to ${email}:`, emailError);
+      // Still return success to not reveal if email exists
+      res.json({ success: true, message: "If an account exists with this email, you will receive a password reset link." });
+    }
 
   } catch (error) {
     console.error("❌ Forgot password error:", error);
