@@ -364,11 +364,86 @@ app.post("/login", async (req, res) => {
     // Check if email is verified
     if (!storedUser.is_verified) {
       console.log("⚠️ Login attempt with unverified email:", email);
-      return res.status(403).json({ 
-        message: "Please verify your email address before logging in. Check your inbox for the verification link.",
-        requiresVerification: true,
-        email: email
-      });
+      
+      // Generate new verification token or use existing one
+      let verificationToken = storedUser.verification_token;
+      
+      // If no token exists or token is null, generate a new one
+      if (!verificationToken) {
+        verificationToken = jwt.sign(
+          { email: email }, 
+          process.env.JWT_SECRET || "SECRET_KEY", 
+          { expiresIn: "24h" }
+        );
+        
+        // Update the token in database
+        await sql`
+          UPDATE users 
+          SET verification_token = ${verificationToken} 
+          WHERE id = ${storedUser.id}
+        `;
+      }
+      
+      // Send verification email
+      try {
+        const verificationLink = `https://rajuit.online/verify-email?token=${verificationToken}`;
+        
+        const emailHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
+            <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <h2 style="color: #ffc800; margin-bottom: 20px;">Email Verification Required 🔐</h2>
+              <p style="font-size: 16px; color: #333; line-height: 1.6;">Hi ${storedUser.name},</p>
+              <p style="font-size: 16px; color: #333; line-height: 1.6;">
+                You tried to log in, but your email address hasn't been verified yet. 
+                To access your account, please verify your email by clicking the button below:
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${verificationLink}" 
+                   style="background: #ffc800; color: #000; padding: 15px 40px; text-decoration: none; 
+                          border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
+                  Verify Email Address
+                </a>
+              </div>
+              <p style="font-size: 14px; color: #666; line-height: 1.6;">
+                Or copy and paste this link into your browser:<br>
+                <a href="${verificationLink}" style="color: #ffc800; word-break: break-all;">${verificationLink}</a>
+              </p>
+              <p style="font-size: 14px; color: #666; line-height: 1.6; margin-top: 30px;">
+                This verification link will expire in 24 hours.
+              </p>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+              <p style="font-size: 12px; color: #999; text-align: center;">
+                If you didn't try to log in, please ignore this email.
+              </p>
+            </div>
+          </div>
+        `;
+
+        await sendBrevoEmail({
+          to: email,
+          subject: "Verify Your Email to Login - Raju IT",
+          htmlContent: emailHtml
+        });
+
+        console.log("✅ Verification email sent to:", email);
+        
+        return res.status(403).json({ 
+          message: "Please verify your email address before logging in. We've sent a verification link to your email.",
+          requiresVerification: true,
+          email: email,
+          emailSent: true
+        });
+        
+      } catch (emailError) {
+        console.error("❌ Error sending verification email during login:", emailError);
+        
+        return res.status(403).json({ 
+          message: "Please verify your email address before logging in. If you didn't receive the verification email, please use the 'Resend Verification' option.",
+          requiresVerification: true,
+          email: email,
+          emailSent: false
+        });
+      }
     }
 
     const payload = {

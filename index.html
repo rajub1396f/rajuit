@@ -1019,7 +1019,11 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     } else {
       // Check if verification is required
       if (data?.requiresVerification) {
-        alert("⚠️ " + (data?.message || "Please verify your email before logging in. Check your inbox for the verification link."));
+        if (data?.emailSent) {
+          alert("📧 " + (data?.message || "Verification email sent! Please check your inbox and click the verification link to login."));
+        } else {
+          alert("⚠️ " + (data?.message || "Please verify your email before logging in. Check your inbox for the verification link."));
+        }
       } else {
         alert(data?.message || "Login failed");
       }
