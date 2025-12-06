@@ -340,7 +340,7 @@ app.post("/forgot-password", async (req, res) => {
     );
 
     // Send reset email via Brevo
-    const resetLink = `https://rajuit.online/reset-password.html?token=${resetToken}`;
+    const resetLink = `https://rajuit.online/reset-password?token=${resetToken}`;
     
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
