@@ -1101,6 +1101,55 @@ document.getElementById("registerForm").addEventListener("submit", async functio
   }
 });
 
+// ✅ Forgot Password Form Handler
+document.getElementById("forgotForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  
+  const email = document.getElementById("forgotEmail").value.trim();
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const originalText = submitBtn.textContent;
+  
+  if (!email) {
+    alert("Please enter your email address");
+    return;
+  }
+  
+  // Disable button and show loading
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Sending...";
+  
+  try {
+    const res = await fetch("/forgot-password", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ email }),
+      credentials: "include"
+    });
+    
+    const data = await res.json().catch(() => null);
+    
+    if (res.ok && data?.success) {
+      alert("Password reset link sent! Check your email (including spam folder). The link will expire in 1 hour.");
+      
+      // Close modal
+      const forgotModalEl = document.getElementById('forgotModal');
+      const forgotModal = bootstrap.Modal.getInstance(forgotModalEl);
+      if (forgotModal) forgotModal.hide();
+      
+      // Reset form
+      document.getElementById("forgotForm").reset();
+    } else {
+      alert(data?.message || "Failed to send reset link. Please try again.");
+    }
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    alert("Network error. Please try again later.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+});
+
 // ✅ Contact Form Handler
 document.getElementById('contactForm').addEventListener('submit', async (e) => {
   e.preventDefault();
