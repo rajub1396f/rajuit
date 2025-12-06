@@ -302,22 +302,42 @@ app.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
 
+    console.log(`📧 Password reset request received for: ${email}`);
+
     if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, message: "Invalid email format" });
+    }
+
+    // Check if Brevo API key is configured
+    if (!process.env.BREVO_API_KEY) {
+      console.error("❌ BREVO_API_KEY not configured!");
+      return res.status(500).json({ success: false, message: "Email service not configured. Please contact support." });
     }
 
     // Check if user exists
     const userRows = await sql`SELECT * FROM users WHERE email = ${email} LIMIT 1`;
 
     if (!userRows || userRows.length === 0) {
-      // Don't reveal if email exists for security
+      console.log(`⚠️ No user found with email: ${email}`);
+      // Don't reveal if email exists for security, but still return success
       return res.json({ success: true, message: "If an account exists with this email, you will receive a password reset link." });
     }
 
     const user = userRows[0];
+    console.log(`✅ User found: ${user.name} (ID: ${user.id})`);
 
     // Generate reset token (valid for 1 hour)
-    const resetToken = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || "SECRET_KEY", { expiresIn: "1h" });
+    const resetToken = jwt.sign(
+      { userId: user.id, email: user.email }, 
+      process.env.JWT_SECRET || "SECRET_KEY", 
+      { expiresIn: "1h" }
+    );
 
     // Send reset email via Brevo
     const resetLink = `https://rajuit.online/reset-password.html?token=${resetToken}`;
@@ -342,23 +362,44 @@ app.post("/forgot-password", async (req, res) => {
     `;
 
     try {
+      console.log(`📤 Attempting to send password reset email via Brevo to: ${email}`);
+      
       const emailResult = await sendBrevoEmail({
         to: email,
         subject: "Password Reset Request - Raju IT",
         htmlContent: emailHtml
       });
 
-      console.log(`✅ Password reset email sent to ${email}`, emailResult);
-      res.json({ success: true, message: "Password reset link sent! Check your email (including spam folder). The link expires in 1 hour." });
+      console.log(`✅ Password reset email sent successfully to ${email}`, emailResult);
+      res.json({ 
+        success: true, 
+        message: "Password reset link sent! Check your email (including spam folder). The link expires in 1 hour." 
+      });
     } catch (emailError) {
-      console.error(`❌ Failed to send password reset email to ${email}:`, emailError);
-      // Still return success to not reveal if email exists
-      res.json({ success: true, message: "If an account exists with this email, you will receive a password reset link." });
+      console.error(`❌ Failed to send password reset email to ${email}:`, {
+        error: emailError.message,
+        stack: emailError.stack,
+        response: emailError.response
+      });
+      
+      // Return error to user so they know something went wrong
+      return res.status(500).json({ 
+        success: false, 
+        message: "Failed to send reset email. Please try again later or contact support.",
+        error: process.env.NODE_ENV === 'development' ? emailError.message : undefined
+      });
     }
 
   } catch (error) {
-    console.error("❌ Forgot password error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("❌ Forgot password error:", {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error. Please try again later.",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
