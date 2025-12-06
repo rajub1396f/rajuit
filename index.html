@@ -1017,7 +1017,12 @@ document.getElementById("loginForm").addEventListener("submit", async function (
         window.location.href = "/dashboard";
       }, 600); // Increased from 300ms to 600ms
     } else {
-      alert(data?.message || "Login failed");
+      // Check if verification is required
+      if (data?.requiresVerification) {
+        alert("⚠️ " + (data?.message || "Please verify your email before logging in. Check your inbox for the verification link."));
+      } else {
+        alert(data?.message || "Login failed");
+      }
     }
   } catch (err) {
     console.error(err);
@@ -1057,7 +1062,8 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     const result = await res.json().catch(()=>null);
 
     if (res.ok) {
-      alert("Registration successful! Please login.");
+      // Show verification message
+      alert("✅ " + (result?.message || "Registration successful! Please check your email to verify your account before logging in."));
       
       // Close register modal
       const registerModalEl = document.getElementById('registerModal');
@@ -1067,11 +1073,8 @@ document.getElementById("registerForm").addEventListener("submit", async functio
       // Reset form
       e.target.reset();
       
-      // Open login modal after a short delay
-      setTimeout(() => {
-        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-        loginModal.show();
-      }, 500);
+      // Don't auto-open login modal since they need to verify email first
+      // User can click login when ready after verification
     } else {
       alert(result?.message || "Registration failed");
     }

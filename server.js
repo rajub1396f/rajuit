@@ -135,6 +135,27 @@ console.log("✅ Brevo email service initialized");
     `;
     console.log("✅ Order_items table ready");
     
+    // Add email verification columns to users table
+    try {
+      await sql`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE
+      `;
+      console.log("✅ is_verified column added/verified");
+    } catch (alterErr) {
+      console.log("Note: is_verified column might already exist:", alterErr.message);
+    }
+    
+    try {
+      await sql`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS verification_token TEXT
+      `;
+      console.log("✅ verification_token column added/verified");
+    } catch (alterErr) {
+      console.log("Note: verification_token column might already exist:", alterErr.message);
+    }
+    
   } catch (err) {
     console.error("❌ Database initialization error:", err);
   }
@@ -229,19 +250,75 @@ app.post("/register", async (req, res) => {
     console.log("🔐 Hashing password...");
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generate email verification token
+    const verificationToken = jwt.sign(
+      { email: email }, 
+      process.env.JWT_SECRET || "SECRET_KEY", 
+      { expiresIn: "24h" }
+    );
+
     console.log("💾 Inserting user into database...");
     const result = await sql`
-      INSERT INTO users (name, email, password, phone)
-      VALUES (${name}, ${email}, ${hashedPassword}, ${phone})
+      INSERT INTO users (name, email, password, phone, is_verified, verification_token)
+      VALUES (${name}, ${email}, ${hashedPassword}, ${phone}, FALSE, ${verificationToken})
       RETURNING id, name, email, phone;
     `;
 
     const inserted = result[0] || null;
     console.log("✅ User registered successfully:", inserted);
 
+    // Send verification email
+    try {
+      const verificationLink = `https://rajuit.online/verify-email?token=${verificationToken}`;
+      
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
+          <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #ffc800; margin-bottom: 20px;">Welcome to Raju IT! 🎉</h2>
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">Hi ${name},</p>
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
+              Thank you for registering with us! To complete your registration and access your dashboard, 
+              please verify your email address by clicking the button below:
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verificationLink}" 
+                 style="background: #ffc800; color: #000; padding: 15px 40px; text-decoration: none; 
+                        border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
+                Verify Email Address
+              </a>
+            </div>
+            <p style="font-size: 14px; color: #666; line-height: 1.6;">
+              Or copy and paste this link into your browser:<br>
+              <a href="${verificationLink}" style="color: #ffc800; word-break: break-all;">${verificationLink}</a>
+            </p>
+            <p style="font-size: 14px; color: #666; line-height: 1.6; margin-top: 30px;">
+              This verification link will expire in 24 hours.
+            </p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="font-size: 12px; color: #999; text-align: center;">
+              If you didn't create this account, please ignore this email.
+            </p>
+          </div>
+        </div>
+      `;
+
+      await sendBrevoEmail({
+        to: email,
+        subject: "Verify Your Email - Raju IT",
+        htmlContent: emailHtml
+      });
+
+      console.log("✅ Verification email sent to:", email);
+
+    } catch (emailError) {
+      console.error("❌ Error sending verification email:", emailError);
+      // Continue registration even if email fails - user can request resend
+    }
+
     res.status(201).json({
-      message: "User registered successfully",
-      user: inserted
+      message: "Registration successful! Please check your email to verify your account.",
+      user: inserted,
+      requiresVerification: true
     });
 
   } catch (err) {
@@ -273,6 +350,16 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Incorrect password" });
     }
 
+    // Check if email is verified
+    if (!storedUser.is_verified) {
+      console.log("⚠️ Login attempt with unverified email:", email);
+      return res.status(403).json({ 
+        message: "Please verify your email address before logging in. Check your inbox for the verification link.",
+        requiresVerification: true,
+        email: email
+      });
+    }
+
     const payload = {
       id: storedUser.id,
       name: storedUser.name,
@@ -295,6 +382,198 @@ app.post("/login", async (req, res) => {
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Email Verification Route
+app.get("/verify-email", async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Verification Error</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }
+            .container { background: white; padding: 40px; border-radius: 10px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #dc3545; }
+            a { color: #ffc800; text-decoration: none; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>❌ Invalid Verification Link</h1>
+            <p>The verification link is missing or invalid.</p>
+            <p><a href="/index.html">Return to Home</a></p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    console.log("📧 Email verification attempt with token:", token.substring(0, 20) + "...");
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
+    } catch (jwtError) {
+      console.error("❌ Invalid or expired token:", jwtError.message);
+      return res.status(400).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Verification Error</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }
+            .container { background: white; padding: 40px; border-radius: 10px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #dc3545; }
+            a { color: #ffc800; text-decoration: none; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>⏰ Verification Link Expired</h1>
+            <p>This verification link has expired. Please register again or contact support.</p>
+            <p><a href="/index.html">Return to Home</a></p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    const { email } = decoded;
+
+    // Find user by email and verification token
+    const userRows = await sql`
+      SELECT id, name, email, is_verified, verification_token 
+      FROM users 
+      WHERE email = ${email} AND verification_token = ${token}
+      LIMIT 1
+    `;
+
+    if (!userRows || userRows.length === 0) {
+      console.log("❌ User not found or token mismatch");
+      return res.status(400).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Verification Error</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }
+            .container { background: white; padding: 40px; border-radius: 10px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #dc3545; }
+            a { color: #ffc800; text-decoration: none; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>❌ Verification Failed</h1>
+            <p>Unable to verify your email. The link may have already been used.</p>
+            <p><a href="/index.html">Return to Home</a></p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    const user = userRows[0];
+
+    // Check if already verified
+    if (user.is_verified) {
+      console.log("⚠️ User already verified:", email);
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Already Verified</title>
+          <meta http-equiv="refresh" content="3;url=/dashboard.html">
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }
+            .container { background: white; padding: 40px; border-radius: 10px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #28a745; }
+            a { color: #ffc800; text-decoration: none; font-weight: bold; }
+            .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #ffc800; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>✅ Email Already Verified!</h1>
+            <p>Your email has already been verified. Redirecting to dashboard...</p>
+            <div class="spinner"></div>
+            <p><a href="/dashboard.html">Click here if not redirected automatically</a></p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    // Update user as verified and clear verification token
+    await sql`
+      UPDATE users 
+      SET is_verified = TRUE, verification_token = NULL 
+      WHERE id = ${user.id}
+    `;
+
+    console.log("✅ Email verified successfully for:", email);
+
+    // Send success page with redirect to dashboard
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Email Verified Successfully</title>
+        <meta http-equiv="refresh" content="3;url=/dashboard.html">
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }
+          .container { background: white; padding: 40px; border-radius: 10px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+          h1 { color: #28a745; }
+          .checkmark { font-size: 60px; color: #28a745; margin-bottom: 20px; }
+          a { color: #ffc800; text-decoration: none; font-weight: bold; }
+          .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #ffc800; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="checkmark">✓</div>
+          <h1>Email Verified Successfully!</h1>
+          <p>Welcome, ${user.name}! Your account has been activated.</p>
+          <p>Redirecting to your dashboard...</p>
+          <div class="spinner"></div>
+          <p><a href="/dashboard.html">Click here if not redirected automatically</a></p>
+        </div>
+      </body>
+      </html>
+    `);
+
+  } catch (err) {
+    console.error("❌ Email verification error:", err);
+    res.status(500).send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Verification Error</title>
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }
+          .container { background: white; padding: 40px; border-radius: 10px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+          h1 { color: #dc3545; }
+          a { color: #ffc800; text-decoration: none; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>❌ Server Error</h1>
+          <p>An error occurred while verifying your email. Please try again later.</p>
+          <p><a href="/index.html">Return to Home</a></p>
+        </div>
+      </body>
+      </html>
+    `);
   }
 });
 
@@ -1489,6 +1768,38 @@ app.get("/migrate-invoice-column", async (req, res) => {
     res.json({ 
       success: true, 
       message: "invoice_pdf_url column added to orders table" 
+    });
+  } catch (error) {
+    console.error("❌ Migration error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Migration failed", 
+      error: error.message 
+    });
+  }
+});
+
+// Migration endpoint to add email verification columns to users table
+app.get("/migrate-email-verification", async (req, res) => {
+  try {
+    console.log("🔄 Adding email verification columns to users table...");
+    
+    // Add is_verified column (default to false)
+    await sql`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE
+    `;
+    
+    // Add verification_token column
+    await sql`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS verification_token TEXT
+    `;
+    
+    console.log("✅ Email verification migration completed successfully");
+    res.json({ 
+      success: true, 
+      message: "Email verification columns added to users table" 
     });
   } catch (error) {
     console.error("❌ Migration error:", error);
