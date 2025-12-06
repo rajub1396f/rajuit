@@ -1066,8 +1066,13 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     const result = await res.json().catch(()=>null);
 
     if (res.ok) {
-      // Show verification message
-      alert("✅ " + (result?.message || "Registration successful! Please check your email to verify your account before logging in."));
+      // Show detailed verification message
+      const userEmail = data.email;
+      const message = result?.emailSent 
+        ? `Registration successful! ✅\n\nA verification email has been sent to:\n${userEmail}\n\nPlease check your inbox and click the verification link to activate your account.\n\n📧 Don't forget to check your spam folder if you don't see it!`
+        : `Registration successful! ✅\n\nHowever, there was an issue sending the verification email.\nPlease contact support or try using the "Resend Verification" option.`;
+      
+      alert(message);
       
       // Close register modal
       const registerModalEl = document.getElementById('registerModal');
