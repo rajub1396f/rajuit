@@ -74,7 +74,8 @@ async function sendBrevoEmail({ to, subject, htmlContent, replyTo = null }) {
         }
         
         const result = await brevoApiInstance.sendTransacEmail(sendSmtpEmail);
-        console.log('✅ Email sent via Brevo successfully! MessageId:', result.messageId);
+        console.log('✅ Email sent via Brevo successfully!');
+        console.log('📬 Full Brevo response:', JSON.stringify(result, null, 2));
         return { success: true, messageId: result.messageId };
     } catch (error) {
         console.error('❌ Brevo email error:', {
