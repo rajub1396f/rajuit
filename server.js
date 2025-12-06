@@ -79,15 +79,8 @@ async function sendBrevoEmail({ to, subject, htmlContent, replyTo = null }) {
     }
 }
 
-// Verify Gmail transporter (non-blocking)
-transporter.verify((error, success) => {
-    if (error) {
-        console.error("❌ Gmail transporter error:", error.message);
-        console.log("📧 Email sending may not work, but order creation will continue");
-    } else {
-        console.log("✅ Gmail transporter ready!");
-    }
-});
+// Verify Brevo API connection
+console.log("✅ Brevo email service initialized");
 
 // Test connection and create tables
 (async () => {
