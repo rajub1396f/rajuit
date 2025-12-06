@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
+const brevo = require('@getbrevo/brevo');
 const puppeteer = require('puppeteer');
 const ImageKit = require('imagekit');
 
@@ -46,27 +47,37 @@ const imagekit = new ImageKit({
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
 });
 
-// ✅ Create Gmail transporter with extended timeout
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-        pass: process.env.GMAIL_APP_PASSWORD || "otldvhcmpxmlqgyn"
-    },
-    tls: {
-        rejectUnauthorized: false
-    },
-    connectionTimeout: 60000, // 60 seconds
-    greetingTimeout: 30000,   // 30 seconds
-    socketTimeout: 60000,      // 60 seconds
-    pool: true,
-    maxConnections: 5,
-    maxMessages: 100,
-    rateDelta: 1000,
-    rateLimit: 5
-});
+// ✅ Initialize Brevo API Client
+let brevoApiInstance = new brevo.TransactionalEmailsApi();
+let brevoApiKey = brevoApiInstance.authentications['apiKey'];
+brevoApiKey.apiKey = process.env.BREVO_API_KEY;
+
+// Brevo sender configuration
+const BREVO_SENDER = {
+    email: process.env.BREVO_SENDER_EMAIL || "rajuit1396@gmail.com",
+    name: process.env.BREVO_SENDER_NAME || "Raju IT"
+};
+
+// Helper function to send email via Brevo
+async function sendBrevoEmail({ to, subject, htmlContent, replyTo = null }) {
+    try {
+        let sendSmtpEmail = new brevo.SendSmtpEmail();
+        sendSmtpEmail.sender = BREVO_SENDER;
+        sendSmtpEmail.to = [{ email: to }];
+        sendSmtpEmail.subject = subject;
+        sendSmtpEmail.htmlContent = htmlContent;
+        if (replyTo) {
+            sendSmtpEmail.replyTo = { email: replyTo };
+        }
+        
+        const result = await brevoApiInstance.sendTransacEmail(sendSmtpEmail);
+        console.log('✅ Email sent via Brevo:', result.messageId);
+        return { success: true, messageId: result.messageId };
+    } catch (error) {
+        console.error('❌ Brevo email error:', error);
+        throw error;
+    }
+}
 
 // Verify Gmail transporter (non-blocking)
 transporter.verify((error, success) => {
@@ -283,6 +294,129 @@ app.post("/login", async (req, res) => {
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Forgot password - send reset link via Brevo
+app.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Check if user exists
+    const userRows = await sql`SELECT * FROM users WHERE email = ${email} LIMIT 1`;
+
+    if (!userRows || userRows.length === 0) {
+      // Don't reveal if email exists for security
+      return res.json({ success: true, message: "If an account exists with this email, you will receive a password reset link." });
+    }
+
+    const user = userRows[0];
+
+    // Generate reset token (valid for 1 hour)
+    const resetToken = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || "SECRET_KEY", { expiresIn: "1h" });
+
+    // Send reset email via Brevo
+    const resetLink = `https://rajuit.online/reset-password.html?token=${resetToken}`;
+    
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+        <div style="background-color: white; padding: 30px; border-radius: 5px;">
+          <h2 style="color: #ffc800;">Password Reset Request - Raju IT</h2>
+          <hr style="border: 1px solid #eee;">
+          <p>Hello ${user.name},</p>
+          <p>We received a request to reset your password. Click the button below to reset it:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="display: inline-block; background: #ffc800; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+          </div>
+          <p>Or copy and paste this link into your browser:</p>
+          <p style="background-color: #f9f9f9; padding: 10px; word-break: break-all; font-size: 12px;">${resetLink}</p>
+          <hr style="border: 1px solid #eee;">
+          <p style="color: #999; font-size: 12px;"><strong>This link will expire in 1 hour.</strong></p>
+          <p style="color: #999; font-size: 12px;">If you didn't request a password reset, please ignore this email.</p>
+        </div>
+      </div>
+    `;
+
+    await sendBrevoEmail({
+      to: email,
+      subject: "Password Reset Request - Raju IT",
+      htmlContent: emailHtml
+    });
+
+    console.log(`✅ Password reset email sent to ${email}`);
+    res.json({ success: true, message: "If an account exists with this email, you will receive a password reset link." });
+
+  } catch (error) {
+    console.error("❌ Forgot password error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Reset password with token
+app.post("/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: "Token and new password are required" });
+    }
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
+    } catch (err) {
+      return res.status(400).json({ message: "Invalid or expired reset token" });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password in database
+    await sql`UPDATE users SET password = ${hashedPassword} WHERE id = ${decoded.userId}`;
+
+    console.log(`✅ Password reset successful for user ID: ${decoded.userId}`);
+    
+    // Send confirmation email via Brevo
+    const userRows = await sql`SELECT name, email FROM users WHERE id = ${decoded.userId} LIMIT 1`;
+    if (userRows && userRows.length > 0) {
+      const user = userRows[0];
+      
+      const confirmationHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+          <div style="background-color: white; padding: 30px; border-radius: 5px;">
+            <h2 style="color: #ffc800;">Password Changed Successfully - Raju IT</h2>
+            <hr style="border: 1px solid #eee;">
+            <p>Hello ${user.name},</p>
+            <p>Your password has been successfully changed.</p>
+            <p>If you did not make this change, please contact us immediately at rajuit1396@gmail.com</p>
+            <hr style="border: 1px solid #eee;">
+            <p style="color: #999; font-size: 12px;">This is an automated email from Raju IT.</p>
+          </div>
+        </div>
+      `;
+
+      try {
+        await sendBrevoEmail({
+          to: user.email,
+          subject: "Password Changed Successfully - Raju IT",
+          htmlContent: confirmationHtml
+        });
+        console.log(`✅ Password change confirmation sent to ${user.email}`);
+      } catch (emailError) {
+        console.error("❌ Failed to send confirmation email:", emailError.message);
+      }
+    }
+
+    res.json({ success: true, message: "Password reset successful. You can now login with your new password." });
+
+  } catch (error) {
+    console.error("❌ Reset password error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
@@ -769,16 +903,12 @@ app.post("/create-order", verifyToken, async (req, res) => {
     let emailSent = false;
     let emailError = null;
     
-    // Send email in background to not block response
+    // Send email in background to not block response via Brevo
     (async () => {
       try {
-        console.log(`📧 Attempting to send invoice to ${user.email}...`);
+        console.log(`📧 Attempting to send invoice to ${user.email} via Brevo...`);
         
-        const mailOptions = {
-          from: `"Raju IT" <${process.env.GMAIL_USER || "rajuit1396@gmail.com"}>`,
-          to: user.email,
-          subject: `Order Confirmation #${orderId.toString().padStart(6, '0')} - Raju IT`,
-          html: `
+        const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #212529;">Order Confirmed! 🎉</h2>
               <p>Thank you for your order at Raju IT!</p>
@@ -790,12 +920,15 @@ app.post("/create-order", verifyToken, async (req, res) => {
               <a href="https://rajuit.online/dashboard" style="display: inline-block; background: #ffc800; color: #212529; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0;">View My Orders</a>
               <p style="color: #666; font-size: 14px; margin-top: 30px;">If you have any questions, contact us at rajuit1396@gmail.com</p>
             </div>
-          `,
-          text: `Order Confirmed! Your order #${orderId} has been placed successfully. Total: SAR ${totalAmount}. View your orders at https://rajuit.online/dashboard`
-        };
+          `;
         
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Invoice email sent successfully to ${user.email}`);
+        await sendBrevoEmail({
+          to: user.email,
+          subject: `Order Confirmation #${orderId.toString().padStart(6, '0')} - Raju IT`,
+          htmlContent: emailHtml
+        });
+        
+        console.log(`✅ Invoice email sent successfully to ${user.email} via Brevo`);
       } catch (error) {
         console.error(`❌ Background email sending failed for order #${orderId}:`, error.message);
       }
@@ -1082,23 +1215,20 @@ app.post("/send", async (req, res) => {
     `;
 
     try {
-        console.log("📤 Sending email via Gmail...");
+        console.log("📤 Sending contact form email via Brevo...");
         
-        const mailOptions = {
-            from: process.env.GMAIL_USER || "rajuit1396@gmail.com",
-            to: process.env.GMAIL_USER || "rajuit1396@gmail.com",
+        await sendBrevoEmail({
+            to: process.env.BREVO_SENDER_EMAIL || "rajuit1396@gmail.com",
             subject: "New Contact Form Message from Raju IT Website",
-            html: emailHtml,
+            htmlContent: emailHtml,
             replyTo: email
-        };
+        });
         
-        await transporter.sendMail(mailOptions);
-        console.log("✅ Email sent successfully via Gmail!");
-        
+        console.log("✅ Contact form email sent successfully via Brevo!");
         res.json({ success: true, message: "Message sent successfully!" });
 
     } catch (error) {
-        console.error("❌ Email sending error:", error.message);
+        console.error("❌ Contact form email error:", error.message);
         console.error("Full error:", error);
         res.status(500).json({ success: false, message: "Failed to send message.", error: error.message });
     }
