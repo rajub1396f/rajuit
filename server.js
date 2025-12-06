@@ -297,6 +297,62 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Test email endpoint - send test email to verify Brevo configuration
+app.get("/test-email", async (req, res) => {
+  try {
+    console.log("🧪 Test email endpoint called");
+    
+    // Check if Brevo API key is configured
+    if (!process.env.BREVO_API_KEY) {
+      return res.status(500).json({ 
+        success: false, 
+        error: "BREVO_API_KEY not configured in environment variables" 
+      });
+    }
+
+    const testEmail = process.env.BREVO_SENDER_EMAIL || "rajuit1396@gmail.com";
+    
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #ffc800;">✅ Brevo Email Test Successful!</h2>
+        <p>This is a test email to verify your Brevo email configuration is working correctly.</p>
+        <p><strong>If you received this email, your password reset feature should work!</strong></p>
+        <hr>
+        <p style="color: #666; font-size: 12px;">
+          Sent from: Raju IT Email System<br>
+          Time: ${new Date().toLocaleString()}<br>
+          API Key: ${process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.substring(0, 15) + '...' : 'NOT SET'}<br>
+          Sender: ${BREVO_SENDER.email}
+        </p>
+      </div>
+    `;
+
+    await sendBrevoEmail({
+      to: testEmail,
+      subject: "Test Email from Raju IT - Brevo Configuration",
+      htmlContent: emailHtml
+    });
+
+    res.json({ 
+      success: true, 
+      message: `Test email sent to ${testEmail}. Check your inbox!`,
+      config: {
+        apiKeySet: !!process.env.BREVO_API_KEY,
+        senderEmail: BREVO_SENDER.email,
+        senderName: BREVO_SENDER.name
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Test email error:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      details: error.response?.text || error.response?.body
+    });
+  }
+});
+
 // Forgot password - send reset link via Brevo
 app.post("/forgot-password", async (req, res) => {
   try {
