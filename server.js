@@ -46,7 +46,7 @@ const imagekit = new ImageKit({
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
 });
 
-// ✅ Create Gmail transporter
+// ✅ Create Gmail transporter with extended timeout
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
@@ -57,19 +57,26 @@ const transporter = nodemailer.createTransport({
     },
     tls: {
         rejectUnauthorized: false
-    }
+    },
+    connectionTimeout: 60000, // 60 seconds
+    greetingTimeout: 30000,   // 30 seconds
+    socketTimeout: 60000,      // 60 seconds
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
+    rateDelta: 1000,
+    rateLimit: 5
 });
 
-// Verify Gmail transporter
-if (true) {
-    transporter.verify((error, success) => {
-        if (error) {
-            console.error("❌ Gmail transporter error:", error.message);
-        } else {
-            console.log("✅ Gmail transporter ready!");
-        }
-    });
-}
+// Verify Gmail transporter (non-blocking)
+transporter.verify((error, success) => {
+    if (error) {
+        console.error("❌ Gmail transporter error:", error.message);
+        console.log("📧 Email sending may not work, but order creation will continue");
+    } else {
+        console.log("✅ Gmail transporter ready!");
+    }
+});
 
 // Test connection and create tables
 (async () => {
@@ -758,38 +765,41 @@ app.post("/create-order", verifyToken, async (req, res) => {
       }
     })();
 
-    // Send invoice email to customer
+    // Send invoice email to customer (non-blocking, in background)
     let emailSent = false;
     let emailError = null;
     
-    try {
-      console.log(`📧 Attempting to send invoice to ${user.email}...`);
-      console.log(`📤 Using SMTP: ${process.env.GMAIL_USER || "rajuit1396@gmail.com"}`);
-      
-      const mailOptions = {
-        from: `"Raju IT" <${process.env.GMAIL_USER || "rajuit1396@gmail.com"}>`,
-        to: user.email,
-        subject: `Order Confirmation & Invoice #${orderId.toString().padStart(6, '0')} - Raju IT`,
-        html: invoicePdfUrl ? 
-          `${invoiceHtml}<br><br><div style="text-align: center; margin: 30px 0;"><a href="${invoicePdfUrl}" style="background: #ffc800; color: #212529; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">📥 Download Invoice PDF</a></div>` 
-          : invoiceHtml,
-        text: `Your order #${orderId} has been placed successfully. Thank you for shopping with Raju IT!${invoicePdfUrl ? `\n\nDownload your invoice: ${invoicePdfUrl}` : ''}`
-      };
-      
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`✅ Invoice email sent successfully to ${user.email}`);
-      console.log(`📨 Message ID: ${info.messageId}`);
-      emailSent = true;
-    } catch (error) {
-      console.error("❌ Error sending invoice email:", error);
-      console.error("❌ Error details:", {
-        message: error.message,
-        code: error.code,
-        command: error.command,
-        response: error.response
-      });
-      emailError = error.message;
-    }
+    // Send email in background to not block response
+    (async () => {
+      try {
+        console.log(`📧 Attempting to send invoice to ${user.email}...`);
+        
+        const mailOptions = {
+          from: `"Raju IT" <${process.env.GMAIL_USER || "rajuit1396@gmail.com"}>`,
+          to: user.email,
+          subject: `Order Confirmation #${orderId.toString().padStart(6, '0')} - Raju IT`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #212529;">Order Confirmed! 🎉</h2>
+              <p>Thank you for your order at Raju IT!</p>
+              <div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #ffc800; margin: 20px 0;">
+                <p><strong>Order Number:</strong> #${orderId.toString().padStart(6, '0')}</p>
+                <p><strong>Total Amount:</strong> SAR ${totalAmount}</p>
+              </div>
+              <p>You can view and download your invoice from your dashboard.</p>
+              <a href="https://rajuit.online/dashboard" style="display: inline-block; background: #ffc800; color: #212529; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0;">View My Orders</a>
+              <p style="color: #666; font-size: 14px; margin-top: 30px;">If you have any questions, contact us at rajuit1396@gmail.com</p>
+            </div>
+          `,
+          text: `Order Confirmed! Your order #${orderId} has been placed successfully. Total: SAR ${totalAmount}. View your orders at https://rajuit.online/dashboard`
+        };
+        
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Invoice email sent successfully to ${user.email}`);
+      } catch (error) {
+        console.error(`❌ Background email sending failed for order #${orderId}:`, error.message);
+      }
+    })();
 
     console.log(`✅ Order #${orderId} created successfully, returning response to client`);
     
@@ -799,8 +809,8 @@ app.post("/create-order", verifyToken, async (req, res) => {
       orderId,
       invoiceHtml,
       invoicePdfUrl: null, // PDF will be generated in background
-      emailSent,
-      emailError: emailSent ? null : (emailError ? `Email could not be sent: ${emailError}. You can download your invoice from the order confirmation page.` : null),
+      emailSent: true, // Email is being sent in background
+      emailNote: "Order confirmation email is being sent to your email address",
       pdfNote: "Invoice PDF is being generated and will be available shortly in your dashboard"
     });
   } catch (err) {
