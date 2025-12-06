@@ -1102,10 +1102,14 @@ document.getElementById("registerForm").addEventListener("submit", async functio
 });
 
 // ✅ Forgot Password Form Handler
+console.log("🔍 Looking for forgotForm element...");
 const forgotFormElement = document.getElementById("forgotForm");
+console.log("forgotForm element:", forgotFormElement);
 if (forgotFormElement) {
+  console.log("✅ Attaching forgot password handler");
   forgotFormElement.addEventListener("submit", async function (e) {
     e.preventDefault();
+    console.log("📧 Forgot password form submitted");
     
     const email = document.getElementById("forgotEmail").value.trim();
     const submitBtn = e.target.querySelector('button[type="submit"]');
