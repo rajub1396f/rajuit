@@ -122,9 +122,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Note: Resend verification endpoint needs to be implemented on the server
-        // This is a placeholder form that can be connected to a backend endpoint
-        
         document.getElementById('resendForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -139,7 +136,6 @@
             alertContainer.innerHTML = '';
             
             try {
-                // TODO: Implement /resend-verification endpoint on server
                 const response = await fetch('/resend-verification', {
                     method: 'POST',
                     headers: {
@@ -150,24 +146,25 @@
                 
                 const data = await response.json();
                 
-                if (response.ok) {
+                if (response.ok && data.success) {
                     alertContainer.innerHTML = `
                         <div class="alert alert-success" role="alert">
-                            ✅ Verification email sent! Please check your inbox.
+                            ✅ ${data.message}
                         </div>
                     `;
                     document.getElementById('emailInput').value = '';
                 } else {
                     alertContainer.innerHTML = `
                         <div class="alert alert-warning" role="alert">
-                            ${data.message || 'Failed to send email. Please try again.'}
+                            ⚠️ ${data.message || 'Failed to send email. Please try again.'}
                         </div>
                     `;
                 }
             } catch (error) {
+                console.error('Resend error:', error);
                 alertContainer.innerHTML = `
-                    <div class="alert alert-info" role="alert">
-                        ⚠️ The resend feature will be available soon. Please check your email or contact support.
+                    <div class="alert alert-danger" role="alert">
+                        ❌ Network error. Please check your connection and try again.
                     </div>
                 `;
             } finally {

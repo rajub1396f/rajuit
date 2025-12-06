@@ -310,16 +310,27 @@ app.post("/register", async (req, res) => {
 
       console.log("✅ Verification email sent to:", email);
 
+      res.status(201).json({
+        message: "Registration successful! Please check your email to verify your account.",
+        user: inserted,
+        requiresVerification: true,
+        emailSent: true
+      });
+
     } catch (emailError) {
       console.error("❌ Error sending verification email:", emailError);
-      // Continue registration even if email fails - user can request resend
+      console.error("Email error details:", emailError.message);
+      console.error("Email error response:", emailError.response?.text || emailError.response?.body);
+      
+      // Still return success but warn about email issue
+      res.status(201).json({
+        message: "Registration successful! However, there was an issue sending the verification email. Please contact support.",
+        user: inserted,
+        requiresVerification: true,
+        emailSent: false,
+        emailError: emailError.message
+      });
     }
-
-    res.status(201).json({
-      message: "Registration successful! Please check your email to verify your account.",
-      user: inserted,
-      requiresVerification: true
-    });
 
   } catch (err) {
     console.error("❌ Register error:", err);
@@ -574,6 +585,122 @@ app.get("/verify-email", async (req, res) => {
       </body>
       </html>
     `);
+  }
+});
+
+// Resend Verification Email
+app.post("/resend-verification", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    console.log(`📧 Resend verification request for: ${email}`);
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    // Check if Brevo API key is configured
+    if (!process.env.BREVO_API_KEY) {
+      console.error("❌ BREVO_API_KEY not configured!");
+      return res.status(500).json({ 
+        success: false, 
+        message: "Email service not configured. Please contact support." 
+      });
+    }
+
+    // Find user
+    const userRows = await sql`
+      SELECT id, name, email, is_verified 
+      FROM users 
+      WHERE email = ${email} 
+      LIMIT 1
+    `;
+
+    if (!userRows || userRows.length === 0) {
+      // Don't reveal if email exists for security
+      return res.json({ 
+        success: true, 
+        message: "If an account exists with this email, you will receive a verification link." 
+      });
+    }
+
+    const user = userRows[0];
+
+    // Check if already verified
+    if (user.is_verified) {
+      return res.json({ 
+        success: true, 
+        message: "This email is already verified. You can login now." 
+      });
+    }
+
+    // Generate new verification token
+    const verificationToken = jwt.sign(
+      { email: user.email }, 
+      process.env.JWT_SECRET || "SECRET_KEY", 
+      { expiresIn: "24h" }
+    );
+
+    // Update user with new token
+    await sql`
+      UPDATE users 
+      SET verification_token = ${verificationToken} 
+      WHERE id = ${user.id}
+    `;
+
+    // Send verification email
+    const verificationLink = `https://rajuit.online/verify-email?token=${verificationToken}`;
+    
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
+        <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <h2 style="color: #ffc800; margin-bottom: 20px;">Verify Your Email 📧</h2>
+          <p style="font-size: 16px; color: #333; line-height: 1.6;">Hi ${user.name},</p>
+          <p style="font-size: 16px; color: #333; line-height: 1.6;">
+            You requested a new verification link. Please verify your email address by clicking the button below:
+          </p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationLink}" 
+               style="background: #ffc800; color: #000; padding: 15px 40px; text-decoration: none; 
+                      border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
+              Verify Email Address
+            </a>
+          </div>
+          <p style="font-size: 14px; color: #666; line-height: 1.6;">
+            Or copy and paste this link into your browser:<br>
+            <a href="${verificationLink}" style="color: #ffc800; word-break: break-all;">${verificationLink}</a>
+          </p>
+          <p style="font-size: 14px; color: #666; line-height: 1.6; margin-top: 30px;">
+            This verification link will expire in 24 hours.
+          </p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          <p style="font-size: 12px; color: #999; text-align: center;">
+            If you didn't request this, please ignore this email.
+          </p>
+        </div>
+      </div>
+    `;
+
+    await sendBrevoEmail({
+      to: email,
+      subject: "Verify Your Email - Raju IT",
+      htmlContent: emailHtml
+    });
+
+    console.log("✅ Verification email resent to:", email);
+
+    res.json({ 
+      success: true, 
+      message: "Verification email sent! Please check your inbox." 
+    });
+
+  } catch (error) {
+    console.error("❌ Resend verification error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to send verification email. Please try again later.",
+      error: error.message
+    });
   }
 });
 
