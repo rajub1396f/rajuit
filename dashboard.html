@@ -399,6 +399,14 @@
             <button class="btn btn-sm btn-primary" id="editShippingBtn" onclick="enableShippingEdit()">Edit</button>
           </div>
           
+          <!-- Alert for new users without shipping address -->
+          <div class="alert alert-warning d-flex align-items-center" id="shippingAddressAlert" style="display: none !important;">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>
+              <strong>Action Required!</strong> Please update your shipping address for delivery.
+            </div>
+          </div>
+          
           <div id="shippingViewMode">
             <p><strong>Full Name:</strong> <span id="shippingName"></span></p>
             <p><strong>Phone Number:</strong> <span id="shippingPhone"></span></p>
@@ -1169,6 +1177,12 @@
         document.getElementById('shippingPostal').textContent = shippingData.shippingPostal;
         document.getElementById('shippingCountry').textContent = shippingData.shippingCountry;
         
+        // Hide the alert after updating
+        const alertElement = document.getElementById('shippingAddressAlert');
+        if (alertElement) {
+          alertElement.style.display = 'none';
+        }
+        
         cancelShippingEdit();
         alert('Shipping address updated successfully!');
       } else {
@@ -1194,6 +1208,17 @@
       if (res.ok) {
         const data = await res.json();
         const s = data.shipping || {};
+        
+        // Check if shipping address is empty/not set
+        const hasShippingAddress = s.shipping_address1 && s.shipping_address1 !== 'N/A' && s.shipping_address1.trim() !== '';
+        
+        // Show alert if no shipping address
+        const alertElement = document.getElementById('shippingAddressAlert');
+        if (!hasShippingAddress && alertElement) {
+          alertElement.style.display = 'flex !important';
+          alertElement.classList.remove('d-none');
+          alertElement.style.removeProperty('display');
+        }
         
         document.getElementById('shippingName').textContent = s.shipping_name || 'N/A';
         document.getElementById('shippingPhone').textContent = s.shipping_phone || 'N/A';
