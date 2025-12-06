@@ -1226,7 +1226,8 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     console.log(`✅ Returning invoice for order #${orderId}`);
     res.json({ 
       success: true, 
-      invoiceHtml,
+      invoice: invoiceHtml,
+      invoiceHtml: invoiceHtml,
       orderId
     });
   } catch (err) {
