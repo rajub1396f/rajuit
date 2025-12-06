@@ -4,9 +4,11 @@ const http = require('http');
 async function testLoginWithUnverified() {
     try {
         console.log('🧪 Testing login with unverified account...\n');
+        console.log('⚠️  Make sure to test with an actual unverified account');
+        console.log('💡 You can register a new account first, then try logging in before verifying\n');
         
         const loginData = {
-            email: 'rajuit1396@gmail.com', // Use an unverified email
+            email: 'test@example.com', // Change to your test email
             password: 'Test123!'
         };
         

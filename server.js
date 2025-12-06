@@ -361,9 +361,10 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Incorrect password" });
     }
 
-    // Check if email is verified
-    if (!storedUser.is_verified) {
+    // Check if email is verified (handles NULL, false, or undefined)
+    if (storedUser.is_verified !== true) {
       console.log("⚠️ Login attempt with unverified email:", email);
+      console.log("User verification status:", storedUser.is_verified);
       
       // Generate new verification token or use existing one
       let verificationToken = storedUser.verification_token;
@@ -419,13 +420,15 @@ app.post("/login", async (req, res) => {
           </div>
         `;
 
+        console.log("📧 Attempting to send verification email to:", email);
+        
         await sendBrevoEmail({
           to: email,
           subject: "Verify Your Email to Login - Raju IT",
           htmlContent: emailHtml
         });
 
-        console.log("✅ Verification email sent to:", email);
+        console.log("✅ Verification email sent successfully to:", email);
         
         return res.status(403).json({ 
           message: "Please verify your email address before logging in. We've sent a verification link to your email.",
@@ -436,6 +439,8 @@ app.post("/login", async (req, res) => {
         
       } catch (emailError) {
         console.error("❌ Error sending verification email during login:", emailError);
+        console.error("Email error details:", emailError.message);
+        console.error("Email error stack:", emailError.stack);
         
         return res.status(403).json({ 
           message: "Please verify your email address before logging in. If you didn't receive the verification email, please use the 'Resend Verification' option.",
