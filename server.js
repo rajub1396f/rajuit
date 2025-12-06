@@ -681,14 +681,18 @@ app.post("/create-order", verifyToken, async (req, res) => {
             </tr>
         </thead>
         <tbody>
-            ${items.map(item => `
+            ${items.map(item => {
+              const price = parseFloat(item.price) || 0;
+              const quantity = parseInt(item.quantity) || 0;
+              return `
             <tr>
                 <td>${item.name}</td>
-                <td class="text-right">SAR ${item.price.toFixed(2)}</td>
-                <td class="text-right">${item.quantity}</td>
-                <td class="text-right">SAR ${(item.price * item.quantity).toFixed(2)}</td>
+                <td class="text-right">SAR ${price.toFixed(2)}</td>
+                <td class="text-right">${quantity}</td>
+                <td class="text-right">SAR ${(price * quantity).toFixed(2)}</td>
             </tr>
-            `).join('')}
+            `;
+            }).join('')}
         </tbody>
     </table>
     
@@ -924,14 +928,18 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
             </tr>
         </thead>
         <tbody>
-            ${items.map(item => `
+            ${items.map(item => {
+              const price = parseFloat(item.price) || 0;
+              const quantity = parseInt(item.quantity) || 0;
+              return `
             <tr>
                 <td>${item.name}</td>
-                <td class="text-right">SAR ${item.price.toFixed(2)}</td>
-                <td class="text-right">${item.quantity}</td>
-                <td class="text-right">SAR ${(item.price * item.quantity).toFixed(2)}</td>
+                <td class="text-right">SAR ${price.toFixed(2)}</td>
+                <td class="text-right">${quantity}</td>
+                <td class="text-right">SAR ${(price * quantity).toFixed(2)}</td>
             </tr>
-            `).join('')}
+            `;
+            }).join('')}
         </tbody>
     </table>
     
