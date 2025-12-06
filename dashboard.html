@@ -1334,30 +1334,34 @@
         const data = await res.json();
         const invoiceHtml = data.invoice;
         
-        // Create a temporary iframe to print/download
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
+        // Open invoice in new window/tab
+        const printWindow = window.open('', '_blank');
         
-        const iframeDoc = iframe.contentWindow.document;
-        iframeDoc.open();
-        iframeDoc.write(invoiceHtml);
-        iframeDoc.close();
+        if (!printWindow) {
+          alert('Please allow pop-ups to view the invoice');
+          return;
+        }
         
-        // Wait for content to load then print
-        setTimeout(() => {
-          iframe.contentWindow.print();
-          // Remove iframe after printing
+        // Write the invoice HTML to the new window
+        printWindow.document.open();
+        printWindow.document.write(invoiceHtml);
+        printWindow.document.close();
+        
+        // Wait for content and images to load, then trigger print dialog
+        printWindow.onload = function() {
           setTimeout(() => {
-            document.body.removeChild(iframe);
-          }, 1000);
-        }, 250);
+            printWindow.focus();
+            printWindow.print();
+          }, 500);
+        };
+        
       } else {
-        alert('Unable to download invoice. Please try again.');
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData.message || 'Unable to download invoice. Please try again.');
       }
     } catch (err) {
       console.error('Error downloading invoice:', err);
-      alert('Error downloading invoice. Please try again.');
+      alert('Error downloading invoice. Please check your connection and try again.');
     }
   }
 
