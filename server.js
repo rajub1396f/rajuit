@@ -1089,7 +1089,7 @@ app.post("/reset-password", async (req, res) => {
 app.post("/change-password", verifyToken, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const userId = req.userId; // From verifyToken middleware
+    const userId = req.user?.id; // From verifyToken middleware
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: "Current password and new password are required" });
@@ -1184,7 +1184,7 @@ app.post("/change-password", verifyToken, async (req, res) => {
 // Check Password Reset Status endpoint
 app.get("/check-password-reset-status", verifyToken, async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user?.id;
 
     const userRows = await sql`SELECT last_password_reset FROM users WHERE id = ${userId} LIMIT 1`;
     if (!userRows || userRows.length === 0) {
@@ -1513,7 +1513,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
     const { items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
     console.log(`🛒 Create order request from user ID: ${userId}`);
-    console.log(`📦 Items count: ${items?.length}, Total: SAR ${totalAmount}`);
+    console.log(`📦 Items count: ${items?.length}, Total: ৳${totalAmount}`);
 
     if (!userId) {
       console.log("❌ User not authenticated");
@@ -1626,9 +1626,9 @@ app.post("/create-order", verifyToken, async (req, res) => {
               return `
             <tr>
                 <td>${item.name}</td>
-                <td class="text-right">SAR ${price.toFixed(2)}</td>
+                <td class="text-right">৳${price.toFixed(2)}</td>
                 <td class="text-right">${quantity}</td>
-                <td class="text-right">SAR ${(price * quantity).toFixed(2)}</td>
+                <td class="text-right">৳${(price * quantity).toFixed(2)}</td>
             </tr>
             `;
             }).join('')}
@@ -1639,19 +1639,19 @@ app.post("/create-order", verifyToken, async (req, res) => {
     <div class="totals">
         <div class="totals-row">
             <span>Subtotal:</span>
-            <span>SAR ${subtotal.toFixed(2)}</span>
+            <span>৳${subtotal.toFixed(2)}</span>
         </div>
         <div class="totals-row">
             <span>Shipping:</span>
-            <span>SAR ${shipping.toFixed(2)}</span>
+            <span>৳${shipping.toFixed(2)}</span>
         </div>
         <div class="totals-row">
             <span>Tax (15%):</span>
-            <span>SAR ${tax.toFixed(2)}</span>
+            <span>৳${tax.toFixed(2)}</span>
         </div>
         <div class="totals-row total">
             <span>TOTAL:</span>
-            <span>SAR ${total.toFixed(2)}</span>
+            <span>৳${total.toFixed(2)}</span>
         </div>
     </div>
     
@@ -1712,7 +1712,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
               <p>Thank you for your order at Raju IT!</p>
               <div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #ffc800; margin: 20px 0;">
                 <p><strong>Order Number:</strong> #${orderId.toString().padStart(6, '0')}</p>
-                <p><strong>Total Amount:</strong> SAR ${totalAmount}</p>
+                <p><strong>Total Amount:</strong> ৳${totalAmount}</p>
               </div>
               <p>You can view and download your invoice from your dashboard.</p>
               <a href="https://rajuit.online/dashboard" style="display: inline-block; background: #ffc800; color: #212529; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0;">View My Orders</a>
@@ -1875,9 +1875,9 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
               return `
             <tr>
                 <td>${item.name}</td>
-                <td class="text-right">SAR ${price.toFixed(2)}</td>
+                <td class="text-right">৳${price.toFixed(2)}</td>
                 <td class="text-right">${quantity}</td>
-                <td class="text-right">SAR ${(price * quantity).toFixed(2)}</td>
+                <td class="text-right">৳${(price * quantity).toFixed(2)}</td>
             </tr>
             `;
             }).join('')}
@@ -1888,19 +1888,19 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     <div class="totals">
         <div class="totals-row">
             <span>Subtotal:</span>
-            <span>SAR ${subtotal.toFixed(2)}</span>
+            <span>৳${subtotal.toFixed(2)}</span>
         </div>
         <div class="totals-row">
             <span>Shipping:</span>
-            <span>SAR ${shipping.toFixed(2)}</span>
+            <span>৳${shipping.toFixed(2)}</span>
         </div>
         <div class="totals-row">
             <span>Tax (15%):</span>
-            <span>SAR ${tax.toFixed(2)}</span>
+            <span>৳${tax.toFixed(2)}</span>
         </div>
         <div class="totals-row total">
             <span>TOTAL:</span>
-            <span>SAR ${total.toFixed(2)}</span>
+            <span>৳${total.toFixed(2)}</span>
         </div>
     </div>
     

@@ -792,7 +792,7 @@
             <img src="/assets/img/products/aaa777.jpg" alt="${item.name}" class="item-image">
             <div class="item-details">
               <div class="item-name">${item.name}</div>
-              <div class="item-price">SAR ${item.price}</div>
+              <div class="item-price">৳${item.price}</div>
               <div class="item-quantity">Quantity: ${item.quantity}</div>
             </div>
             <button class="item-remove" onclick="removeFromCart(${index})" title="Remove">
@@ -803,7 +803,7 @@
       </div>
       <div class="dropdown-footer">
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-          <strong style="color: #333;">Total: SAR ${total.toFixed(2)}</strong>
+          <strong style="color: #333;">Total: ৳${total.toFixed(2)}</strong>
           <button class="btn btn-primary btn-sm" onclick="window.location.href='checkout.html'">Checkout</button>
         </div>
       </div>

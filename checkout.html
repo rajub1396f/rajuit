@@ -563,16 +563,16 @@
                         
                         <div class="mt-4">
                             <div class="order-summary-row">
-                                <span>Subtotal</span>
-                                <span id="subtotal">SAR 0.00</span>
+                                <span>Subtotal:</span>
+                                <span id="subtotal">৳0.00</span>
                             </div>
                             <div class="order-summary-row">
-                                <span>Shipping</span>
-                                <span id="shipping">SAR 50.00</span>
+                                <span>Shipping:</span>
+                                <span id="shipping">৳50.00</span>
                             </div>
                             <div class="order-summary-row">
-                                <span>Tax (15%)</span>
-                                <span id="tax">SAR 0.00</span>
+                                <span>Tax:</span>
+                                <span id="tax">৳0.00</span>
                             </div>
                             <div class="order-summary-row">
                                 <span class="order-total">Total</span>
@@ -652,9 +652,9 @@
             const total = subtotal + SHIPPING_COST + tax;
             
             // Update summary
-            document.getElementById('subtotal').textContent = `SAR ${subtotal.toFixed(2)}`;
-            document.getElementById('tax').textContent = `SAR ${tax.toFixed(2)}`;
-            document.getElementById('total').textContent = `SAR ${total.toFixed(2)}`;
+            document.getElementById('subtotal').textContent = `৳${subtotal.toFixed(2)}`;
+            document.getElementById('tax').textContent = `৳${tax.toFixed(2)}`;
+            document.getElementById('total').textContent = `৳${total.toFixed(2)}`;
         }
         
         // Select payment method

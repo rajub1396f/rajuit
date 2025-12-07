@@ -350,12 +350,14 @@
 
 <section class="dashboard-content">
   <div class="container" style="margin-top: 100px;">
-    <h2>Welcome to Your Dashboard</h2>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="card p-4">
+    <h2 class="mb-4">Welcome to Your Dashboard</h2>
+    
+    <!-- Account Details and Change Password Row -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="card p-4 h-100 shadow-sm">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Account Details</h5>
+            <h5 class="mb-0"><i class="fas fa-user-circle me-2 text-primary"></i>Account Details</h5>
             <button class="btn btn-sm btn-primary" id="editBtn" onclick="enableEdit()">Edit</button>
           </div>
           
@@ -394,10 +396,10 @@
       </div>
       
       <!-- Change Password Section -->
-      <div class="col-md-6">
-        <div class="card p-4">
+      <div class="col-lg-6">
+        <div class="card p-4 h-100 shadow-sm">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Change Password</h5>
+            <h5 class="mb-0"><i class="fas fa-lock me-2 text-primary"></i>Change Password</h5>
           </div>
           
           <!-- Rate limit alert -->
@@ -426,11 +428,14 @@
           <p id="lastPasswordChangeInfo" class="text-muted small mt-3"></p>
         </div>
       </div>
-      
-      <div class="col-md-6">
-        <div class="card p-4">
+    </div>
+    
+    <!-- Shipping Address Section - Full Width -->
+    <div class="row g-4 mb-4">
+      <div class="col-12">
+        <div class="card p-4 shadow-sm">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Shipping Address</h5>
+            <h5 class="mb-0"><i class="fas fa-shipping-fast me-2 text-primary"></i>Shipping Address</h5>
             <button class="btn btn-sm btn-primary" id="editShippingBtn" onclick="enableShippingEdit()">Edit</button>
           </div>
           
@@ -443,53 +448,65 @@
           </div>
           
           <div id="shippingViewMode">
-            <p><strong>Full Name:</strong> <span id="shippingName"></span></p>
-            <p><strong>Phone Number:</strong> <span id="shippingPhone"></span></p>
-            <p><strong>Address Line 1:</strong> <span id="shippingAddress1"></span></p>
-            <p><strong>Address Line 2:</strong> <span id="shippingAddress2"></span></p>
-            <p><strong>Upzilla/Thana:</strong> <span id="shippingUpzilla"></span></p>
-            <p><strong>City/Zilla:</strong> <span id="shippingCity"></span></p>
-            <p><strong>Division:</strong> <span id="shippingState"></span></p>
-            <p><strong>Postal Code:</strong> <span id="shippingPostal"></span></p>
-            <p><strong>Country:</strong> <span id="shippingCountry"></span></p>
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong>Full Name:</strong> <span id="shippingName"></span></p>
+                <p><strong>Phone Number:</strong> <span id="shippingPhone"></span></p>
+                <p><strong>Address Line 1:</strong> <span id="shippingAddress1"></span></p>
+                <p><strong>Address Line 2:</strong> <span id="shippingAddress2"></span></p>
+                <p><strong>Upzilla/Thana:</strong> <span id="shippingUpzilla"></span></p>
+              </div>
+              <div class="col-md-6">
+                <p><strong>City/Zilla:</strong> <span id="shippingCity"></span></p>
+                <p><strong>Division:</strong> <span id="shippingState"></span></p>
+                <p><strong>Postal Code:</strong> <span id="shippingPostal"></span></p>
+                <p><strong>Country:</strong> <span id="shippingCountry"></span></p>
+              </div>
+            </div>
           </div>
           
           <form id="shippingEditMode" style="display: none;">
-            <div class="mb-3">
-              <label class="form-label"><strong>Full Name:</strong></label>
-              <input type="text" class="form-control" id="editShippingName" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label"><strong>Phone Number:</strong></label>
-              <input type="tel" class="form-control" id="editShippingPhone" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label"><strong>Address Line 1:</strong></label>
-              <input type="text" class="form-control" id="editShippingAddress1" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label"><strong>Address Line 2:</strong></label>
-              <input type="text" class="form-control" id="editShippingAddress2">
-            </div>
-            <div class="mb-3">
-              <label class="form-label"><strong>Upzilla/Thana:</strong></label>
-              <input type="text" class="form-control" id="editShippingUpzilla" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label"><strong>City/Zilla:</strong></label>
-              <input type="text" class="form-control" id="editShippingCity" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label"><strong>Division:</strong></label>
-              <input type="text" class="form-control" id="editShippingState" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label"><strong>Postal Code:</strong></label>
-              <input type="text" class="form-control" id="editShippingPostal" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label"><strong>Country:</strong></label>
-              <input type="text" class="form-control" id="editShippingCountry" required>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label"><strong>Full Name:</strong></label>
+                  <input type="text" class="form-control" id="editShippingName" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Phone Number:</strong></label>
+                  <input type="tel" class="form-control" id="editShippingPhone" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Address Line 1:</strong></label>
+                  <input type="text" class="form-control" id="editShippingAddress1" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Address Line 2:</strong></label>
+                  <input type="text" class="form-control" id="editShippingAddress2">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Upzilla/Thana:</strong></label>
+                  <input type="text" class="form-control" id="editShippingUpzilla" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label"><strong>City/Zilla:</strong></label>
+                  <input type="text" class="form-control" id="editShippingCity" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Division:</strong></label>
+                  <input type="text" class="form-control" id="editShippingState" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Postal Code:</strong></label>
+                  <input type="text" class="form-control" id="editShippingPostal" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Country:</strong></label>
+                  <input type="text" class="form-control" id="editShippingCountry" required>
+                </div>
+              </div>
             </div>
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-success">Save Address</button>
@@ -501,10 +518,10 @@
     </div>
     
     <!-- My Orders Section -->
-    <div class="row mt-4">
+    <div class="row g-4">
       <div class="col-12">
-        <div class="card p-4">
-          <h5 class="mb-3">My Orders</h5>
+        <div class="card p-4 shadow-sm">
+          <h5 class="mb-3"><i class="fas fa-shopping-bag me-2 text-primary"></i>My Orders</h5>
           <div id="ordersContainer">
             <p class="text-muted text-center" id="noOrdersMessage">No orders yet. Start shopping to see your orders here!</p>
             <div id="ordersList" style="display: none;">
@@ -1445,7 +1462,7 @@
                     ${item.image ? `<img src="${item.image}" alt="${item.name}" class="order-item-image">` : ''}
                     <div class="order-item-details">
                       <div class="order-item-name">${item.name}</div>
-                      <div class="order-item-quantity">Quantity: ${item.quantity} × SAR ${item.price}</div>
+                      <div class="order-item-quantity">Quantity: ${item.quantity} × ৳${item.price}</div>
                     </div>
                     <div class="order-item-price">SAR ${(item.quantity * item.price).toFixed(2)}</div>
                   </div>
