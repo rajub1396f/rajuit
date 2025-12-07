@@ -156,6 +156,17 @@ console.log("✅ Brevo email service initialized");
       console.log("Note: verification_token column might already exist:", alterErr.message);
     }
     
+    // Add last_password_reset column to users table
+    try {
+      await sql`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS last_password_reset TIMESTAMP
+      `;
+      console.log("✅ last_password_reset column added/verified");
+    } catch (alterErr) {
+      console.log("Note: last_password_reset column might already exist:", alterErr.message);
+    }
+    
   } catch (err) {
     console.error("❌ Database initialization error:", err);
   }
@@ -875,6 +886,24 @@ app.post("/forgot-password", async (req, res) => {
     const user = userRows[0];
     console.log(`✅ User found: ${user.name} (ID: ${user.id})`);
 
+    // Check if user has recently reset password (within 24 hours)
+    if (user.last_password_reset) {
+      const lastResetTime = new Date(user.last_password_reset);
+      const now = new Date();
+      const hoursSinceLastReset = (now - lastResetTime) / (1000 * 60 * 60);
+      
+      if (hoursSinceLastReset < 24) {
+        const hoursRemaining = Math.ceil(24 - hoursSinceLastReset);
+        console.log(`⏰ User ${email} tried to reset password too soon. Last reset: ${lastResetTime}`);
+        return res.status(429).json({ 
+          success: false, 
+          message: `You can only request a password reset once per day. Please try again in ${hoursRemaining} hour(s).`,
+          rateLimited: true,
+          hoursRemaining: hoursRemaining
+        });
+      }
+    }
+
     // Generate reset token (valid for 1 hour)
     const resetToken = jwt.sign(
       { userId: user.id, email: user.email }, 
@@ -970,10 +999,15 @@ app.post("/reset-password", async (req, res) => {
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password in database
-    await sql`UPDATE users SET password = ${hashedPassword} WHERE id = ${decoded.userId}`;
+    // Update password and last_password_reset timestamp in database
+    await sql`
+      UPDATE users 
+      SET password = ${hashedPassword}, last_password_reset = NOW() 
+      WHERE id = ${decoded.userId}
+    `;
 
     console.log(`✅ Password reset successful for user ID: ${decoded.userId}`);
+    console.log(`⏰ Password reset timestamp updated for rate limiting`);
     
     // Send confirmation email via Brevo
     const userRows = await sql`SELECT name, email FROM users WHERE id = ${decoded.userId} LIMIT 1`;
@@ -2007,10 +2041,16 @@ app.get("/migrate-email-verification", async (req, res) => {
       ADD COLUMN IF NOT EXISTS verification_token TEXT
     `;
     
+    // Add last_password_reset column
+    await sql`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS last_password_reset TIMESTAMP
+    `;
+    
     console.log("✅ Email verification migration completed successfully");
     res.json({ 
       success: true, 
-      message: "Email verification columns added to users table" 
+      message: "Email verification and password reset columns added to users table" 
     });
   } catch (error) {
     console.error("❌ Migration error:", error);
