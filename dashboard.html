@@ -392,6 +392,41 @@
           </form>
         </div>
       </div>
+      
+      <!-- Change Password Section -->
+      <div class="col-md-6">
+        <div class="card p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Change Password</h5>
+          </div>
+          
+          <!-- Rate limit alert -->
+          <div class="alert alert-info d-none" id="passwordRateLimitAlert">
+            <i class="fas fa-clock me-2"></i>
+            <span id="passwordRateLimitMessage"></span>
+          </div>
+          
+          <form id="changePasswordForm">
+            <div class="mb-3">
+              <label class="form-label"><strong>Current Password:</strong></label>
+              <input type="password" class="form-control" id="currentPassword" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>New Password:</strong></label>
+              <input type="password" class="form-control" id="newPassword" minlength="6" required>
+              <small class="text-muted">Minimum 6 characters</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Confirm New Password:</strong></label>
+              <input type="password" class="form-control" id="confirmNewPassword" minlength="6" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" id="changePasswordBtn">Change Password</button>
+          </form>
+          
+          <p id="lastPasswordChangeInfo" class="text-muted small mt-3"></p>
+        </div>
+      </div>
+      
       <div class="col-md-6">
         <div class="card p-4">
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -1232,6 +1267,120 @@
       }
     } catch (err) {
       console.error('Error loading shipping address:', err);
+    }
+  })();
+
+  // Change Password Form Handler
+  document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    
+    // Validate passwords match
+    if (newPassword !== confirmNewPassword) {
+      alert('New passwords do not match!');
+      return;
+    }
+    
+    // Validate password length
+    if (newPassword.length < 6) {
+      alert('New password must be at least 6 characters long!');
+      return;
+    }
+    
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert('Please login again');
+      return;
+    }
+    
+    try {
+      changePasswordBtn.disabled = true;
+      changePasswordBtn.textContent = 'Changing...';
+      
+      const res = await fetch('/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      
+      const result = await res.json();
+      
+      if (res.ok) {
+        alert('✅ Password changed successfully! You can request another change in 24 hours.');
+        document.getElementById('changePasswordForm').reset();
+        
+        // Show rate limit info
+        const now = new Date();
+        const infoElement = document.getElementById('lastPasswordChangeInfo');
+        if (infoElement) {
+          infoElement.textContent = `Last changed: ${now.toLocaleString()}. You can change again in 24 hours.`;
+        }
+        
+        // Show rate limit alert
+        showPasswordRateLimitAlert('You have successfully changed your password. You can change it again in 24 hours.');
+      } else if (result.rateLimited) {
+        alert(`⏰ ${result.message}`);
+        if (result.hoursRemaining) {
+          showPasswordRateLimitAlert(`You can change your password again in ${result.hoursRemaining} hour(s).`);
+        }
+      } else {
+        alert(`❌ ${result.message || 'Failed to change password'}`);
+      }
+    } catch (err) {
+      console.error('Change password error:', err);
+      alert('Error changing password. Please try again.');
+    } finally {
+      changePasswordBtn.disabled = false;
+      changePasswordBtn.textContent = 'Change Password';
+    }
+  });
+  
+  // Function to show password rate limit alert
+  function showPasswordRateLimitAlert(message) {
+    const alertElement = document.getElementById('passwordRateLimitAlert');
+    const messageElement = document.getElementById('passwordRateLimitMessage');
+    if (alertElement && messageElement) {
+      messageElement.textContent = message;
+      alertElement.classList.remove('d-none');
+    }
+  }
+  
+  // Check password reset rate limit on page load
+  (async function checkPasswordResetStatus() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    
+    try {
+      const res = await fetch('/check-password-reset-status', {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.lastPasswordReset) {
+          const lastResetDate = new Date(data.lastPasswordReset);
+          const infoElement = document.getElementById('lastPasswordChangeInfo');
+          if (infoElement) {
+            infoElement.textContent = `Last changed: ${lastResetDate.toLocaleString()}`;
+          }
+          
+          // Check if still in rate limit period
+          if (data.canChange === false && data.hoursRemaining) {
+            showPasswordRateLimitAlert(`You can change your password again in ${data.hoursRemaining} hour(s).`);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error checking password reset status:', err);
     }
   })();
 

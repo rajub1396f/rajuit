@@ -1085,6 +1085,139 @@ app.post("/reset-password", async (req, res) => {
   }
 });
 
+// Change Password endpoint (with 24-hour rate limiting)
+app.post("/change-password", verifyToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.userId; // From verifyToken middleware
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Current password and new password are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters long" });
+    }
+
+    // Get user from database
+    const userRows = await sql`SELECT * FROM users WHERE id = ${userId} LIMIT 1`;
+    if (!userRows || userRows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = userRows[0];
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    // Check rate limiting - user can change password only once every 24 hours
+    if (user.last_password_reset) {
+      const lastReset = new Date(user.last_password_reset);
+      const now = new Date();
+      const hoursSinceLastReset = (now - lastReset) / (1000 * 60 * 60);
+
+      if (hoursSinceLastReset < 24) {
+        const hoursRemaining = Math.ceil(24 - hoursSinceLastReset);
+        console.log(`⏰ Password change rate limited for user ${userId}. ${hoursRemaining} hours remaining.`);
+        return res.status(429).json({
+          rateLimited: true,
+          message: `You can only change your password once every 24 hours. Please try again in ${hoursRemaining} hour(s).`,
+          hoursRemaining
+        });
+      }
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password and last_password_reset timestamp
+    await sql`
+      UPDATE users 
+      SET password = ${hashedPassword}, last_password_reset = NOW() 
+      WHERE id = ${userId}
+    `;
+
+    console.log(`✅ Password changed successfully for user ID: ${userId}`);
+    console.log(`⏰ Password change timestamp updated for rate limiting`);
+
+    // Send confirmation email via Brevo
+    const confirmationHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+        <div style="background-color: white; padding: 30px; border-radius: 5px;">
+          <h2 style="color: #ffc800;">Password Changed Successfully - Raju IT</h2>
+          <hr style="border: 1px solid #eee;">
+          <p>Hello ${user.name},</p>
+          <p>Your password has been successfully changed from your dashboard.</p>
+          <p><strong>Note:</strong> You can change your password again in 24 hours.</p>
+          <p>If you did not make this change, please contact us immediately at rajuit1396@gmail.com</p>
+          <hr style="border: 1px solid #eee;">
+          <p style="color: #999; font-size: 12px;">This is an automated email from Raju IT.</p>
+        </div>
+      </div>
+    `;
+
+    try {
+      await sendBrevoEmail({
+        to: user.email,
+        subject: "Password Changed Successfully - Raju IT",
+        htmlContent: confirmationHtml
+      });
+      console.log(`✅ Password change confirmation sent to ${user.email}`);
+    } catch (emailError) {
+      console.error("❌ Failed to send confirmation email:", emailError.message);
+    }
+
+    res.json({ 
+      success: true, 
+      message: "Password changed successfully. You can change it again in 24 hours." 
+    });
+
+  } catch (error) {
+    console.error("❌ Change password error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Check Password Reset Status endpoint
+app.get("/check-password-reset-status", verifyToken, async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const userRows = await sql`SELECT last_password_reset FROM users WHERE id = ${userId} LIMIT 1`;
+    if (!userRows || userRows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = userRows[0];
+    
+    if (!user.last_password_reset) {
+      return res.json({ 
+        lastPasswordReset: null,
+        canChange: true 
+      });
+    }
+
+    const lastReset = new Date(user.last_password_reset);
+    const now = new Date();
+    const hoursSinceLastReset = (now - lastReset) / (1000 * 60 * 60);
+    const canChange = hoursSinceLastReset >= 24;
+    const hoursRemaining = canChange ? 0 : Math.ceil(24 - hoursSinceLastReset);
+
+    res.json({
+      lastPasswordReset: user.last_password_reset,
+      canChange,
+      hoursRemaining: hoursRemaining > 0 ? hoursRemaining : null
+    });
+
+  } catch (error) {
+    console.error("❌ Check password reset status error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 // check-login route
 app.get("/check-login", (req, res) => {
   if (req.session && req.session.user) {
