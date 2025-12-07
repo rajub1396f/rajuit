@@ -304,6 +304,14 @@
                             <small class="text-muted">Enter image URL or upload from ImageKit</small>
                             <div id="imagePreviewContainer"></div>
                         </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fab fa-instagram me-2" style="color: #E4405F;"></i>Instagram Video URL (Optional)
+                            </label>
+                            <input type="url" class="form-control" id="productInstagramVideo" placeholder="https://www.instagram.com/reel/...">
+                            <small class="text-muted">Paste Instagram Reel/Video link for customers to watch product demo</small>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -483,6 +491,7 @@
                 document.getElementById('productStock').value = product.stock_quantity;
                 document.getElementById('productStatus').value = product.is_active.toString();
                 document.getElementById('productImage').value = product.image_url || '';
+                document.getElementById('productInstagramVideo').value = product.instagram_video_url || '';
                 
                 if (product.image_url) {
                     document.getElementById('imagePreviewContainer').innerHTML = 
@@ -508,7 +517,8 @@
                 description: document.getElementById('productDescription').value,
                 stock_quantity: parseInt(document.getElementById('productStock').value) || 0,
                 is_active: document.getElementById('productStatus').value === 'true',
-                image_url: document.getElementById('productImage').value
+                image_url: document.getElementById('productImage').value,
+                instagram_video_url: document.getElementById('productInstagramVideo').value
             };
             
             try {

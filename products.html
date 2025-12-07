@@ -218,6 +218,36 @@
                 font-size: 14px;
             }
             
+            /* Instagram Video Link */
+            .product-video-link {
+                text-align: center;
+            }
+            
+            .instagram-video-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 8px 16px;
+                background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 8px rgba(225, 48, 108, 0.3);
+            }
+            
+            .instagram-video-btn:hover {
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(225, 48, 108, 0.5);
+            }
+            
+            .instagram-video-btn i {
+                font-size: 16px;
+            }
+            
             @media (max-width: 768px) {
                 .zoom-controls {
                     bottom: 20px;
@@ -1857,6 +1887,12 @@
                             <div class="card-body">
                                 <h5 class="card-title">${product.name}</h5>
                                 <p class="product-description">${description}</p>
+                                ${product.instagram_video_url ? `
+                                <div class="product-video-link mb-2">
+                                    <a href="${product.instagram_video_url}" target="_blank" class="instagram-video-btn">
+                                        <i class="fab fa-instagram me-2"></i>Watch Product Video
+                                    </a>
+                                </div>` : ''}
                                 <div class="product-price-section">
                                     <div class="product-price">৳${parseFloat(product.price).toFixed(2)}</div>
                                 </div>

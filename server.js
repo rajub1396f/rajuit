@@ -214,6 +214,17 @@ console.log("✅ Brevo email service initialized");
   } catch (err) {
     console.error("❌ Database initialization error:", err);
   }
+  
+  // Add instagram_video_url column if it doesn't exist
+  try {
+    await sql`
+      ALTER TABLE products 
+      ADD COLUMN IF NOT EXISTS instagram_video_url TEXT
+    `;
+    console.log("✅ Instagram video URL column added to products table");
+  } catch (err) {
+    console.log("Note: Instagram video URL column might already exist");
+  }
 })();
 
 // Function to generate PDF and upload to ImageKit
@@ -2786,15 +2797,15 @@ app.get("/admin/products/:id", verifyAdmin, async (req, res) => {
 // Create new product
 app.post("/admin/products", verifyAdmin, async (req, res) => {
   try {
-    const { name, description, price, category, subcategory, image_url, stock_quantity } = req.body;
+    const { name, description, price, category, subcategory, image_url, stock_quantity, instagram_video_url } = req.body;
     
     if (!name || !price || !category) {
       return res.status(400).json({ message: "Name, price, and category are required" });
     }
     
     const result = await sql`
-      INSERT INTO products (name, description, price, category, subcategory, image_url, stock_quantity, is_active)
-      VALUES (${name}, ${description || ''}, ${price}, ${category}, ${subcategory || ''}, ${image_url || ''}, ${stock_quantity || 0}, true)
+      INSERT INTO products (name, description, price, category, subcategory, image_url, stock_quantity, instagram_video_url, is_active)
+      VALUES (${name}, ${description || ''}, ${price}, ${category}, ${subcategory || ''}, ${image_url || ''}, ${stock_quantity || 0}, ${instagram_video_url || ''}, true)
       RETURNING *
     `;
     
@@ -2813,7 +2824,7 @@ app.post("/admin/products", verifyAdmin, async (req, res) => {
 app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
   try {
     const productId = parseInt(req.params.id);
-    const { name, description, price, category, subcategory, image_url, stock_quantity, is_active } = req.body;
+    const { name, description, price, category, subcategory, image_url, stock_quantity, is_active, instagram_video_url } = req.body;
     
     // Check if product exists
     const existingProduct = await sql`SELECT * FROM products WHERE id = ${productId}`;
@@ -2831,6 +2842,7 @@ app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
     if (image_url !== undefined) updateData.image_url = image_url;
     if (stock_quantity !== undefined) updateData.stock_quantity = stock_quantity;
     if (is_active !== undefined) updateData.is_active = is_active;
+    if (instagram_video_url !== undefined) updateData.instagram_video_url = instagram_video_url;
     updateData.updated_at = new Date();
     
     if (Object.keys(updateData).length === 1) { // Only updated_at
