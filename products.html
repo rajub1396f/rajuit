@@ -133,8 +133,9 @@
                 width: 100%;
                 height: 100%;
                 background-color: rgba(0, 0, 0, 0.95);
-                cursor: zoom-out;
+                cursor: zoom-in;
                 animation: fadeIn 0.3s ease;
+                overflow: auto;
             }
             
             .image-zoom-modal.active {
@@ -143,11 +144,26 @@
                 justify-content: center;
             }
             
+            .image-zoom-modal.zoomed {
+                cursor: zoom-out;
+            }
+            
             .image-zoom-modal img {
-                max-width: 90%;
-                max-height: 90vh;
+                max-width: 100%;
+                max-height: 100vh;
                 object-fit: contain;
                 animation: zoomIn 0.3s ease;
+                transition: transform 0.3s ease;
+                cursor: zoom-in;
+            }
+            
+            .image-zoom-modal img.zoomed {
+                max-width: none;
+                max-height: none;
+                width: auto;
+                height: auto;
+                min-width: 150%;
+                cursor: zoom-out;
             }
             
             .image-zoom-close {
@@ -1481,25 +1497,58 @@
 
             // Category filter function
             // Image Zoom Functions
+            let isZoomed = false;
+            
             function openImageZoom(imageSrc, productName) {
                 const modal = document.getElementById('imageZoomModal');
                 const zoomedImage = document.getElementById('zoomedImage');
                 zoomedImage.src = imageSrc;
                 zoomedImage.alt = productName;
                 modal.classList.add('active');
+                zoomedImage.classList.remove('zoomed');
+                modal.classList.remove('zoomed');
+                isZoomed = false;
                 document.body.style.overflow = 'hidden';
+            }
+            
+            function toggleImageZoom() {
+                const modal = document.getElementById('imageZoomModal');
+                const zoomedImage = document.getElementById('zoomedImage');
+                
+                if (isZoomed) {
+                    zoomedImage.classList.remove('zoomed');
+                    modal.classList.remove('zoomed');
+                    isZoomed = false;
+                } else {
+                    zoomedImage.classList.add('zoomed');
+                    modal.classList.add('zoomed');
+                    isZoomed = true;
+                }
             }
             
             function closeImageZoom() {
                 const modal = document.getElementById('imageZoomModal');
+                const zoomedImage = document.getElementById('zoomedImage');
                 modal.classList.remove('active');
+                zoomedImage.classList.remove('zoomed');
+                modal.classList.remove('zoomed');
+                isZoomed = false;
                 document.body.style.overflow = 'auto';
             }
             
             // Close zoom modal when clicking on the background or pressing ESC
             document.addEventListener('DOMContentLoaded', function() {
                 const modal = document.getElementById('imageZoomModal');
-                if (modal) {
+                const zoomedImage = document.getElementById('zoomedImage');
+                
+                if (modal && zoomedImage) {
+                    // Click on image to toggle zoom
+                    zoomedImage.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        toggleImageZoom();
+                    });
+                    
+                    // Click on background to close
                     modal.addEventListener('click', function(e) {
                         if (e.target === modal) {
                             closeImageZoom();
