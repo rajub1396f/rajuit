@@ -1202,16 +1202,17 @@
             });
 
             // Add to cart function
-            function addToCart(productName, price) {
+            function addToCart(productName, price, productId) {
                 if (checkLoginAndAct('add items to cart')) {
                     // Check if item already exists
-                    const existingItem = cartItems.find(item => item.name === productName);
+                    const existingItem = cartItems.find(item => item.id === productId || item.name === productName);
                     
                     if (existingItem) {
                         existingItem.quantity++;
                         alert(`${productName} quantity increased in cart!`);
                     } else {
                         cartItems.push({
+                            id: productId,
                             name: productName,
                             price: price,
                             quantity: 1
@@ -1225,13 +1226,18 @@
             }
 
             // Add to wishlist function
-            function addToWishlist(productName) {
+            function addToWishlist(productName, productId) {
                 if (checkLoginAndAct('add items to wishlist')) {
-                    // Check if item already exists
-                    if (wishlistItems.includes(productName)) {
+                    // Check if item already exists (check both id and name for backwards compatibility)
+                    const existingItem = wishlistItems.find(item => 
+                        (typeof item === 'object' && item.id === productId) || 
+                        item === productName
+                    );
+                    
+                    if (existingItem) {
                         alert(`${productName} is already in your wishlist!`);
                     } else {
-                        wishlistItems.push(productName);
+                        wishlistItems.push({ id: productId, name: productName });
                         alert(`${productName} added to wishlist!`);
                         localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
                         updateBadgeCounts();
@@ -1260,9 +1266,56 @@
                 });
             }
 
+            // Load products dynamically from database
+            async function loadProducts() {
+                try {
+                    // Load female products
+                    const femaleResponse = await fetch('https://rajuit.online/api/products?category=female');
+                    const femaleProducts = await femaleResponse.json();
+                    displayProducts('femaleProductsGrid', femaleProducts);
+                    
+                    // Load male products
+                    const maleResponse = await fetch('https://rajuit.online/api/products?category=male');
+                    const maleProducts = await maleResponse.json();
+                    displayProducts('maleProductsGrid', maleProducts);
+                } catch (error) {
+                    console.error('Error loading products:', error);
+                }
+            }
+
+            function displayProducts(gridId, products) {
+                const grid = document.getElementById(gridId);
+                if (!grid) return;
+                
+                if (products.length === 0) {
+                    grid.innerHTML = '<div class="col-12"><p class="text-center text-muted">No products available</p></div>';
+                    return;
+                }
+                
+                grid.innerHTML = products.map(product => `
+                    <div class="col-md-4 product-item" data-category="${product.subcategory || 'all'}">
+                        <div class="card product-card shadow">
+                            <img src="${product.image_url || '/assets/img/products/aaa777.jpg'}" class="card-img-top" alt="${product.name}">
+                            <div class="card-body">
+                                <h5 class="card-title">${product.name}</h5>
+                                <p class="text-muted mb-1">${product.description || 'Premium Quality'}</p>
+                                <h6 class="text-primary fw-bold">BDT ৳${parseFloat(product.price).toFixed(2)}</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('${product.name.replace(/'/g, "\\'")}', ${product.price}, ${product.id})">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('${product.name.replace(/'/g, "\\'")}', ${product.id})">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
             // Load cart/wishlist counts on page load and check URL parameters
             window.addEventListener('DOMContentLoaded', () => {
                 updateBadgeCounts();
+                loadProducts(); // Load products from database
                 
                 // Check if collection is specified in URL
                 const urlParams = new URLSearchParams(window.location.search);

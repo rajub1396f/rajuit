@@ -2598,34 +2598,27 @@ app.put("/admin/orders/:id", verifyAdmin, async (req, res) => {
 
     const oldOrder = orderResult[0];
 
-    // Build update query dynamically
-    let updateFields = [];
-    let updateValues = [];
+    // Build update object
+    let updateData = {};
 
-    if (status) {
-      updateFields.push('status');
-      updateValues.push(status);
+    if (status !== undefined) {
+      updateData.status = status;
     }
-    if (shipping_address) {
-      updateFields.push('shipping_address');
-      updateValues.push(shipping_address);
+    if (shipping_address !== undefined) {
+      updateData.shipping_address = shipping_address;
     }
-    if (total_amount) {
-      updateFields.push('total_amount');
-      updateValues.push(total_amount);
+    if (total_amount !== undefined) {
+      updateData.total_amount = total_amount;
     }
 
-    if (updateFields.length === 0) {
+    if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ message: "No fields to update" });
     }
 
     // Perform update
     await sql`
       UPDATE orders 
-      SET ${sql(updateFields.reduce((acc, field, idx) => {
-        acc[field] = updateValues[idx];
-        return acc;
-      }, {}))}
+      SET ${sql(updateData)}
       WHERE id = ${orderId}
     `;
 
@@ -2724,6 +2717,39 @@ app.delete("/admin/orders/:id", verifyAdmin, async (req, res) => {
 });
 
 // ============= PRODUCT MANAGEMENT ROUTES =============
+// Public API: Get all active products
+app.get("/api/products", async (req, res) => {
+  try {
+    const { category, subcategory } = req.query;
+    
+    let query;
+    if (category && subcategory) {
+      query = sql`
+        SELECT * FROM products 
+        WHERE is_active = true AND category = ${category} AND subcategory = ${subcategory}
+        ORDER BY created_at DESC
+      `;
+    } else if (category) {
+      query = sql`
+        SELECT * FROM products 
+        WHERE is_active = true AND category = ${category}
+        ORDER BY created_at DESC
+      `;
+    } else {
+      query = sql`
+        SELECT * FROM products 
+        WHERE is_active = true
+        ORDER BY created_at DESC
+      `;
+    }
+    
+    const products = await query;
+    res.json(products);
+  } catch (error) {
+    console.error("❌ Error fetching products:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 // Get all products for admin
 app.get("/admin/products", verifyAdmin, async (req, res) => {
