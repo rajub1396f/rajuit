@@ -906,6 +906,8 @@ app.post("/forgot-password", async (req, res) => {
 
     try {
       console.log(`📤 Attempting to send password reset email via Brevo to: ${email}`);
+      console.log(`🔑 Brevo API Key configured: ${!!process.env.BREVO_API_KEY}`);
+      console.log(`📧 Sender email: ${BREVO_SENDER.email}`);
       
       const emailResult = await sendBrevoEmail({
         to: email,
@@ -914,21 +916,23 @@ app.post("/forgot-password", async (req, res) => {
       });
 
       console.log(`✅ Password reset email sent successfully to ${email}`, emailResult);
-      res.json({ 
+      return res.json({ 
         success: true, 
-        message: "Password reset link sent! Check your email (including spam folder). The link expires in 1 hour." 
+        message: "Password reset link sent! Check your email (including spam folder). The link expires in 1 hour.",
+        emailSent: true
       });
     } catch (emailError) {
       console.error(`❌ Failed to send password reset email to ${email}:`, {
         error: emailError.message,
         stack: emailError.stack,
-        response: emailError.response
+        response: emailError.response?.text || emailError.response?.body || 'No response details'
       });
       
       // Return error to user so they know something went wrong
       return res.status(500).json({ 
         success: false, 
         message: "Failed to send reset email. Please try again later or contact support.",
+        emailSent: false,
         error: process.env.NODE_ENV === 'development' ? emailError.message : undefined
       });
     }
