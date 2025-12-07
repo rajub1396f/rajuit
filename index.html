@@ -819,7 +819,12 @@ console.log("🚀 Script loaded - starting initialization...");
   }
 
   function renderWishlistDropdown() {
-    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    let wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    
+    // Fix legacy data: ensure all items are strings
+    wishlistItems = wishlistItems.filter(item => typeof item === 'string');
+    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+    
     const dropdown = document.getElementById('wishlistDropdown');
     
     if (!dropdown) return;
