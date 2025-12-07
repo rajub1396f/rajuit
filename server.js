@@ -178,6 +178,39 @@ console.log("✅ Brevo email service initialized");
       console.log("Note: last_reset_request_time column might already exist:", alterErr.message);
     }
     
+    // Add is_admin column to users table
+    try {
+      await sql`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE
+      `;
+      console.log("✅ is_admin column added/verified");
+    } catch (alterErr) {
+      console.log("Note: is_admin column might already exist:", alterErr.message);
+    }
+    
+    // Create products table
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS products (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          description TEXT,
+          price DECIMAL(10, 2) NOT NULL,
+          category VARCHAR(100) NOT NULL,
+          subcategory VARCHAR(100),
+          image_url TEXT,
+          stock_quantity INTEGER DEFAULT 0,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `;
+      console.log("✅ Products table ready");
+    } catch (productsErr) {
+      console.log("Note: Products table might already exist:", productsErr.message);
+    }
+    
   } catch (err) {
     console.error("❌ Database initialization error:", err);
   }
@@ -494,6 +527,55 @@ app.post("/login", async (req, res) => {
 
   } catch (err) {
     console.error("Login error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Admin Login Route
+app.post("/admin/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Missing email or password" });
+    }
+
+    const userRows = await sql`SELECT * FROM users WHERE email = ${email} AND is_admin = true LIMIT 1`;
+
+    if (!userRows || userRows.length === 0) {
+      return res.status(403).json({ message: "Access denied. Admin credentials required." });
+    }
+
+    const admin = userRows[0];
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect password" });
+    }
+
+    const payload = {
+      id: admin.id,
+      name: admin.name,
+      email: admin.email,
+      isAdmin: true
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET || "SECRET_KEY", { expiresIn: "8h" });
+
+    req.session.admin = { id: admin.id, name: admin.name, email: admin.email, isAdmin: true };
+
+    console.log("✅ Admin logged in:", admin.email);
+
+    return res.json({
+      success: true,
+      token,
+      admin: { id: admin.id, name: admin.name, email: admin.email },
+      redirect: "/admin-dashboard.html"
+    });
+
+  } catch (err) {
+    console.error("Admin login error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -1251,6 +1333,37 @@ function verifyToken(req, res, next) {
   } else {
     console.error("❌ No token or session found");
     return res.status(403).json({ message: "No token provided" });
+  }
+}
+
+// Admin verification middleware
+function verifyAdmin(req, res, next) {
+  const header = req.headers["authorization"];
+  const token = header?.split(" ")[1];
+
+  console.log("🔍 Admin Auth Check");
+
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
+      if (err) {
+        console.error("❌ Admin token verification failed:", err.message);
+        return res.status(401).json({ message: "Invalid token", error: err.message });
+      }
+      if (!decoded.isAdmin) {
+        console.error("❌ User is not admin");
+        return res.status(403).json({ message: "Access denied. Admin only." });
+      }
+      console.log("✅ Admin token valid:", decoded.email);
+      req.user = decoded;
+      next();
+    });
+  } else if (req.session && req.session.admin) {
+    console.log("✅ Using admin session:", req.session.admin.email);
+    req.user = req.session.admin;
+    next();
+  } else {
+    console.error("❌ No admin token or session found");
+    return res.status(403).json({ message: "Access denied. Admin login required." });
   }
 }
 
@@ -2372,6 +2485,436 @@ app.get("/test-invoice", async (req, res) => {
       error: error.message,
       stack: error.stack
     });
+  }
+});
+
+// ============= ADMIN ROUTES =============
+
+// Get dashboard stats
+app.get("/admin/stats", verifyAdmin, async (req, res) => {
+  try {
+    const [totalOrdersResult, pendingOrdersResult, totalUsersResult] = await Promise.all([
+      sql`SELECT COUNT(*) as count FROM orders`,
+      sql`SELECT COUNT(*) as count FROM orders WHERE status = 'pending'`,
+      sql`SELECT COUNT(*) as count FROM users`
+    ]);
+
+    res.json({
+      totalOrders: parseInt(totalOrdersResult[0]?.count || 0),
+      pendingOrders: parseInt(pendingOrdersResult[0]?.count || 0),
+      totalProducts: 12, // Hardcoded for now, will be dynamic with products table
+      totalUsers: parseInt(totalUsersResult[0]?.count || 0)
+    });
+  } catch (error) {
+    console.error("❌ Error fetching admin stats:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get all orders for admin
+app.get("/admin/orders", verifyAdmin, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 100;
+    const offset = parseInt(req.query.offset) || 0;
+    const status = req.query.status;
+
+    let query;
+    if (status && status !== 'all') {
+      query = sql`
+        SELECT o.*, u.name as user_name, u.email as user_email 
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        WHERE o.status = ${status}
+        ORDER BY o.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+    } else {
+      query = sql`
+        SELECT o.*, u.name as user_name, u.email as user_email 
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        ORDER BY o.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+    }
+
+    const orders = await query;
+    res.json(orders);
+  } catch (error) {
+    console.error("❌ Error fetching orders:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get single order details for admin
+app.get("/admin/orders/:id", verifyAdmin, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+
+    const orderResult = await sql`
+      SELECT o.*, u.name as user_name, u.email as user_email, u.phone as user_phone
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId}
+    `;
+
+    if (!orderResult || orderResult.length === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const order = orderResult[0];
+
+    // Get order items
+    const items = await sql`
+      SELECT * FROM order_items WHERE order_id = ${orderId}
+    `;
+
+    order.items = items;
+
+    res.json(order);
+  } catch (error) {
+    console.error("❌ Error fetching order details:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Update order status
+app.put("/admin/orders/:id", verifyAdmin, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+    const { status, shipping_address, total_amount } = req.body;
+
+    // Get order details before update
+    const orderResult = await sql`
+      SELECT o.*, u.email as user_email, u.name as user_name
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId}
+    `;
+
+    if (!orderResult || orderResult.length === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const oldOrder = orderResult[0];
+
+    // Build update query dynamically
+    let updateFields = [];
+    let updateValues = [];
+
+    if (status) {
+      updateFields.push('status');
+      updateValues.push(status);
+    }
+    if (shipping_address) {
+      updateFields.push('shipping_address');
+      updateValues.push(shipping_address);
+    }
+    if (total_amount) {
+      updateFields.push('total_amount');
+      updateValues.push(total_amount);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
+    // Perform update
+    await sql`
+      UPDATE orders 
+      SET ${sql(updateFields.reduce((acc, field, idx) => {
+        acc[field] = updateValues[idx];
+        return acc;
+      }, {}))}
+      WHERE id = ${orderId}
+    `;
+
+    // Send email notification if status changed
+    if (status && status !== oldOrder.status) {
+      try {
+        const statusMessages = {
+          'pending': 'Your order is pending confirmation.',
+          'processing': 'Your order is now being processed.',
+          'shipped': 'Your order has been shipped!',
+          'delivered': 'Your order has been delivered!',
+          'cancelled': 'Your order has been cancelled.'
+        };
+
+        const emailHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
+            <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <h2 style="color: #ffc800; margin-bottom: 20px;">Order Status Update</h2>
+              <p style="font-size: 16px; color: #333; line-height: 1.6;">Hi ${oldOrder.user_name},</p>
+              <p style="font-size: 16px; color: #333; line-height: 1.6;">
+                Your order <strong>#${orderId}</strong> status has been updated.
+              </p>
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px; color: #666;">Order Status:</p>
+                <p style="margin: 5px 0 0 0; font-size: 20px; font-weight: bold; color: #333; text-transform: uppercase;">${status}</p>
+              </div>
+              <p style="font-size: 16px; color: #333; line-height: 1.6;">
+                ${statusMessages[status] || 'Your order status has been updated.'}
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="https://rajuit.online/dashboard.html" 
+                   style="background: #ffc800; color: #000; padding: 15px 40px; text-decoration: none; 
+                          border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
+                  View Order Details
+                </a>
+              </div>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+              <p style="font-size: 12px; color: #999; text-align: center;">
+                Thank you for shopping with Raju IT!
+              </p>
+            </div>
+          </div>
+        `;
+
+        await sendBrevoEmail({
+          to: oldOrder.user_email,
+          subject: `Order #${orderId} Status Update - ${status}`,
+          htmlContent: emailHtml
+        });
+
+        console.log(`✅ Order status update email sent to ${oldOrder.user_email}`);
+      } catch (emailError) {
+        console.error("❌ Error sending status update email:", emailError);
+        // Don't fail the request if email fails
+      }
+    }
+
+    // Get updated order
+    const updatedOrder = await sql`
+      SELECT o.*, u.name as user_name, u.email as user_email
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId}
+    `;
+
+    res.json({
+      success: true,
+      message: "Order updated successfully",
+      order: updatedOrder[0]
+    });
+  } catch (error) {
+    console.error("❌ Error updating order:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Delete order
+app.delete("/admin/orders/:id", verifyAdmin, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+
+    // Delete order items first (cascade should handle this, but being explicit)
+    await sql`DELETE FROM order_items WHERE order_id = ${orderId}`;
+
+    // Delete order
+    await sql`DELETE FROM orders WHERE id = ${orderId}`;
+
+    res.json({
+      success: true,
+      message: "Order deleted successfully"
+    });
+  } catch (error) {
+    console.error("❌ Error deleting order:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ============= PRODUCT MANAGEMENT ROUTES =============
+
+// Get all products for admin
+app.get("/admin/products", verifyAdmin, async (req, res) => {
+  try {
+    const products = await sql`
+      SELECT * FROM products ORDER BY created_at DESC
+    `;
+    res.json(products);
+  } catch (error) {
+    console.error("❌ Error fetching products:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get single product
+app.get("/admin/products/:id", verifyAdmin, async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    const products = await sql`
+      SELECT * FROM products WHERE id = ${productId}
+    `;
+    
+    if (!products || products.length === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    
+    res.json(products[0]);
+  } catch (error) {
+    console.error("❌ Error fetching product:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Create new product
+app.post("/admin/products", verifyAdmin, async (req, res) => {
+  try {
+    const { name, description, price, category, subcategory, image_url, stock_quantity } = req.body;
+    
+    if (!name || !price || !category) {
+      return res.status(400).json({ message: "Name, price, and category are required" });
+    }
+    
+    const result = await sql`
+      INSERT INTO products (name, description, price, category, subcategory, image_url, stock_quantity, is_active)
+      VALUES (${name}, ${description || ''}, ${price}, ${category}, ${subcategory || ''}, ${image_url || ''}, ${stock_quantity || 0}, true)
+      RETURNING *
+    `;
+    
+    res.json({
+      success: true,
+      message: "Product created successfully",
+      product: result[0]
+    });
+  } catch (error) {
+    console.error("❌ Error creating product:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Update product
+app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    const { name, description, price, category, subcategory, image_url, stock_quantity, is_active } = req.body;
+    
+    // Check if product exists
+    const existingProduct = await sql`SELECT * FROM products WHERE id = ${productId}`;
+    if (!existingProduct || existingProduct.length === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    
+    // Build update object with only provided fields
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (price !== undefined) updateData.price = price;
+    if (category !== undefined) updateData.category = category;
+    if (subcategory !== undefined) updateData.subcategory = subcategory;
+    if (image_url !== undefined) updateData.image_url = image_url;
+    if (stock_quantity !== undefined) updateData.stock_quantity = stock_quantity;
+    if (is_active !== undefined) updateData.is_active = is_active;
+    updateData.updated_at = new Date();
+    
+    if (Object.keys(updateData).length === 1) { // Only updated_at
+      return res.status(400).json({ message: "No fields to update" });
+    }
+    
+    const result = await sql`
+      UPDATE products 
+      SET ${sql(updateData)}
+      WHERE id = ${productId}
+      RETURNING *
+    `;
+    
+    res.json({
+      success: true,
+      message: "Product updated successfully",
+      product: result[0]
+    });
+  } catch (error) {
+    console.error("❌ Error updating product:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Delete product
+app.delete("/admin/products/:id", verifyAdmin, async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    
+    await sql`DELETE FROM products WHERE id = ${productId}`;
+    
+    res.json({
+      success: true,
+      message: "Product deleted successfully"
+    });
+  } catch (error) {
+    console.error("❌ Error deleting product:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get ImageKit authentication parameters (for frontend uploads)
+app.get("/admin/imagekit-auth", verifyAdmin, async (req, res) => {
+  try {
+    const authenticationParameters = imagekit.getAuthenticationParameters();
+    res.json(authenticationParameters);
+  } catch (error) {
+    console.error("❌ Error getting ImageKit auth:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ============= USER MANAGEMENT ROUTES =============
+
+// Get all users for admin
+app.get("/admin/users", verifyAdmin, async (req, res) => {
+  try {
+    const users = await sql`
+      SELECT 
+        u.id,
+        u.name,
+        u.email,
+        u.phone,
+        u.address,
+        u.is_verified,
+        u.is_admin,
+        u.created_at,
+        COUNT(o.id) as total_orders
+      FROM users u
+      LEFT JOIN orders o ON u.id = o.user_id
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
+    `;
+    res.json(users);
+  } catch (error) {
+    console.error("❌ Error fetching users:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get user details with order history
+app.get("/admin/users/:id", verifyAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    const userResult = await sql`
+      SELECT id, name, email, phone, address, is_verified, is_admin, created_at
+      FROM users 
+      WHERE id = ${userId}
+    `;
+    
+    if (!userResult || userResult.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const user = userResult[0];
+    
+    // Get user's orders
+    const orders = await sql`
+      SELECT * FROM orders 
+      WHERE user_id = ${userId}
+      ORDER BY created_at DESC
+    `;
+    
+    user.orders = orders;
+    
+    res.json(user);
+  } catch (error) {
+    console.error("❌ Error fetching user details:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

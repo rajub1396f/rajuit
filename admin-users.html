@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+        
+        .sidebar-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 20px 0;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(255,255,255,0.2);
+            padding-left: 30px;
+        }
+        
+        .sidebar-menu a i {
+            margin-right: 12px;
+            font-size: 18px;
+            width: 25px;
+        }
+        
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .btn-logout {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 8px;
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+        
+        .page-header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        
+        .page-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .users-table-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table thead {
+            background: #f8f9fa;
+        }
+        
+        .table thead th {
+            border-bottom: 2px solid #e9ecef;
+            color: #666;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 15px;
+        }
+        
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+        }
+        
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            padding: 6px 12px;
+            font-weight: 600;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+        
+        .user-detail-row {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-shield-alt"></i> Admin Panel</h3>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li><a href="/admin-dashboard.html"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+            <li><a href="/admin-orders.html"><i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>
+            <li><a href="/admin-products.html"><i class="fas fa-box"></i><span>Products</span></a></li>
+            <li><a href="/admin-users.html" class="active"><i class="fas fa-users"></i><span>Users</span></a></li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <h2><i class="fas fa-users me-2"></i>User Management</h2>
+        </div>
+        
+        <div class="users-table-container">
+            <div id="usersTableContainer">
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Details Modal -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user me-2"></i>User Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="userModalBody">
+                    <div class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const adminToken = localStorage.getItem('adminToken');
+        
+        if (!adminToken) {
+            window.location.href = '/admin-login.html';
+        }
+        
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            window.location.href = '/admin-login.html';
+        }
+        
+        async function loadUsers() {
+            const container = document.getElementById('usersTableContainer');
+            
+            try {
+                const response = await fetch('https://rajuit.online/admin/users', {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    logout();
+                    return;
+                }
+                
+                if (!response.ok) throw new Error('Failed to load users');
+                
+                const users = await response.json();
+                displayUsers(users);
+            } catch (error) {
+                console.error('Error loading users:', error);
+                container.innerHTML = `
+                    <div class="alert alert-danger m-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Failed to load users. Please try again.
+                    </div>
+                `;
+            }
+        }
+        
+        function displayUsers(users) {
+            const container = document.getElementById('usersTableContainer');
+            
+            if (!users || users.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info m-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No users found.
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Orders</th>
+                                <th>Registered</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            users.forEach(user => {
+                const regDate = new Date(user.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                html += `
+                    <tr>
+                        <td><strong>#${user.id}</strong></td>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone || 'N/A'}</td>
+                        <td>
+                            ${user.is_verified ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-warning">Unverified</span>'}
+                            ${user.is_admin ? '<span class="badge bg-primary ms-1">Admin</span>' : ''}
+                        </td>
+                        <td><strong>${user.total_orders || 0}</strong></td>
+                        <td>${regDate}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewUser(${user.id})">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        async function viewUser(userId) {
+            const modal = new bootstrap.Modal(document.getElementById('userModal'));
+            const modalBody = document.getElementById('userModalBody');
+            
+            modalBody.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            `;
+            
+            modal.show();
+            
+            try {
+                const response = await fetch(`https://rajuit.online/admin/users/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load user details');
+                
+                const user = await response.json();
+                displayUserDetails(user);
+            } catch (error) {
+                console.error('Error loading user details:', error);
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Failed to load user details.
+                    </div>
+                `;
+            }
+        }
+        
+        function displayUserDetails(user) {
+            const modalBody = document.getElementById('userModalBody');
+            
+            let ordersHtml = '';
+            if (user.orders && user.orders.length > 0) {
+                ordersHtml = `
+                    <h5 class="mt-4">Order History:</h5>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                user.orders.forEach(order => {
+                    const statusClass = {
+                        'pending': 'warning',
+                        'processing': 'info',
+                        'shipped': 'primary',
+                        'delivered': 'success',
+                        'cancelled': 'danger'
+                    }[order.status] || 'secondary';
+                    
+                    ordersHtml += `
+                        <tr>
+                            <td><strong>#${order.id}</strong></td>
+                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                            <td>৳${parseFloat(order.total_amount).toFixed(2)}</td>
+                            <td><span class="badge bg-${statusClass}">${order.status}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                ordersHtml += `
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                ordersHtml = '<p class="text-muted mt-3">No orders yet.</p>';
+            }
+            
+            modalBody.innerHTML = `
+                <div class="user-detail-row">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>User ID:</strong> #${user.id}</p>
+                            <p><strong>Name:</strong> ${user.name}</p>
+                            <p><strong>Email:</strong> ${user.email}</p>
+                            <p><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Address:</strong> ${user.address || 'Not provided'}</p>
+                            <p><strong>Status:</strong> 
+                                ${user.is_verified ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-warning">Unverified</span>'}
+                                ${user.is_admin ? '<span class="badge bg-primary ms-1">Admin</span>' : ''}
+                            </p>
+                            <p><strong>Registered:</strong> ${new Date(user.created_at).toLocaleString()}</p>
+                            <p><strong>Total Orders:</strong> ${user.orders?.length || 0}</p>
+                        </div>
+                    </div>
+                </div>
+                ${ordersHtml}
+            `;
+        }
+        
+        // Load users on page load
+        loadUsers();
+    </script>
+</body>
+</html>
