@@ -1727,6 +1727,32 @@ app.post("/create-order", verifyToken, async (req, res) => {
         });
         
         console.log(`✅ Invoice email sent successfully to ${user.email} via Brevo`);
+        
+        // Send invoice copy to admin
+        const adminEmailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #212529;">New Order Received! 🎉</h2>
+              <p><strong>A new order has been placed on Raju IT.</strong></p>
+              <div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #ffc800; margin: 20px 0;">
+                <p><strong>Order Number:</strong> #${orderId.toString().padStart(6, '0')}</p>
+                <p><strong>Customer:</strong> ${user.name} (${user.email})</p>
+                <p><strong>Total Amount:</strong> ৳${totalAmount}</p>
+                <p><strong>Payment Method:</strong> ${paymentMethod === 'cod' ? 'Cash on Delivery' : paymentMethod === 'card' ? 'Credit/Debit Card' : 'Bank Transfer'}</p>
+              </div>
+              <p><strong>Shipping Address:</strong></p>
+              <p style="white-space: pre-line;">${shippingAddress}</p>
+              <p style="color: #666; font-size: 14px; margin-top: 30px;">Login to dashboard to view full order details.</p>
+            </div>
+          `;
+        
+        await sendBrevoEmail({
+          to: 'rajuit1396@gmail.com',
+          subject: `New Order #${orderId.toString().padStart(6, '0')} - ${user.name}`,
+          htmlContent: adminEmailHtml
+        });
+        
+        console.log(`✅ Admin notification email sent to rajuit1396@gmail.com`);
+        
       } catch (error) {
         console.error(`❌ Background email sending failed for order #${orderId}:`, error.message);
       }
