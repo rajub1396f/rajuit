@@ -150,8 +150,9 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                overflow: auto;
+                overflow: hidden;
                 cursor: grab;
+                position: relative;
             }
             
             .zoom-container:active {
@@ -167,6 +168,8 @@
                 transform-origin: center center;
                 user-select: none;
                 -webkit-user-select: none;
+                -webkit-user-drag: none;
+                position: relative;
             }
             
             .zoom-controls {
@@ -1578,24 +1581,28 @@
             // Image Zoom Functions
             let currentZoom = 1;
             let isDragging = false;
-            let startX, startY, scrollLeft, scrollTop;
+            let currentX = 0;
+            let currentY = 0;
+            let initialX = 0;
+            let initialY = 0;
+            let xOffset = 0;
+            let yOffset = 0;
             
             function openImageZoom(imageSrc, productName) {
                 const modal = document.getElementById('imageZoomModal');
                 const zoomedImage = document.getElementById('zoomedImage');
-                const container = document.getElementById('zoomContainer');
                 
                 zoomedImage.src = imageSrc;
                 zoomedImage.alt = productName;
                 modal.classList.add('active');
                 currentZoom = 1;
+                xOffset = 0;
+                yOffset = 0;
                 updateZoomDisplay();
                 document.body.style.overflow = 'hidden';
                 
                 // Reset transform
-                zoomedImage.style.transform = 'scale(1)';
-                container.scrollLeft = 0;
-                container.scrollTop = 0;
+                zoomedImage.style.transform = 'translate(0px, 0px) scale(1)';
             }
             
             function zoomIn() {
@@ -1608,13 +1615,18 @@
             function zoomOut() {
                 if (currentZoom > 0.5) {
                     currentZoom -= 0.25;
+                    // Reset position when zooming out to 1x
+                    if (currentZoom <= 1) {
+                        xOffset = 0;
+                        yOffset = 0;
+                    }
                     applyZoom();
                 }
             }
             
             function applyZoom() {
                 const zoomedImage = document.getElementById('zoomedImage');
-                zoomedImage.style.transform = `scale(${currentZoom})`;
+                zoomedImage.style.transform = `translate(${xOffset}px, ${yOffset}px) scale(${currentZoom})`;
                 updateZoomDisplay();
             }
             
@@ -1627,6 +1639,8 @@
                 const modal = document.getElementById('imageZoomModal');
                 modal.classList.remove('active');
                 currentZoom = 1;
+                xOffset = 0;
+                yOffset = 0;
                 document.body.style.overflow = 'auto';
             }
             
@@ -1640,17 +1654,17 @@
                     // Click on image to zoom in
                     zoomedImage.addEventListener('click', function(e) {
                         e.stopPropagation();
-                        zoomIn();
+                        if (currentZoom < 3) {
+                            zoomIn();
+                        }
                     });
                     
                     // Drag to pan when zoomed
                     container.addEventListener('mousedown', function(e) {
-                        if (currentZoom > 1) {
+                        if (currentZoom > 1 && e.target === zoomedImage) {
                             isDragging = true;
-                            startX = e.pageX - container.offsetLeft;
-                            startY = e.pageY - container.offsetTop;
-                            scrollLeft = container.scrollLeft;
-                            scrollTop = container.scrollTop;
+                            initialX = e.clientX - xOffset;
+                            initialY = e.clientY - yOffset;
                             container.style.cursor = 'grabbing';
                         }
                     });
@@ -1658,22 +1672,28 @@
                     container.addEventListener('mousemove', function(e) {
                         if (!isDragging) return;
                         e.preventDefault();
-                        const x = e.pageX - container.offsetLeft;
-                        const y = e.pageY - container.offsetTop;
-                        const walkX = (x - startX) * 2;
-                        const walkY = (y - startY) * 2;
-                        container.scrollLeft = scrollLeft - walkX;
-                        container.scrollTop = scrollTop - walkY;
+                        
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                        
+                        xOffset = currentX;
+                        yOffset = currentY;
+                        
+                        zoomedImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${currentZoom})`;
                     });
                     
-                    container.addEventListener('mouseup', function() {
-                        isDragging = false;
-                        container.style.cursor = 'grab';
+                    document.addEventListener('mouseup', function() {
+                        if (isDragging) {
+                            isDragging = false;
+                            container.style.cursor = 'grab';
+                        }
                     });
                     
                     container.addEventListener('mouseleave', function() {
-                        isDragging = false;
-                        container.style.cursor = 'grab';
+                        if (isDragging) {
+                            isDragging = false;
+                            container.style.cursor = 'grab';
+                        }
                     });
                     
                     // Touch events for mobile
