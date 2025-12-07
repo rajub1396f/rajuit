@@ -2859,6 +2859,36 @@ app.get("/admin/imagekit-auth", verifyAdmin, async (req, res) => {
 
 // ============= USER MANAGEMENT ROUTES =============
 
+// Set user as admin (for initial setup)
+app.get("/admin/make-admin", async (req, res) => {
+  try {
+    const email = "rajuit1396@gmail.com";
+    
+    const result = await sql`
+      UPDATE users 
+      SET is_admin = true 
+      WHERE email = ${email}
+      RETURNING id, name, email, is_admin
+    `;
+    
+    if (result && result.length > 0) {
+      res.json({
+        success: true,
+        message: `User ${email} has been set as admin`,
+        user: result[0]
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: `User with email ${email} not found. Please register first.`
+      });
+    }
+  } catch (error) {
+    console.error("❌ Error setting admin:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Get all users for admin
 app.get("/admin/users", verifyAdmin, async (req, res) => {
   try {
