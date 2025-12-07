@@ -90,100 +90,201 @@
             }
             
             .product-card {
-                transition: transform 0.3s, box-shadow 0.3s;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 height: 100%;
-                border-radius: 12px;
+                border-radius: 16px;
                 overflow: hidden;
-                border: none;
+                border: 1px solid #e8e8e8;
+                background: white;
+                position: relative;
             }
             
             .product-card:hover {
-                transform: translateY(-10px);
-                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                transform: translateY(-8px);
+                box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+                border-color: #667eea;
+            }
+            
+            .product-card .product-image-wrapper {
+                position: relative;
+                overflow: hidden;
+                background: #f8f9fa;
             }
             
             .product-card .card-img-top {
-                height: 280px;
+                height: 320px;
                 object-fit: cover;
-                border-bottom: 1px solid #eee;
+                transition: transform 0.5s ease;
+            }
+            
+            .product-card:hover .card-img-top {
+                transform: scale(1.08);
+            }
+            
+            .product-card .product-badge {
+                position: absolute;
+                top: 15px;
+                left: 15px;
+                background: rgba(255, 255, 255, 0.95);
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 600;
+                color: #667eea;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            
+            .product-card .stock-badge {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            
+            .product-card .stock-badge.in-stock {
+                background: rgba(46, 204, 113, 0.95);
+                color: white;
+            }
+            
+            .product-card .stock-badge.out-of-stock {
+                background: rgba(231, 76, 60, 0.95);
+                color: white;
             }
             
             .product-card .card-body {
-                padding: 20px;
-            }
-            
-            .product-card .product-category-badge {
-                display: inline-block;
-                padding: 4px 12px;
-                background: #f0f0f0;
-                border-radius: 20px;
-                font-size: 12px;
-                color: #666;
-                margin-bottom: 10px;
+                padding: 24px;
+                display: flex;
+                flex-direction: column;
             }
             
             .product-card .card-title {
-                font-size: 18px;
-                font-weight: 600;
-                margin-bottom: 10px;
-                color: #333;
+                font-size: 19px;
+                font-weight: 700;
+                margin-bottom: 12px;
+                color: #2c3e50;
+                line-height: 1.4;
                 min-height: 50px;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
             }
             
             .product-card .product-description {
                 font-size: 14px;
-                color: #777;
-                margin-bottom: 12px;
-                min-height: 60px;
+                line-height: 1.6;
+                color: #7f8c8d;
+                margin-bottom: 16px;
+                min-height: 44px;
+                max-height: 44px;
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
             
-            .product-card .product-price {
-                font-size: 22px;
-                font-weight: 700;
-                color: #667eea;
-                margin-bottom: 15px;
+            .product-card .product-price-section {
+                margin: 16px 0;
+                padding: 16px 0;
+                border-top: 1px solid #ecf0f1;
+                border-bottom: 1px solid #ecf0f1;
             }
             
-            .product-card .product-stock {
-                font-size: 13px;
-                color: #666;
-                margin-bottom: 12px;
+            .product-card .product-price {
+                font-size: 28px;
+                font-weight: 800;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin: 0;
+                letter-spacing: -0.5px;
+            }
+            
+            .product-card .product-actions {
+                display: flex;
+                gap: 10px;
+                margin-top: auto;
             }
             
             .product-card .btn {
-                margin-top: 5px;
-                border-radius: 8px;
+                border-radius: 10px;
                 font-weight: 600;
-                padding: 10px 20px;
+                padding: 12px 20px;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                border: none;
+                position: relative;
+                overflow: hidden;
             }
             
             .product-card .btn-add-cart {
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border: none;
                 color: white;
-                width: 100%;
-                margin-bottom: 10px;
+                flex: 1;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
             }
             
-            .product-card .btn-add-cart:hover {
-                transform: scale(1.02);
-                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            .product-card .btn-add-cart:hover:not(:disabled) {
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+                transform: translateY(-2px);
+            }
+            
+            .product-card .btn-add-cart:disabled {
+                background: #bdc3c7;
+                cursor: not-allowed;
+                box-shadow: none;
             }
             
             .product-card .btn-wishlist {
-                width: 100%;
-                border: 2px solid #e74c3c;
+                background: white;
+                border: 2px solid #e74c3c !important;
                 color: #e74c3c;
+                padding: 12px 16px;
+                box-shadow: 0 4px 15px rgba(231, 76, 60, 0.2);
             }
             
             .product-card .btn-wishlist:hover {
                 background: #e74c3c;
                 color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+            }
+            
+            .product-card .btn i {
+                font-size: 16px;
+            }
+            
+            @media (max-width: 768px) {
+                .product-card .card-img-top {
+                    height: 250px;
+                }
+                
+                .product-card .card-body {
+                    padding: 18px;
+                }
+                
+                .product-card .card-title {
+                    font-size: 17px;
+                    min-height: auto;
+                }
+                
+                .product-card .product-description {
+                    min-height: auto;
+                    max-height: 42px;
+                }
+                
+                .product-card .product-price {
+                    font-size: 24px;
+                }
             }
             
             .collection-section {
@@ -1388,9 +1489,10 @@
                 if (products.length === 0) {
                     grid.innerHTML = `
                         <div class="col-12">
-                            <div class="alert alert-info text-center">
-                                <i class="fas fa-info-circle me-2"></i>
-                                No products available in this collection yet.
+                            <div class="alert alert-info text-center py-5" style="border-radius: 16px; border: none; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);">
+                                <i class="fas fa-info-circle" style="font-size: 48px; color: #667eea; margin-bottom: 16px;"></i>
+                                <h5 style="color: #2c3e50; font-weight: 600;">No Products Available</h5>
+                                <p class="text-muted mb-0">Check back soon for new arrivals!</p>
                             </div>
                         </div>`;
                     return;
@@ -1398,34 +1500,43 @@
                 
                 grid.innerHTML = products.map(product => {
                     const productName = product.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const description = product.description || 'Premium quality product';
-                    const stockStatus = product.stock_quantity > 0 ? 
-                        `<span class="text-success"><i class="fas fa-check-circle me-1"></i>In Stock (${product.stock_quantity})</span>` : 
-                        `<span class="text-danger"><i class="fas fa-times-circle me-1"></i>Out of Stock</span>`;
+                    const description = (product.description || 'Premium quality product with excellent craftsmanship and style').substring(0, 100);
+                    const isInStock = product.stock_quantity > 0;
+                    const categoryDisplay = product.subcategory || product.category || 'Product';
                     
                     return `
-                    <div class="col-lg-4 col-md-6 product-item" data-category="${product.subcategory || 'all'}">
-                        <div class="card product-card shadow-sm">
-                            <img src="${product.image_url || '/assets/img/products/aaa777.jpg'}" 
-                                 class="card-img-top" 
-                                 alt="${product.name}"
-                                 onerror="this.src='https://via.placeholder.com/280x280?text=No+Image'">
-                            <div class="card-body">
-                                <div class="product-category-badge">
-                                    <i class="fas fa-tag me-1"></i>${product.category || 'Product'}${product.subcategory ? ' • ' + product.subcategory : ''}
+                    <div class="col-lg-4 col-md-6 mb-4 product-item" data-category="${product.subcategory || 'all'}">
+                        <div class="card product-card">
+                            <div class="product-image-wrapper">
+                                <img src="${product.image_url || '/assets/img/products/aaa777.jpg'}" 
+                                     class="card-img-top" 
+                                     alt="${product.name}"
+                                     onerror="this.src='https://via.placeholder.com/400x400/667eea/ffffff?text=${encodeURIComponent(product.name)}'">
+                                <div class="product-badge">
+                                    <i class="fas fa-tag me-1"></i>${categoryDisplay}
                                 </div>
+                                <div class="stock-badge ${isInStock ? 'in-stock' : 'out-of-stock'}">
+                                    ${isInStock ? `<i class="fas fa-check me-1"></i>${product.stock_quantity} Available` : '<i class="fas fa-times me-1"></i>Out of Stock'}
+                                </div>
+                            </div>
+                            <div class="card-body">
                                 <h5 class="card-title">${product.name}</h5>
                                 <p class="product-description">${description}</p>
-                                <div class="product-price">৳${parseFloat(product.price).toFixed(2)}</div>
-                                <div class="product-stock">${stockStatus}</div>
-                                <button class="btn btn-add-cart" 
-                                        onclick="addToCart('${productName}', ${product.price}, ${product.id})"
-                                        ${product.stock_quantity <= 0 ? 'disabled' : ''}>
-                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
-                                </button>
-                                <button class="btn btn-wishlist" onclick="addToWishlist('${productName}', ${product.id})">
-                                    <i class="fas fa-heart me-2"></i>Add to Wishlist
-                                </button>
+                                <div class="product-price-section">
+                                    <div class="product-price">৳${parseFloat(product.price).toFixed(2)}</div>
+                                </div>
+                                <div class="product-actions">
+                                    <button class="btn btn-add-cart" 
+                                            onclick="addToCart('${productName}', ${product.price}, ${product.id})"
+                                            ${!isInStock ? 'disabled' : ''}>
+                                        <i class="fas fa-shopping-cart me-2"></i>${isInStock ? 'Add to Cart' : 'Sold Out'}
+                                    </button>
+                                    <button class="btn btn-wishlist" 
+                                            onclick="addToWishlist('${productName}', ${product.id})"
+                                            title="Add to Wishlist">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
