@@ -167,6 +167,17 @@ console.log("✅ Brevo email service initialized");
       console.log("Note: last_password_reset column might already exist:", alterErr.message);
     }
     
+    // Add last_reset_request_time column to track password reset requests
+    try {
+      await sql`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS last_reset_request_time TIMESTAMP
+      `;
+      console.log("✅ last_reset_request_time column added/verified");
+    } catch (alterErr) {
+      console.log("Note: last_reset_request_time column might already exist:", alterErr.message);
+    }
+    
   } catch (err) {
     console.error("❌ Database initialization error:", err);
   }
@@ -886,20 +897,38 @@ app.post("/forgot-password", async (req, res) => {
     const user = userRows[0];
     console.log(`✅ User found: ${user.name} (ID: ${user.id})`);
 
-    // Check if user has recently reset password (within 24 hours)
+    const now = new Date();
+
+    // Check if user has successfully reset password within 24 hours (strict limit)
     if (user.last_password_reset) {
       const lastResetTime = new Date(user.last_password_reset);
-      const now = new Date();
       const hoursSinceLastReset = (now - lastResetTime) / (1000 * 60 * 60);
       
       if (hoursSinceLastReset < 24) {
         const hoursRemaining = Math.ceil(24 - hoursSinceLastReset);
-        console.log(`⏰ User ${email} tried to reset password too soon. Last reset: ${lastResetTime}`);
+        console.log(`⏰ User ${email} tried to reset password too soon after successful reset. Last reset: ${lastResetTime}`);
         return res.status(429).json({ 
           success: false, 
-          message: `You can only request a password reset once per day. Please try again in ${hoursRemaining} hour(s).`,
+          message: `You have recently reset your password. You can request another reset in ${hoursRemaining} hour(s).`,
           rateLimited: true,
           hoursRemaining: hoursRemaining
+        });
+      }
+    }
+
+    // Check if user has requested reset within last 5 minutes (before successful reset)
+    if (user.last_reset_request_time) {
+      const lastRequestTime = new Date(user.last_reset_request_time);
+      const minutesSinceLastRequest = (now - lastRequestTime) / (1000 * 60);
+      
+      if (minutesSinceLastRequest < 5) {
+        const minutesRemaining = Math.ceil(5 - minutesSinceLastRequest);
+        console.log(`⏰ User ${email} tried to request reset too soon. Last request: ${lastRequestTime}`);
+        return res.status(429).json({ 
+          success: false, 
+          message: `Please wait ${minutesRemaining} minute(s) before requesting another password reset link.`,
+          rateLimited: true,
+          minutesRemaining: minutesRemaining
         });
       }
     }
@@ -945,6 +974,14 @@ app.post("/forgot-password", async (req, res) => {
       });
 
       console.log(`✅ Password reset email sent successfully to ${email}`, emailResult);
+      
+      // Update last reset request time
+      await sql`
+        UPDATE users 
+        SET last_reset_request_time = NOW() 
+        WHERE id = ${user.id}
+      `;
+      
       return res.json({ 
         success: true, 
         message: "Password reset link sent! Check your email (including spam folder). The link expires in 1 hour.",
@@ -2047,7 +2084,13 @@ app.get("/migrate-email-verification", async (req, res) => {
       ADD COLUMN IF NOT EXISTS last_password_reset TIMESTAMP
     `;
     
-    console.log("✅ Email verification migration completed successfully");
+    // Add last_reset_request_time column
+    await sql`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS last_reset_request_time TIMESTAMP
+    `;
+    
+    console.log("✅ Email verification and password reset migration completed successfully");
     res.json({ 
       success: true, 
       message: "Email verification and password reset columns added to users table" 
