@@ -37,7 +37,7 @@ const sql = neon(process.env.NEON_DB);
     console.log('✅ Order items added successfully!');
     console.log('\nTest order created:');
     console.log('- Order ID:', orderId);
-    console.log('- Total: SAR 299.98');
+    console.log('- Total: ৳299.98');
     console.log('- Status: processing');
     console.log('- Items: 2');
     
