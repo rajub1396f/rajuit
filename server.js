@@ -222,8 +222,20 @@ console.log("✅ Brevo email service initialized");
       ADD COLUMN IF NOT EXISTS instagram_video_url TEXT
     `;
     console.log("✅ Instagram video URL column added to products table");
+    
+    // Verify the column exists
+    const tableInfo = await sql`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'products' AND column_name = 'instagram_video_url'
+    `;
+    if (tableInfo.length > 0) {
+      console.log("✅ Confirmed: instagram_video_url column exists");
+    } else {
+      console.log("⚠️ Warning: instagram_video_url column not found");
+    }
   } catch (err) {
-    console.log("Note: Instagram video URL column might already exist");
+    console.error("❌ Error adding instagram_video_url column:", err.message);
   }
 })();
 
@@ -2818,7 +2830,8 @@ app.post("/admin/products", verifyAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error creating product:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error details:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
@@ -2867,7 +2880,9 @@ app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error updating product:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error details:", error.message);
+    console.error("Stack:", error.stack);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
