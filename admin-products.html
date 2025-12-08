@@ -364,6 +364,28 @@
             'textile': 'Home Textiles'
         };
         
+        // Helper function to get category icon
+        function getCategoryIcon(category) {
+            const icons = {
+                'female': 'fa-female',
+                'male': 'fa-male',
+                'baby': 'fa-baby',
+                'home': 'fa-home'
+            };
+            return icons[category] || 'fa-tag';
+        }
+        
+        // Helper function to get category label
+        function getCategoryLabel(category) {
+            const labels = {
+                'female': 'Female',
+                'male': 'Male',
+                'baby': 'Baby',
+                'home': 'House'
+            };
+            return labels[category] || category;
+        }
+        
         // Update subcategories when category changes
         document.getElementById('productCategory').addEventListener('change', function() {
             const category = this.value;
@@ -444,7 +466,7 @@
                     <div class="product-info">
                         <div class="product-name">${product.name}</div>
                         <div class="product-category">
-                            <i class="fas fa-tag me-1"></i>${product.category} ${product.subcategory ? '• ' + product.subcategory : ''}
+                            <i class="fas ${getCategoryIcon(product.category)} me-1"></i>${getCategoryLabel(product.category)} ${product.subcategory ? '• ' + (subcategoryLabels[product.subcategory] || product.subcategory) : ''}
                         </div>
                         <div class="product-price">৳${parseFloat(product.price).toFixed(2)}</div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
