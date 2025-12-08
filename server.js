@@ -2134,7 +2134,7 @@ app.get("/", (req, res) => {
     if (req.session && req.session.user) {
         return res.redirect('/dashboard');
     }
-    res.sendFile(path.join(__dirname, 'home.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Handle clean URLs - serve .html files without extension
