@@ -527,6 +527,8 @@
                     ? `https://rajuit.online/admin/products/${currentProductId}`
                     : 'https://rajuit.online/admin/products';
                     
+                console.log('Sending product data:', productData);
+                
                 const response = await fetch(url, {
                     method: isEdit ? 'PUT' : 'POST',
                     headers: {
@@ -536,16 +538,19 @@
                     body: JSON.stringify(productData)
                 });
                 
-                if (!response.ok) throw new Error('Failed to save product');
-                
                 const data = await response.json();
+                console.log('Response:', data);
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to save product');
+                }
                 
                 alert(`Product ${isEdit ? 'updated' : 'created'} successfully!`);
                 bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
                 loadProducts();
             } catch (error) {
                 console.error('Error saving product:', error);
-                alert('Failed to save product. Please try again.');
+                alert('Failed to save product: ' + error.message);
             }
         });
         

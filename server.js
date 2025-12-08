@@ -2799,13 +2799,15 @@ app.post("/admin/products", verifyAdmin, async (req, res) => {
   try {
     const { name, description, price, category, subcategory, image_url, stock_quantity, instagram_video_url } = req.body;
     
+    console.log('Creating product with data:', { name, price, category, instagram_video_url });
+    
     if (!name || !price || !category) {
       return res.status(400).json({ message: "Name, price, and category are required" });
     }
     
     const result = await sql`
       INSERT INTO products (name, description, price, category, subcategory, image_url, stock_quantity, instagram_video_url, is_active)
-      VALUES (${name}, ${description || ''}, ${price}, ${category}, ${subcategory || ''}, ${image_url || ''}, ${stock_quantity || 0}, ${instagram_video_url || ''}, true)
+      VALUES (${name}, ${description || ''}, ${price}, ${category}, ${subcategory || ''}, ${image_url || ''}, ${stock_quantity || 0}, ${instagram_video_url || null}, true)
       RETURNING *
     `;
     
@@ -2826,6 +2828,8 @@ app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
     const productId = parseInt(req.params.id);
     const { name, description, price, category, subcategory, image_url, stock_quantity, is_active, instagram_video_url } = req.body;
     
+    console.log('Updating product:', productId, 'with instagram_video_url:', instagram_video_url);
+    
     // Check if product exists
     const existingProduct = await sql`SELECT * FROM products WHERE id = ${productId}`;
     if (!existingProduct || existingProduct.length === 0) {
@@ -2842,7 +2846,7 @@ app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
     if (image_url !== undefined) updateData.image_url = image_url;
     if (stock_quantity !== undefined) updateData.stock_quantity = stock_quantity;
     if (is_active !== undefined) updateData.is_active = is_active;
-    if (instagram_video_url !== undefined) updateData.instagram_video_url = instagram_video_url;
+    if (instagram_video_url !== undefined) updateData.instagram_video_url = instagram_video_url || null;
     updateData.updated_at = new Date();
     
     if (Object.keys(updateData).length === 1) { // Only updated_at
