@@ -342,12 +342,26 @@
         
         let currentProductId = null;
         
-        // Subcategory mapping
+        // Subcategory mapping with display names
         const subcategories = {
             'female': ['clothing', 'accessories', 'footwear', 'jewelry'],
             'male': ['clothing', 'accessories', 'footwear'],
             'baby': ['clothing', 'toys', 'accessories', 'care'],
             'home': ['decor', 'kitchen', 'storage', 'lighting', 'textile']
+        };
+        
+        const subcategoryLabels = {
+            'clothing': 'Clothing',
+            'accessories': 'Accessories',
+            'footwear': 'Footwear',
+            'jewelry': 'Jewelry',
+            'toys': 'Toys & Games',
+            'care': 'Baby Care Products',
+            'decor': 'Home Decor',
+            'kitchen': 'Kitchen Items',
+            'storage': 'Storage Solutions',
+            'lighting': 'Lighting & Lamps',
+            'textile': 'Home Textiles'
         };
         
         // Update subcategories when category changes
@@ -361,7 +375,7 @@
                 subcategories[category].forEach(sub => {
                     const option = document.createElement('option');
                     option.value = sub;
-                    option.textContent = sub.charAt(0).toUpperCase() + sub.slice(1);
+                    option.textContent = subcategoryLabels[sub] || sub.charAt(0).toUpperCase() + sub.slice(1);
                     subcategorySelect.appendChild(option);
                 });
             }
