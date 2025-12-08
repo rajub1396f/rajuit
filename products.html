@@ -1551,10 +1551,6 @@
             function renderWishlistDropdown() {
                 let wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
                 
-                // Fix legacy data: ensure all items are strings
-                wishlistItems = wishlistItems.filter(item => typeof item === 'string');
-                localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
-                
                 const dropdown = document.getElementById('wishlistDropdown');
                 
                 if (!dropdown) return;
@@ -1574,22 +1570,47 @@
                         Wishlist (${wishlistItems.length} items)
                     </div>
                     <div class="dropdown-items">
-                        ${wishlistItems.map((item, index) => `
+                        ${wishlistItems.map((item, index) => {
+                            const itemName = typeof item === 'object' ? item.name : item;
+                            const itemImage = typeof item === 'object' ? item.image : '/assets/img/products/aaa777.jpg';
+                            const itemPrice = typeof item === 'object' ? item.price : 0;
+                            const itemId = typeof item === 'object' ? item.id : index;
+                            
+                            return `
                             <div class="dropdown-item-card">
-                                <img src="/assets/img/products/aaa777.jpg" alt="${item}" class="item-image">
+                                <img src="${itemImage}" alt="${itemName}" class="item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
                                 <div class="item-details">
-                                    <div class="item-name">${item}</div>
+                                    <div class="item-name">${itemName}</div>
+                                    ${itemPrice > 0 ? `<div class="item-price">৳${itemPrice}</div>` : ''}
+                                    <button class="btn btn-sm btn-success mt-1" onclick="addToCartFromWishlist(${index})" style="font-size: 0.75rem; padding: 2px 8px;">
+                                        <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                                    </button>
                                 </div>
                                 <button class="item-remove" onclick="removeFromWishlist(${index})" title="Remove">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
-                        `).join('')}
+                        `}).join('')}
                     </div>
                     <div class="dropdown-footer">
                         <button class="btn btn-outline-primary btn-sm w-100" onclick="window.location.href='products.html'">Continue Shopping</button>
                     </div>
                 `;
+            }
+            
+            function addToCartFromWishlist(wishlistIndex) {
+                const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+                const item = wishlistItems[wishlistIndex];
+                
+                if (!item) return;
+                
+                const itemName = typeof item === 'object' ? item.name : item;
+                const itemPrice = typeof item === 'object' ? item.price : 0;
+                const itemId = typeof item === 'object' ? item.id : wishlistIndex;
+                const itemImage = typeof item === 'object' ? item.image : '/assets/img/products/aaa777.jpg';
+                
+                // Add to cart
+                addToCart(itemName, itemPrice, itemId, itemImage);
             }
 
             function removeFromCart(index) {
@@ -1670,7 +1691,7 @@
             }
 
             // Add to wishlist function
-            function addToWishlist(productName, productId) {
+            function addToWishlist(productName, productId, price, imageUrl) {
                 // Check login status - also check localStorage token as backup
                 const token = localStorage.getItem('token');
                 if (!isUserLoggedIn && !token) {
@@ -1683,16 +1704,20 @@
                 // Reload wishlist items from localStorage to ensure fresh data
                 wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
                 
-                // Check if item already exists (check both id and name for backwards compatibility)
+                // Check if item already exists
                 const existingItem = wishlistItems.find(item => 
-                    (typeof item === 'object' && item.id === productId) || 
-                    item === productName
+                    (typeof item === 'object' && item.id === productId)
                 );
                 
                 if (existingItem) {
                     alert(`${productName} is already in your wishlist!`);
                 } else {
-                    wishlistItems.push({ id: productId, name: productName });
+                    wishlistItems.push({ 
+                        id: productId, 
+                        name: productName,
+                        price: price || 0,
+                        image: imageUrl || '/assets/img/products/aaa777.jpg'
+                    });
                     alert(`${productName} added to wishlist!`);
                     localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
                     updateBadgeCounts();
@@ -2023,7 +2048,7 @@
                                         <i class="fas fa-shopping-cart me-2"></i>${isInStock ? 'Add to Cart' : 'Sold Out'}
                                     </button>
                                     <button class="btn btn-wishlist" 
-                                            onclick="addToWishlist('${productName}', ${product.id})"
+                                            onclick="addToWishlist('${productName}', ${product.id}, ${product.price}, '${(product.image_url || '/assets/img/products/aaa777.jpg').replace(/'/g, "\'")}')"
                                             title="Add to Wishlist">
                                         <i class="fas fa-heart"></i>
                                     </button>
