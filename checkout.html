@@ -637,7 +637,7 @@
             const orderItemsContainer = document.getElementById('orderItems');
             orderItemsContainer.innerHTML = cartItems.map(item => `
                 <div class="order-item">
-                    <img src="/assets/img/products/aaa777.jpg" alt="${item.name}" class="order-item-image">
+                    <img src="${item.image || '/assets/img/products/aaa777.jpg'}" alt="${item.name}" class="order-item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
                     <div class="order-item-details">
                         <div class="order-item-name">${item.name}</div>
                         <div class="order-item-quantity">Qty: ${item.quantity}</div>
