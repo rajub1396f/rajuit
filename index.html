@@ -861,7 +861,7 @@ console.log("🚀 Script loaded - starting initialization...");
       <div class="dropdown-items">
         ${cartItems.map((item, index) => `
           <div class="dropdown-item-card">
-            <img src="/assets/img/products/aaa777.jpg" alt="${item.name}" class="item-image">
+            <img src="${item.image || '/assets/img/products/aaa777.jpg'}" alt="${item.name}" class="item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
             <div class="item-details">
               <div class="item-name">${item.name}</div>
               <div class="item-price">৳${item.price}</div>
