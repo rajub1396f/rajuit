@@ -908,22 +908,66 @@ console.log("🚀 Script loaded - starting initialization...");
         Wishlist (${wishlistItems.length} items)
       </div>
       <div class="dropdown-items">
-        ${wishlistItems.map((item, index) => `
+        ${wishlistItems.map((item, index) => {
+          const itemName = typeof item === 'object' ? item.name : item;
+          const itemImage = typeof item === 'object' ? item.image : '/assets/img/products/aaa777.jpg';
+          const itemPrice = typeof item === 'object' ? item.price : 0;
+          const itemId = typeof item === 'object' ? item.id : index;
+          
+          return `
           <div class="dropdown-item-card">
-            <img src="/assets/img/products/aaa777.jpg" alt="${item}" class="item-image">
+            <img src="${itemImage}" alt="${itemName}" class="item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
             <div class="item-details">
-              <div class="item-name">${item}</div>
+              <div class="item-name">${itemName}</div>
+              ${itemPrice > 0 ? `<div class="item-price">৳${itemPrice}</div>` : ''}
+              <button class="btn btn-sm btn-success mt-1" onclick="addToCartFromWishlist(${index})" style="font-size: 0.75rem; padding: 2px 8px;">
+                <i class="fas fa-cart-plus me-1"></i>Add to Cart
+              </button>
             </div>
             <button class="item-remove" onclick="removeFromWishlist(${index})" title="Remove">
               <i class="fas fa-trash"></i>
             </button>
           </div>
-        `).join('')}
+        `}).join('')}
       </div>
       <div class="dropdown-footer">
         <button class="btn btn-outline-primary btn-sm w-100" onclick="window.location.href='products.html'">Continue Shopping</button>
       </div>
     `;
+  }
+  
+  function addToCartFromWishlist(wishlistIndex) {
+    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    const item = wishlistItems[wishlistIndex];
+    
+    if (!item) return;
+    
+    const itemName = typeof item === 'object' ? item.name : item;
+    const itemPrice = typeof item === 'object' ? item.price : 0;
+    const itemId = typeof item === 'object' ? item.id : wishlistIndex;
+    const itemImage = typeof item === 'object' ? item.image : '/assets/img/products/aaa777.jpg';
+    
+    // Add to cart
+    let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const existingItem = cartItems.find(cartItem => cartItem.id === itemId);
+    
+    if (existingItem) {
+      existingItem.quantity++;
+      alert(`${itemName} quantity increased in cart!`);
+    } else {
+      cartItems.push({
+        id: itemId,
+        name: itemName,
+        price: itemPrice,
+        quantity: 1,
+        image: itemImage
+      });
+      alert(`${itemName} added to cart!`);
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+    updateBadgeCounts();
+    renderCartDropdown();
   }
 
   function removeFromCart(index) {
