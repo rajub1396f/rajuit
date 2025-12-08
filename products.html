@@ -1671,21 +1671,31 @@
 
             // Add to wishlist function
             function addToWishlist(productName, productId) {
-                if (checkLoginAndAct('add items to wishlist')) {
-                    // Check if item already exists (check both id and name for backwards compatibility)
-                    const existingItem = wishlistItems.find(item => 
-                        (typeof item === 'object' && item.id === productId) || 
-                        item === productName
-                    );
-                    
-                    if (existingItem) {
-                        alert(`${productName} is already in your wishlist!`);
-                    } else {
-                        wishlistItems.push({ id: productId, name: productName });
-                        alert(`${productName} added to wishlist!`);
-                        localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
-                        updateBadgeCounts();
-                    }
+                // Check login status - also check localStorage token as backup
+                const token = localStorage.getItem('token');
+                if (!isUserLoggedIn && !token) {
+                    alert('Please login to add items to wishlist');
+                    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                    loginModal.show();
+                    return;
+                }
+                
+                // Reload wishlist items from localStorage to ensure fresh data
+                wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+                
+                // Check if item already exists (check both id and name for backwards compatibility)
+                const existingItem = wishlistItems.find(item => 
+                    (typeof item === 'object' && item.id === productId) || 
+                    item === productName
+                );
+                
+                if (existingItem) {
+                    alert(`${productName} is already in your wishlist!`);
+                } else {
+                    wishlistItems.push({ id: productId, name: productName });
+                    alert(`${productName} added to wishlist!`);
+                    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+                    updateBadgeCounts();
                 }
             }
 
