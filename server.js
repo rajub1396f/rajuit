@@ -2947,13 +2947,13 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
         COUNT(o.id) as total_orders
       FROM users u
       LEFT JOIN orders o ON u.id = o.user_id
-      GROUP BY u.id
+      GROUP BY u.id, u.name, u.email, u.phone, u.address, u.is_verified, u.is_admin, u.created_at
       ORDER BY u.created_at DESC
     `;
     res.json(users);
   } catch (error) {
     console.error("❌ Error fetching users:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
