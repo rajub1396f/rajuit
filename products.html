@@ -905,6 +905,16 @@
                             <i class="fas fa-male me-2"></i>Male Collection
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-collection="baby" onclick="switchCollection('baby'); return false;">
+                            <i class="fas fa-baby me-2"></i>Baby Collection
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-collection="home" onclick="switchCollection('home'); return false;">
+                            <i class="fas fa-home me-2"></i>House Accessories
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -1169,6 +1179,73 @@
             </div>
         </section>
 
+        <!-- Baby Collection -->
+        <section class="products-section collection-section" id="babyCollection">
+            <div class="container" style="padding-bottom: 60px;">
+                <h2 class="text-center fw-bold mb-4"><i class="fas fa-baby me-3" style="color: #ff6b9d;"></i>Baby Collection</h2>
+                
+                <!-- Category Navigation for Baby -->
+                <div class="category-nav mb-4">
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <button class="btn btn-outline-primary category-btn active" onclick="filterCategory('baby', 'all')">
+                            <i class="fas fa-th me-2"></i>All Products
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('baby', 'clothing')">
+                            <i class="fas fa-baby-carriage me-2"></i>Baby Clothing
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('baby', 'toys')">
+                            <i class="fas fa-dice me-2"></i>Toys
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('baby', 'accessories')">
+                            <i class="fas fa-gift me-2"></i>Accessories
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('baby', 'care')">
+                            <i class="fas fa-heart me-2"></i>Baby Care
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row g-4" id="babyProductsGrid">
+                    <!-- Baby products will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- House Accessories Collection -->
+        <section class="products-section collection-section" id="homeCollection">
+            <div class="container" style="padding-bottom: 60px;">
+                <h2 class="text-center fw-bold mb-4"><i class="fas fa-home me-3" style="color: #4a90e2;"></i>House Accessories</h2>
+                
+                <!-- Category Navigation for House Accessories -->
+                <div class="category-nav mb-4">
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <button class="btn btn-outline-primary category-btn active" onclick="filterCategory('home', 'all')">
+                            <i class="fas fa-th me-2"></i>All Products
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('home', 'decor')">
+                            <i class="fas fa-paint-brush me-2"></i>Home Decor
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('home', 'kitchen')">
+                            <i class="fas fa-utensils me-2"></i>Kitchen
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('home', 'storage')">
+                            <i class="fas fa-box me-2"></i>Storage
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('home', 'lighting')">
+                            <i class="fas fa-lightbulb me-2"></i>Lighting
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('home', 'textile')">
+                            <i class="fas fa-couch me-2"></i>Textiles
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row g-4" id="homeProductsGrid">
+                    <!-- Home accessories will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
         <!-- Image Zoom Modal -->
         <div id="imageZoomModal" class="image-zoom-modal">
             <span class="image-zoom-close" onclick="closeImageZoom()">&times;</span>
@@ -1349,6 +1426,10 @@
                     document.getElementById('femaleCollection').classList.add('active');
                 } else if (collection === 'male') {
                     document.getElementById('maleCollection').classList.add('active');
+                } else if (collection === 'baby') {
+                    document.getElementById('babyCollection').classList.add('active');
+                } else if (collection === 'home') {
+                    document.getElementById('homeCollection').classList.add('active');
                 }
                 
                 // Update active nav link
@@ -1810,6 +1891,8 @@
             async function loadProducts() {
                 const femaleGrid = document.getElementById('femaleProductsGrid');
                 const maleGrid = document.getElementById('maleProductsGrid');
+                const babyGrid = document.getElementById('babyProductsGrid');
+                const homeGrid = document.getElementById('homeProductsGrid');
                 
                 // Show loading state
                 const loadingHtml = `
@@ -1822,6 +1905,8 @@
                 
                 if (femaleGrid) femaleGrid.innerHTML = loadingHtml;
                 if (maleGrid) maleGrid.innerHTML = loadingHtml;
+                if (babyGrid) babyGrid.innerHTML = loadingHtml;
+                if (homeGrid) homeGrid.innerHTML = loadingHtml;
                 
                 try {
                     // Load female products
@@ -1833,6 +1918,16 @@
                     const maleResponse = await fetch('https://rajuit.online/api/products?category=male');
                     const maleProducts = await maleResponse.json();
                     displayProducts('maleProductsGrid', maleProducts);
+                    
+                    // Load baby products
+                    const babyResponse = await fetch('https://rajuit.online/api/products?category=baby');
+                    const babyProducts = await babyResponse.json();
+                    displayProducts('babyProductsGrid', babyProducts);
+                    
+                    // Load home accessories
+                    const homeResponse = await fetch('https://rajuit.online/api/products?category=home');
+                    const homeProducts = await homeResponse.json();
+                    displayProducts('homeProductsGrid', homeProducts);
                 } catch (error) {
                     console.error('Error loading products:', error);
                     const errorHtml = `
@@ -1844,6 +1939,8 @@
                         </div>`;
                     if (femaleGrid) femaleGrid.innerHTML = errorHtml;
                     if (maleGrid) maleGrid.innerHTML = errorHtml;
+                    if (babyGrid) babyGrid.innerHTML = errorHtml;
+                    if (homeGrid) homeGrid.innerHTML = errorHtml;
                 }
             }
 

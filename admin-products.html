@@ -265,8 +265,10 @@
                                 <label class="form-label">Category *</label>
                                 <select class="form-select" id="productCategory" required>
                                     <option value="">Select Category</option>
-                                    <option value="female">Female Collection</option>
-                                    <option value="male">Male Collection</option>
+                                    <option value="female"><i class="fas fa-female"></i> Female Collection</option>
+                                    <option value="male"><i class="fas fa-male"></i> Male Collection</option>
+                                    <option value="baby"><i class="fas fa-baby"></i> Baby Collection</option>
+                                    <option value="home"><i class="fas fa-home"></i> House Accessories</option>
                                 </select>
                             </div>
                             
@@ -343,7 +345,9 @@
         // Subcategory mapping
         const subcategories = {
             'female': ['clothing', 'accessories', 'footwear', 'jewelry'],
-            'male': ['clothing', 'accessories', 'footwear']
+            'male': ['clothing', 'accessories', 'footwear'],
+            'baby': ['clothing', 'toys', 'accessories', 'care'],
+            'home': ['decor', 'kitchen', 'storage', 'lighting', 'textile']
         };
         
         // Update subcategories when category changes
