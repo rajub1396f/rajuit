@@ -2990,6 +2990,143 @@ app.get("/admin/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
+// Update user details
+app.put("/admin/users/:id", verifyAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { name, email, phone, address, is_verified, is_admin } = req.body;
+    
+    // Check if user exists
+    const userCheck = await sql`
+      SELECT id, is_admin FROM users WHERE id = ${userId}
+    `;
+    
+    if (!userCheck || userCheck.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Prevent removing admin status from yourself
+    const requestingUserId = req.user.id;
+    if (userId === requestingUserId && userCheck[0].is_admin && !is_admin) {
+      return res.status(403).json({ message: "Cannot remove your own admin status" });
+    }
+    
+    // Check if email is already taken by another user
+    if (email && email !== '') {
+      const emailCheck = await sql`
+        SELECT id FROM users WHERE email = ${email} AND id != ${userId}
+      `;
+      if (emailCheck && emailCheck.length > 0) {
+        return res.status(409).json({ message: "Email already in use by another user" });
+      }
+    }
+    
+    // Build update query
+    const updates = [];
+    const params = { id: userId };
+    
+    if (name !== undefined && name !== '') {
+      updates.push(`name = '${name.replace(/'/g, "''")}'`);
+    }
+    if (email !== undefined && email !== '') {
+      updates.push(`email = '${email.replace(/'/g, "''")}'`);
+    }
+    if (phone !== undefined) {
+      updates.push(`phone = '${phone ? phone.replace(/'/g, "''") : null}'`);
+    }
+    if (address !== undefined) {
+      updates.push(`address = '${address ? address.replace(/'/g, "''") : null}'`);
+    }
+    if (is_verified !== undefined) {
+      updates.push(`is_verified = ${is_verified === true || is_verified === 'true'}`);
+    }
+    if (is_admin !== undefined) {
+      updates.push(`is_admin = ${is_admin === true || is_admin === 'true'}`);
+    }
+    
+    if (updates.length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+    
+    const updateQuery = `UPDATE users SET ${updates.join(', ')} WHERE id = ${userId} RETURNING id, name, email, phone, address, is_verified, is_admin, created_at`;
+    const result = await sql.query(updateQuery);
+    
+    console.log(`✅ User ${userId} updated successfully`);
+    res.json({ message: "User updated successfully", user: result.rows[0] });
+  } catch (error) {
+    console.error("❌ Error updating user:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Delete user
+app.delete("/admin/users/:id", verifyAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    // Check if user exists
+    const userCheck = await sql`
+      SELECT id, is_admin, name, email FROM users WHERE id = ${userId}
+    `;
+    
+    if (!userCheck || userCheck.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const user = userCheck[0];
+    
+    // Prevent deleting yourself
+    const requestingUserId = req.user.id;
+    if (userId === requestingUserId) {
+      return res.status(403).json({ message: "Cannot delete your own account" });
+    }
+    
+    // Optional: Prevent deleting admin users (uncomment if needed)
+    // if (user.is_admin) {
+    //   return res.status(403).json({ message: "Cannot delete admin users" });
+    // }
+    
+    // Check if user has orders
+    const ordersCheck = await sql`
+      SELECT COUNT(*) as count FROM orders WHERE user_id = ${userId}
+    `;
+    const orderCount = parseInt(ordersCheck[0].count);
+    
+    // Delete user (orders will remain but user_id will be null or cascade delete based on your schema)
+    await sql`DELETE FROM users WHERE id = ${userId}`;
+    
+    console.log(`✅ User ${userId} (${user.email}) deleted successfully. Had ${orderCount} orders.`);
+    res.json({ 
+      message: "User deleted successfully", 
+      deletedUser: { id: userId, name: user.name, email: user.email },
+      ordersCount: orderCount
+    });
+  } catch (error) {
+    console.error("❌ Error deleting user:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Get user statistics
+app.get("/admin/users/stats/summary", verifyAdmin, async (req, res) => {
+  try {
+    const stats = await sql`
+      SELECT 
+        COUNT(*) as total_users,
+        COUNT(CASE WHEN is_verified = true THEN 1 END) as verified_users,
+        COUNT(CASE WHEN is_admin = true THEN 1 END) as admin_users,
+        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN 1 END) as new_users_30d,
+        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as new_users_7d
+      FROM users
+    `;
+    
+    res.json(stats[0]);
+  } catch (error) {
+    console.error("❌ Error fetching user statistics:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`);
