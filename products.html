@@ -1868,8 +1868,20 @@
             });
 
             function filterCategory(collection, category) {
-                const gridId = collection === 'female' ? 'femaleProductsGrid' : 'maleProductsGrid';
+                // Map collection to grid ID
+                const gridMapping = {
+                    'female': 'femaleProductsGrid',
+                    'male': 'maleProductsGrid',
+                    'baby': 'babyProductsGrid',
+                    'home': 'homeProductsGrid'
+                };
+                
+                const gridId = gridMapping[collection];
+                if (!gridId) return;
+                
                 const grid = document.getElementById(gridId);
+                if (!grid) return;
+                
                 const items = grid.querySelectorAll('.product-item');
                 const buttons = grid.closest('.container').querySelectorAll('.category-btn');
                 
