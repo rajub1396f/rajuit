@@ -2957,6 +2957,26 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
   }
 });
 
+// Get user statistics (MUST be before /:id route)
+app.get("/admin/users/stats/summary", verifyAdmin, async (req, res) => {
+  try {
+    const stats = await sql`
+      SELECT 
+        COUNT(*) as total_users,
+        COUNT(CASE WHEN is_verified = true THEN 1 END) as verified_users,
+        COUNT(CASE WHEN is_admin = true THEN 1 END) as admin_users,
+        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN 1 END) as new_users_30d,
+        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as new_users_7d
+      FROM users
+    `;
+    
+    res.json(stats[0]);
+  } catch (error) {
+    console.error("❌ Error fetching user statistics:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Get user details with order history
 app.get("/admin/users/:id", verifyAdmin, async (req, res) => {
   try {
@@ -3104,26 +3124,6 @@ app.delete("/admin/users/:id", verifyAdmin, async (req, res) => {
   } catch (error) {
     console.error("❌ Error deleting user:", error);
     res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
-
-// Get user statistics
-app.get("/admin/users/stats/summary", verifyAdmin, async (req, res) => {
-  try {
-    const stats = await sql`
-      SELECT 
-        COUNT(*) as total_users,
-        COUNT(CASE WHEN is_verified = true THEN 1 END) as verified_users,
-        COUNT(CASE WHEN is_admin = true THEN 1 END) as admin_users,
-        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN 1 END) as new_users_30d,
-        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as new_users_7d
-      FROM users
-    `;
-    
-    res.json(stats[0]);
-  } catch (error) {
-    console.error("❌ Error fetching user statistics:", error);
-    res.status(500).json({ message: "Server error" });
   }
 });
 
