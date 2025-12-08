@@ -448,7 +448,10 @@
                     }
                 });
                 
-                if (!response.ok) throw new Error('Failed to load stats');
+                if (!response.ok) {
+                    console.error('Stats API error:', response.status, response.statusText);
+                    throw new Error('Failed to load stats');
+                }
                 
                 const stats = await response.json();
                 
@@ -458,6 +461,11 @@
                 document.getElementById('newUsers').textContent = stats.new_users_30d || 0;
             } catch (error) {
                 console.error('Error loading stats:', error);
+                // Display zeros if stats fail
+                document.getElementById('totalUsers').textContent = '-';
+                document.getElementById('verifiedUsers').textContent = '-';
+                document.getElementById('adminUsers').textContent = '-';
+                document.getElementById('newUsers').textContent = '-';
             }
         }
         
@@ -476,7 +484,11 @@
                     return;
                 }
                 
-                if (!response.ok) throw new Error('Failed to load users');
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Server error:', errorData);
+                    throw new Error(errorData.message || `Server returned ${response.status}`);
+                }
                 
                 const users = await response.json();
                 allUsers = users; // Store for filtering
@@ -486,7 +498,11 @@
                 container.innerHTML = `
                     <div class="alert alert-danger m-3">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        Failed to load users. Please try again.
+                        <strong>Failed to load users.</strong><br>
+                        <small>${error.message || 'Please check if the server is running and try again.'}</small><br>
+                        <button class="btn btn-sm btn-primary mt-2" onclick="loadUsers()">
+                            <i class="fas fa-sync-alt me-1"></i>Retry
+                        </button>
                     </div>
                 `;
             }
