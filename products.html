@@ -1527,7 +1527,7 @@
                     <div class="dropdown-items">
                         ${cartItems.map((item, index) => `
                             <div class="dropdown-item-card">
-                                <img src="/assets/img/products/aaa777.jpg" alt="${item.name}" class="item-image">
+                                <img src="${item.image || '/assets/img/products/aaa777.jpg'}" alt="${item.name}" class="item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
                                 <div class="item-details">
                                     <div class="item-name">${item.name}</div>
                                     <div class="item-price">৳${item.price}</div>
@@ -1645,7 +1645,7 @@
             });
 
             // Add to cart function
-            function addToCart(productName, price, productId) {
+            function addToCart(productName, price, productId, imageUrl) {
                 if (checkLoginAndAct('add items to cart')) {
                     // Check if item already exists
                     const existingItem = cartItems.find(item => item.id === productId || item.name === productName);
@@ -1658,7 +1658,8 @@
                             id: productId,
                             name: productName,
                             price: price,
-                            quantity: 1
+                            quantity: 1,
+                            image: imageUrl || '/assets/img/products/aaa777.jpg'
                         });
                         alert(`${productName} added to cart!`);
                     }
@@ -2007,7 +2008,7 @@
                                 </div>
                                 <div class="product-actions">
                                     <button class="btn btn-add-cart" 
-                                            onclick="addToCart('${productName}', ${product.price}, ${product.id})"
+                                            onclick="addToCart('${productName}', ${product.price}, ${product.id}, '${(product.image_url || '/assets/img/products/aaa777.jpg').replace(/'/g, "\'")}')"
                                             ${!isInStock ? 'disabled' : ''}>
                                         <i class="fas fa-shopping-cart me-2"></i>${isInStock ? 'Add to Cart' : 'Sold Out'}
                                     </button>
