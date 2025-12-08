@@ -2621,27 +2621,18 @@ app.put("/admin/orders/:id", verifyAdmin, async (req, res) => {
 
     const oldOrder = orderResult[0];
 
-    // Build update object
-    let updateData = {};
-
-    if (status !== undefined) {
-      updateData.status = status;
-    }
-    if (shipping_address !== undefined) {
-      updateData.shipping_address = shipping_address;
-    }
-    if (total_amount !== undefined) {
-      updateData.total_amount = total_amount;
-    }
-
-    if (Object.keys(updateData).length === 0) {
+    // Check if there's anything to update
+    if (status === undefined && shipping_address === undefined && total_amount === undefined) {
       return res.status(400).json({ message: "No fields to update" });
     }
 
-    // Perform update
+    // Perform update with explicit fields
     await sql`
       UPDATE orders 
-      SET ${sql(updateData)}
+      SET 
+        status = ${status !== undefined ? status : oldOrder.status},
+        shipping_address = ${shipping_address !== undefined ? shipping_address : oldOrder.shipping_address},
+        total_amount = ${total_amount !== undefined ? total_amount : oldOrder.total_amount}
       WHERE id = ${orderId}
     `;
 
@@ -2849,26 +2840,20 @@ app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
     
-    // Build update object with only provided fields
-    const updateData = {};
-    if (name !== undefined) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
-    if (price !== undefined) updateData.price = price;
-    if (category !== undefined) updateData.category = category;
-    if (subcategory !== undefined) updateData.subcategory = subcategory;
-    if (image_url !== undefined) updateData.image_url = image_url;
-    if (stock_quantity !== undefined) updateData.stock_quantity = stock_quantity;
-    if (is_active !== undefined) updateData.is_active = is_active;
-    if (instagram_video_url !== undefined) updateData.instagram_video_url = instagram_video_url || null;
-    updateData.updated_at = new Date();
-    
-    if (Object.keys(updateData).length === 1) { // Only updated_at
-      return res.status(400).json({ message: "No fields to update" });
-    }
-    
+    // Update product directly with all fields
     const result = await sql`
       UPDATE products 
-      SET ${sql(updateData)}
+      SET 
+        name = ${name || existingProduct[0].name},
+        description = ${description !== undefined ? description : existingProduct[0].description},
+        price = ${price !== undefined ? price : existingProduct[0].price},
+        category = ${category || existingProduct[0].category},
+        subcategory = ${subcategory !== undefined ? subcategory : existingProduct[0].subcategory},
+        image_url = ${image_url !== undefined ? image_url : existingProduct[0].image_url},
+        stock_quantity = ${stock_quantity !== undefined ? stock_quantity : existingProduct[0].stock_quantity},
+        is_active = ${is_active !== undefined ? is_active : existingProduct[0].is_active},
+        instagram_video_url = ${instagram_video_url !== undefined ? (instagram_video_url || null) : existingProduct[0].instagram_video_url},
+        updated_at = NOW()
       WHERE id = ${productId}
       RETURNING *
     `;
