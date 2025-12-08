@@ -495,52 +495,65 @@
         </style>
         
         <!-- Products Grid-->
-        <section class="page-section bg-light" id="products">
+        <section class="page-section" id="products" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 100px 0;">
             <div class="container">
-                <div class="text-center">
-                    <h2 class="section-heading text-uppercase">Products</h2>
-                    <h3 class="section-subheading text-muted">Discover our latest trendy outfits for ladies and gents</h3>
+                <div class="text-center mb-5">
+                    <h2 class="section-heading text-uppercase" style="font-size: 3rem; font-weight: 800; color: #2c3e50; position: relative; display: inline-block;">
+                        <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Products</span>
+                        <div style="position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 80px; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 2px;"></div>
+                    </h2>
+                    <h3 class="section-subheading" style="color: #5a6c7d; font-size: 1.2rem; margin-top: 25px; font-weight: 500;">Discover our latest trendy outfits for ladies and gents</h3>
                 </div>
-                <div class="container py-5">
-                <h2 class="text-center fw-bold mb-4"></h2>
-
-                <div class="row g-4">
-
-                  <div class="col-md-6">
+                <div class="container py-4">
+                <div class="row g-4 justify-content-center">
+                  <div class="col-md-6 col-lg-5">
                     <a href="products.html?collection=female" class="text-decoration-none">
-                      <div class="card border-0 shadow-lg">
-                        <img src="/assets/img/products/aaa777.jpg" class="card-img-top" height="300" style="object-fit:cover;">
-                        <div class="card-body text-center">
-                          <h4 class="fw-bold">Female Collection</h4>
-                          <p class="text-muted">Explore trendy outfits</p>
+                      <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;" onmouseover="this.style.transform='translateY(-15px) scale(1.02)'; this.style.boxShadow='0 20px 40px rgba(102,126,234,0.3)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow=''">
+                        <div style="position: relative; overflow: hidden;">
+                          <img src="/assets/img/products/aaa777.jpg" class="card-img-top" height="350" style="object-fit:cover; transition: transform 0.4s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.6) 100%);"></div>
+                          <div style="position: absolute; top: 20px; left: 20px; background: #ff6b9d; color: white; padding: 8px 20px; border-radius: 25px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(255,107,157,0.4);"><i class="fas fa-female me-2"></i>TRENDING</div>
+                        </div>
+                        <div class="card-body text-center" style="padding: 30px;">
+                          <h4 class="fw-bold" style="font-size: 1.8rem; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Female Collection</h4>
+                          <p class="text-muted" style="font-size: 1.05rem; margin: 10px 0 20px;">Explore trendy outfits</p>
+                          <div class="btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 12px 35px; border-radius: 30px; font-weight: 600; border: none;">Shop Now <i class="fas fa-arrow-right ms-2"></i></div>
                         </div>
                       </div>
                     </a>
                   </div>
 
-                  <div class="col-md-6">
+                  <div class="col-md-6 col-lg-5">
                     <a href="products.html?collection=male" class="text-decoration-none">
-                      <div class="card border-0 shadow-lg">
-                        <img src="/assets/img/products/aaa111.jpg" class="card-img-top" height="300" style="object-fit:cover;">
-                        <div class="card-body text-center">
-                          <h4 class="fw-bold">Male Collection</h4>
-                          <p class="text-muted">Browse latest styles</p>
+                      <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;" onmouseover="this.style.transform='translateY(-15px) scale(1.02)'; this.style.boxShadow='0 20px 40px rgba(102,126,234,0.3)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow=''">
+                        <div style="position: relative; overflow: hidden;">
+                          <img src="/assets/img/products/aaa111.jpg" class="card-img-top" height="350" style="object-fit:cover; transition: transform 0.4s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.6) 100%);"></div>
+                          <div style="position: absolute; top: 20px; left: 20px; background: #4facfe; color: white; padding: 8px 20px; border-radius: 25px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(79,172,254,0.4);"><i class="fas fa-male me-2"></i>POPULAR</div>
+                        </div>
+                        <div class="card-body text-center" style="padding: 30px;">
+                          <h4 class="fw-bold" style="font-size: 1.8rem; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Male Collection</h4>
+                          <p class="text-muted" style="font-size: 1.05rem; margin: 10px 0 20px;">Browse latest styles</p>
+                          <div class="btn" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 12px 35px; border-radius: 30px; font-weight: 600; border: none;">Shop Now <i class="fas fa-arrow-right ms-2"></i></div>
                         </div>
                       </div>
                     </a>
                   </div>
-
                 </div>
               </div>
 
         </section>
         
         <!-- About-->
-        <section class="page-section" id="about">
-            <div class="container">
-                <div class="text-center">
-                    <h2 class="section-heading text-uppercase">About Us</h2>
-                    <h3 class="section-subheading text-muted">RajuIt is the online shopping website for ladies & gents</h3>
+        <section class="page-section" id="about" style="background: #ffffff; padding: 100px 0; position: relative;">
+            <div style="position: absolute; top: 0; left: 0; right: 0; height: 200px; background: linear-gradient(180deg, #c3cfe2 0%, #ffffff 100%);"></div>
+            <div class="container" style="position: relative; z-index: 1;">
+                <div class="text-center mb-5">
+                    <h2 class="section-heading text-uppercase" style="font-size: 3rem; font-weight: 800; color: #2c3e50; position: relative; display: inline-block;">
+                        <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">About Us</span>
+                        <div style="position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 80px; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 2px;"></div>
+                    </h2>
+                    <h3 class="section-subheading" style="color: #5a6c7d; font-size: 1.2rem; margin-top: 25px; font-weight: 500;">RajuIt is the online shopping website for ladies & gents</h3>
                 </div>
                 <ul class="timeline">
                     <li>
@@ -599,40 +612,42 @@
         </section>
         
         <!-- Contact-->
-        <section class="page-section" id="contact">
-            <div class="container">
-                <div class="text-center">
-                    <h2 class="section-heading text-uppercase">Contact Us</h2>
-                    <h3 class="section-subheading text-muted">For inquiries about our services, pricing, or partnerships, please fill out the form below. Our team will contact you within an hour</h3>
+        <section class="page-section" id="contact" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 100px 0; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; right: -100px; width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%; filter: blur(80px);"></div>
+            <div style="position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%; filter: blur(80px);"></div>
+            <div class="container" style="position: relative; z-index: 1;">
+                <div class="text-center mb-5">
+                    <h2 class="section-heading text-uppercase" style="color: white; font-size: 3rem; font-weight: 800; text-shadow: 0 4px 20px rgba(0,0,0,0.2);">Contact Us</h2>
+                    <h3 class="section-subheading" style="color: rgba(255,255,255,0.9); font-size: 1.2rem; margin-top: 20px; font-weight: 400; max-width: 700px; margin-left: auto; margin-right: auto;">For inquiries about our services, pricing, or partnerships, please fill out the form below. Our team will contact you within an hour</h3>
                 </div>
                 <!-- Contact Form -->
-                <form id="contactForm">
+                <form id="contactForm" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 50px; border-radius: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
                     <div class="row align-items-stretch mb-5">
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <!-- Name input-->
-                                <label for="contactName" class="form-label" style="color: white;">Your Name <span class="text-danger">*</span></label>
-                                <input class="form-control" id="contactName" name="name" type="text" placeholder="Enter your full name" required />
+                                <label for="contactName" class="form-label" style="color: #2c3e50; font-weight: 600; font-size: 0.95rem;">Your Name <span class="text-danger">*</span></label>
+                                <input class="form-control" id="contactName" name="name" type="text" placeholder="Enter your full name" required style="padding: 14px 20px; border-radius: 12px; border: 2px solid #e0e6ed; font-size: 1rem;" />
                                 <div class="invalid-feedback d-block" id="nameError"></div>
                             </div>
                             <div class="form-group mb-3">
                                 <!-- Email address input-->
-                                <label for="contactEmail" class="form-label" style="color: white;">Your Email <span class="text-danger">*</span></label>
-                                <input class="form-control" id="contactEmail" name="email" type="email" placeholder="Enter your email address" required />
+                                <label for="contactEmail" class="form-label" style="color: #2c3e50; font-weight: 600; font-size: 0.95rem;">Your Email <span class="text-danger">*</span></label>
+                                <input class="form-control" id="contactEmail" name="email" type="email" placeholder="Enter your email address" required style="padding: 14px 20px; border-radius: 12px; border: 2px solid #e0e6ed; font-size: 1rem;" />
                                 <div class="invalid-feedback d-block" id="emailError"></div>
                             </div>
                             <div class="form-group mb-md-0">
                                 <!-- Phone number input-->
-                                <label for="contactPhone" class="form-label" style="color: white;">Your Phone <span class="text-danger">*</span></label>
-                                <input class="form-control" id="contactPhone" name="phone" type="tel" placeholder="Enter your phone number" required />
+                                <label for="contactPhone" class="form-label" style="color: #2c3e50; font-weight: 600; font-size: 0.95rem;">Your Phone <span class="text-danger">*</span></label>
+                                <input class="form-control" id="contactPhone" name="phone" type="tel" placeholder="Enter your phone number" required style="padding: 14px 20px; border-radius: 12px; border: 2px solid #e0e6ed; font-size: 1rem;" />
                                 <div class="invalid-feedback d-block" id="phoneError"></div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group form-group-textarea mb-md-0">
                                 <!-- Message input-->
-                                <label for="contactMessage" class="form-label" style="color: white;">Your Message <span class="text-danger">*</span></label>
-                                <textarea class="form-control" id="contactMessage" name="message" placeholder="Enter your message here..." rows="5" required></textarea>
+                                <label for="contactMessage" class="form-label" style="color: #2c3e50; font-weight: 600; font-size: 0.95rem;">Your Message <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="contactMessage" name="message" placeholder="Enter your message here..." rows="5" required style="padding: 14px 20px; border-radius: 12px; border: 2px solid #e0e6ed; font-size: 1rem;"></textarea>
                                 <div class="invalid-feedback d-block" id="messageError"></div>
                             </div>
                         </div>
@@ -652,8 +667,8 @@
                     
                     <!-- Submit Button-->
                     <div class="text-center">
-                        <button class="btn btn-primary btn-xl text-uppercase" id="submitButton" type="submit">
-                            <span id="buttonText">Send Message</span>
+                        <button class="btn btn-xl text-uppercase" id="submitButton" type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 18px 60px; border-radius: 50px; border: none; font-weight: 700; font-size: 1.1rem; box-shadow: 0 10px 30px rgba(102,126,234,0.4); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 40px rgba(102,126,234,0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(102,126,234,0.4)'">
+                            <span id="buttonText"><i class="fas fa-paper-plane me-2"></i>Send Message</span>
                             <span id="buttonSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
                         </button>
                     </div>
@@ -662,21 +677,33 @@
         </section>
         
         <!-- Footer-->
-        <footer class="footer py-4">
+        <footer class="footer" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 60px 0 30px; color: white;">
             <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-4 text-lg-start">Copyright &copy; Raju It 2025</div>
-                    <div class="col-lg-4 my-3 my-lg-0">
-                        <a class="btn btn-dark btn-social mx-2" href="https://www.instagram.com/rajuit1396/?igsh=MWZlOHk4bWxrY3hwMg%3D%3D&fbclid=IwY2xjawOXwtFleHRuA2FlbQIxMABicmlkETFXaXRyMnR5aWF3eHB2SVl4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmKxgCF0yvOPwVkc5ovEt0JNh-K_DZ4egj27cYWVsba8m6bRIbTOszGrRkTA_aem_wyHdzWPSdl7DxeJ2So-lUw&brid=JbRWKsUzQoW71PD4MGNTnw"  aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a class="btn btn-dark btn-social mx-2" href="https://www.facebook.com/profile.php?id=61584622701133" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <div class="row align-items-center mb-4">
+                    <div class="col-lg-4 text-lg-start mb-3 mb-lg-0">
+                        <h5 style="font-weight: 700; margin-bottom: 15px;"><i class="fas fa-store me-2"></i>Raju IT</h5>
+                        <p style="color: rgba(255,255,255,0.8); font-size: 0.95rem; margin: 0;">Copyright &copy; Raju It 2025</p>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-top: 5px;">Premium Fashion Store</p>
+                    </div>
+                    <div class="col-lg-4 my-3 my-lg-0 text-center">
+                        <h6 style="color: rgba(255,255,255,0.9); margin-bottom: 20px; font-weight: 600;">Follow Us</h6>
+                        <a class="btn btn-social mx-2" href="https://www.instagram.com/rajuit1396/?igsh=MWZlOHk4bWxrY3hwMg%3D%3D&fbclid=IwY2xjawOXwtFleHRuA2FlbQIxMABicmlkETFXaXRyMnR5aWF3eHB2SVl4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmKxgCF0yvOPwVkc5ovEt0JNh-K_DZ4egj27cYWVsba8m6bRIbTOszGrRkTA_aem_wyHdzWPSdl7DxeJ2So-lUw&brid=JbRWKsUzQoW71PD4MGNTnw" aria-label="Instagram" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; width: 45px; height: 45px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s ease; border: none; box-shadow: 0 4px 15px rgba(240,147,251,0.4);" onmouseover="this.style.transform='translateY(-5px) scale(1.1)'; this.style.boxShadow='0 8px 25px rgba(240,147,251,0.6)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(240,147,251,0.4)'"><i class="fab fa-instagram"></i></a>
+                        <a class="btn btn-social mx-2" href="https://www.facebook.com/profile.php?id=61584622701133" aria-label="Facebook" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; width: 45px; height: 45px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s ease; border: none; box-shadow: 0 4px 15px rgba(79,172,254,0.4);" onmouseover="this.style.transform='translateY(-5px) scale(1.1)'; this.style.boxShadow='0 8px 25px rgba(79,172,254,0.6)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(79,172,254,0.4)'"><i class="fab fa-facebook-f"></i></a>
                     </div>
                     <div class="col-lg-4 text-lg-end">
-                        <a class="link-dark text-decoration-none me-3 text-white" href="privacy&policy.html">Privacy Policy</a>
-                        <a class="link-dark text-decoration-none text-white" href="terms&conditions.html">Terms & Conditions</a>
-                        <a class="link-dark text-decoration-none text-white" href="return&refund.html">Return & Refund Policy</a>
-                        <a class="link-dark text-decoration-none text-white" href="shippingpolicy.html">Shipping Policy</a>
-                        <a class="link-dark text-decoration-none text-white" href="disclaimer.html">Disclaimer</a>
+                        <h6 style="color: rgba(255,255,255,0.9); margin-bottom: 15px; font-weight: 600;">Quick Links</h6>
+                        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                            <a class="text-decoration-none" href="privacy&policy.html" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: all 0.3s ease;" onmouseover="this.style.color='#ffc800'; this.style.paddingLeft='10px'" onmouseout="this.style.color='rgba(255,255,255,0.8)'; this.style.paddingLeft='0'"><i class="fas fa-chevron-right me-2" style="font-size: 0.7rem;"></i>Privacy Policy</a>
+                            <a class="text-decoration-none" href="terms&conditions.html" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: all 0.3s ease;" onmouseover="this.style.color='#ffc800'; this.style.paddingLeft='10px'" onmouseout="this.style.color='rgba(255,255,255,0.8)'; this.style.paddingLeft='0'"><i class="fas fa-chevron-right me-2" style="font-size: 0.7rem;"></i>Terms & Conditions</a>
+                            <a class="text-decoration-none" href="return&refund.html" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: all 0.3s ease;" onmouseover="this.style.color='#ffc800'; this.style.paddingLeft='10px'" onmouseout="this.style.color='rgba(255,255,255,0.8)'; this.style.paddingLeft='0'"><i class="fas fa-chevron-right me-2" style="font-size: 0.7rem;"></i>Return & Refund Policy</a>
+                            <a class="text-decoration-none" href="shippingpolicy.html" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: all 0.3s ease;" onmouseover="this.style.color='#ffc800'; this.style.paddingLeft='10px'" onmouseout="this.style.color='rgba(255,255,255,0.8)'; this.style.paddingLeft='0'"><i class="fas fa-chevron-right me-2" style="font-size: 0.7rem;"></i>Shipping Policy</a>
+                            <a class="text-decoration-none" href="disclaimer.html" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: all 0.3s ease;" onmouseover="this.style.color='#ffc800'; this.style.paddingLeft='10px'" onmouseout="this.style.color='rgba(255,255,255,0.8)'; this.style.paddingLeft='0'"><i class="fas fa-chevron-right me-2" style="font-size: 0.7rem;"></i>Disclaimer</a>
+                        </div>
                     </div>
+                </div>
+                <hr style="border-color: rgba(255,255,255,0.2); margin: 30px 0 20px;">
+                <div class="text-center" style="color: rgba(255,255,255,0.7); font-size: 0.85rem;">
+                    <p style="margin: 0;">Made with <i class="fas fa-heart" style="color: #ff6b9d;"></i> by Raju IT Team | All Rights Reserved</p>
                 </div>
             </div>
         </footer>
