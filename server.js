@@ -2934,25 +2934,44 @@ app.get("/admin/make-admin", async (req, res) => {
 // Get all users for admin
 app.get("/admin/users", verifyAdmin, async (req, res) => {
   try {
+    // Get all users
     const users = await sql`
       SELECT 
-        u.id,
-        u.name,
-        u.email,
-        u.phone,
-        u.address,
-        u.is_verified,
-        u.is_admin,
-        u.created_at,
-        COUNT(o.id) as total_orders
-      FROM users u
-      LEFT JOIN orders o ON u.id = o.user_id
-      GROUP BY u.id, u.name, u.email, u.phone, u.address, u.is_verified, u.is_admin, u.created_at
-      ORDER BY u.created_at DESC
+        id,
+        name,
+        email,
+        phone,
+        address,
+        is_verified,
+        is_admin,
+        created_at
+      FROM users
+      ORDER BY created_at DESC
     `;
-    res.json(users);
+    
+    // Get order counts for each user
+    const orderCounts = await sql`
+      SELECT user_id, COUNT(*) as total_orders
+      FROM orders
+      GROUP BY user_id
+    `;
+    
+    // Create a map of user_id to order count
+    const orderCountMap = {};
+    orderCounts.forEach(row => {
+      orderCountMap[row.user_id] = parseInt(row.total_orders);
+    });
+    
+    // Add order count to each user
+    const usersWithOrders = users.map(user => ({
+      ...user,
+      total_orders: orderCountMap[user.id] || 0
+    }));
+    
+    res.json(usersWithOrders);
   } catch (error) {
     console.error("❌ Error fetching users:", error);
+    console.error("Error details:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
