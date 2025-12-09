@@ -2934,6 +2934,8 @@ app.get("/admin/make-admin", async (req, res) => {
 // Get all users for admin
 app.get("/admin/users", verifyAdmin, async (req, res) => {
   try {
+    console.log("📊 Fetching users list...");
+    
     // Get all users
     const users = await sql`
       SELECT 
@@ -2949,36 +2951,61 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
       ORDER BY created_at DESC
     `;
     
-    // Get order counts for each user
-    const orderCounts = await sql`
-      SELECT user_id, COUNT(*) as total_orders
-      FROM orders
-      GROUP BY user_id
-    `;
+    console.log(`✅ Found ${users.length} users`);
+    
+    // Get order counts for each user (with error handling)
+    let orderCounts = [];
+    try {
+      orderCounts = await sql`
+        SELECT user_id, COUNT(*) as total_orders
+        FROM orders
+        GROUP BY user_id
+      `;
+      console.log(`✅ Found order counts for ${orderCounts.length} users`);
+    } catch (orderError) {
+      console.warn("⚠️ Could not fetch order counts:", orderError.message);
+      // Continue without order counts
+    }
     
     // Create a map of user_id to order count
     const orderCountMap = {};
     orderCounts.forEach(row => {
-      orderCountMap[row.user_id] = parseInt(row.total_orders);
+      orderCountMap[row.user_id] = parseInt(row.total_orders) || 0;
     });
     
     // Add order count to each user
     const usersWithOrders = users.map(user => ({
-      ...user,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+      is_verified: user.is_verified,
+      is_admin: user.is_admin,
+      created_at: user.created_at,
       total_orders: orderCountMap[user.id] || 0
     }));
     
+    console.log("✅ Sending users data to client");
     res.json(usersWithOrders);
   } catch (error) {
     console.error("❌ Error fetching users:", error);
-    console.error("Error details:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ 
+      message: "Server error", 
+      error: error.message,
+      details: error.toString()
+    });
   }
 });
 
 // Get user statistics (MUST be before /:id route)
 app.get("/admin/users/stats/summary", verifyAdmin, async (req, res) => {
   try {
+    console.log("📊 Fetching user statistics...");
+    
     const stats = await sql`
       SELECT 
         COUNT(*) as total_users,
@@ -2989,10 +3016,15 @@ app.get("/admin/users/stats/summary", verifyAdmin, async (req, res) => {
       FROM users
     `;
     
+    console.log("✅ Stats fetched successfully:", stats[0]);
     res.json(stats[0]);
   } catch (error) {
     console.error("❌ Error fetching user statistics:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error details:", error.message);
+    res.status(500).json({ 
+      message: "Server error",
+      error: error.message 
+    });
   }
 });
 
