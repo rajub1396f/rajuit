@@ -540,11 +540,8 @@
             `;
             
             users.forEach(user => {
-                const regDate = new Date(user.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
+                // Since created_at doesn't exist in database, show user ID instead
+                const regDate = `ID: ${user.id}`;
                 
                 html += `
                     <tr>
@@ -677,7 +674,7 @@
                                 ${user.is_verified ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-warning">Unverified</span>'}
                                 ${user.is_admin ? '<span class="badge bg-primary ms-1">Admin</span>' : ''}
                             </p>
-                            <p><strong>Registered:</strong> ${new Date(user.created_at).toLocaleString()}</p>
+                            <p><strong>User ID:</strong> ${user.id}</p>
                             <p><strong>Total Orders:</strong> ${user.orders?.length || 0}</p>
                         </div>
                     </div>

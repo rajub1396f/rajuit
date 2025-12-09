@@ -2945,10 +2945,9 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
         phone,
         address,
         is_verified,
-        is_admin,
-        created_at
+        is_admin
       FROM users
-      ORDER BY created_at DESC
+      ORDER BY id DESC
     `;
     
     console.log(`✅ Found ${users.length} users`);
@@ -2982,7 +2981,6 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
       address: user.address,
       is_verified: user.is_verified,
       is_admin: user.is_admin,
-      created_at: user.created_at,
       total_orders: orderCountMap[user.id] || 0
     }));
     
@@ -3010,14 +3008,19 @@ app.get("/admin/users/stats/summary", verifyAdmin, async (req, res) => {
       SELECT 
         COUNT(*) as total_users,
         COUNT(CASE WHEN is_verified = true THEN 1 END) as verified_users,
-        COUNT(CASE WHEN is_admin = true THEN 1 END) as admin_users,
-        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN 1 END) as new_users_30d,
-        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as new_users_7d
+        COUNT(CASE WHEN is_admin = true THEN 1 END) as admin_users
       FROM users
     `;
     
-    console.log("✅ Stats fetched successfully:", stats[0]);
-    res.json(stats[0]);
+    // Add default values for date-based stats (since created_at doesn't exist)
+    const statsWithDefaults = {
+      ...stats[0],
+      new_users_30d: 0,
+      new_users_7d: 0
+    };
+    
+    console.log("✅ Stats fetched successfully:", statsWithDefaults);
+    res.json(statsWithDefaults);
   } catch (error) {
     console.error("❌ Error fetching user statistics:", error);
     console.error("Error details:", error.message);
@@ -3034,7 +3037,7 @@ app.get("/admin/users/:id", verifyAdmin, async (req, res) => {
     const userId = parseInt(req.params.id);
     
     const userResult = await sql`
-      SELECT id, name, email, phone, address, is_verified, is_admin, created_at
+      SELECT id, name, email, phone, address, is_verified, is_admin
       FROM users 
       WHERE id = ${userId}
     `;
