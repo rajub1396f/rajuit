@@ -1422,16 +1422,37 @@ document.getElementById("loginForm").addEventListener("submit", async function (
       // ✅ Store token immediately
       localStorage.setItem("token", data.token);
       
+      // ✅ Check for pending cart item
+      const pendingItem = localStorage.getItem('pendingCartItem');
+      
       // ✅ Close modal and wait longer
       const modalEl = document.getElementById('loginModal');
       const modal = bootstrap.Modal.getInstance(modalEl);
       if (modal) modal.hide();
       
-      // ✅ Longer delay to ensure modal closes
-      setTimeout(() => {
-        console.log("🔄 Redirecting to dashboard...");
-        window.location.href = "/dashboard";
-      }, 600); // Increased from 300ms to 600ms
+      // ✅ Handle pending cart item or redirect
+      if (pendingItem) {
+        // Add the pending item to cart
+        const item = JSON.parse(pendingItem);
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart.push(item);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        localStorage.removeItem('pendingCartItem');
+        updateBadgeCounts();
+        
+        // Show success message and stay on homepage
+        setTimeout(() => {
+          alert(`✅ ${item.name} has been added to your cart!`);
+          // Refresh the page to update UI
+          window.location.reload();
+        }, 300);
+      } else {
+        // Normal redirect to dashboard
+        setTimeout(() => {
+          console.log("🔄 Redirecting to dashboard...");
+          window.location.href = "/dashboard";
+        }, 600);
+      }
     } else {
       // Check if verification is required
       if (data?.requiresVerification) {
@@ -1655,6 +1676,25 @@ function checkWishlistStatus() {
 }
 
 function addToCartFromCarousel(productId, productName, price, imageUrl) {
+  // Check if user is logged in
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    // Store product details to add after login
+    localStorage.setItem('pendingCartItem', JSON.stringify({
+      id: productId,
+      name: productName,
+      price: price,
+      image: imageUrl
+    }));
+    
+    // Show alert and open login modal
+    alert('Please login first to add items to cart');
+    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+    loginModal.show();
+    return;
+  }
+  
   const cart = JSON.parse(localStorage.getItem('cart')) || [];
   
   // Check if product already exists
