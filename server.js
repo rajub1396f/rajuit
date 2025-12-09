@@ -38,7 +38,7 @@ app.use(session({
 }));
 
 const { neon } = require("@neondatabase/serverless");
-const sql = neon(process.env.NEON_DB);
+const sql = neon(process.env.POSTGRES_URL || process.env.NEON_DB);
 
 // Initialize ImageKit
 const imagekit = new ImageKit({
