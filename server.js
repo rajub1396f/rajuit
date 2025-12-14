@@ -10,6 +10,8 @@ const nodemailer = require("nodemailer");
 const brevo = require('@getbrevo/brevo');
 const puppeteer = require('puppeteer');
 const ImageKit = require('imagekit');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
 
@@ -34,6 +36,53 @@ app.use(session({
         secure: false,
         httpOnly: true,
         sameSite: "lax",
+    }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Passport serialization
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const users = await sql`SELECT * FROM users WHERE id = ${id}`;
+        done(null, users[0]);
+    } catch (err) {
+        done(err, null);
+    }
+});
+
+// Google OAuth Strategy
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://rajuit.online/auth/google/callback"
+}, async (accessToken, refreshToken, profile, done) => {
+    try {
+        // Check if user exists
+        const existingUser = await sql`SELECT * FROM users WHERE email = ${profile.emails[0].value}`;
+        
+        if (existingUser.length > 0) {
+            // User exists, return user
+            return done(null, existingUser[0]);
+        }
+        
+        // Create new user
+        const newUser = await sql`
+            INSERT INTO users (name, email, is_verified, password, phone)
+            VALUES (${profile.displayName}, ${profile.emails[0].value}, true, 'google-oauth', '')
+            RETURNING *
+        `;
+        
+        done(null, newUser[0]);
+    } catch (err) {
+        console.error("Google OAuth error:", err);
+        done(err, null);
     }
 }));
 
@@ -415,6 +464,26 @@ app.post("/register", async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
+// Google OAuth Routes
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    // Successful authentication
+    const token = jwt.sign(
+      { id: req.user.id, email: req.user.email },
+      process.env.JWT_SECRET || "SECRET_KEY",
+      { expiresIn: "7d" }
+    );
+    
+    // Redirect to homepage with token as query parameter
+    res.redirect(`/?token=${token}&googleAuth=true`);
+  }
+);
 
 // Login Route
 app.post("/login", async (req, res) => {
