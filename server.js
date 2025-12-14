@@ -57,34 +57,39 @@ passport.deserializeUser(async (id, done) => {
     }
 });
 
-// Google OAuth Strategy
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://rajuit.online/auth/google/callback"
-}, async (accessToken, refreshToken, profile, done) => {
-    try {
-        // Check if user exists
-        const existingUser = await sql`SELECT * FROM users WHERE email = ${profile.emails[0].value}`;
-        
-        if (existingUser.length > 0) {
-            // User exists, return user
-            return done(null, existingUser[0]);
+// Google OAuth Strategy - only initialize if credentials are configured
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    console.log("✅ Initializing Google OAuth Strategy");
+    passport.use(new GoogleStrategy({
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://rajuit.online/auth/google/callback"
+    }, async (accessToken, refreshToken, profile, done) => {
+        try {
+            // Check if user exists
+            const existingUser = await sql`SELECT * FROM users WHERE email = ${profile.emails[0].value}`;
+            
+            if (existingUser.length > 0) {
+                // User exists, return user
+                return done(null, existingUser[0]);
+            }
+            
+            // Create new user
+            const newUser = await sql`
+                INSERT INTO users (name, email, is_verified, password, phone)
+                VALUES (${profile.displayName}, ${profile.emails[0].value}, true, 'google-oauth', '')
+                RETURNING *
+            `;
+            
+            done(null, newUser[0]);
+        } catch (err) {
+            console.error("Google OAuth error:", err);
+            done(err, null);
         }
-        
-        // Create new user
-        const newUser = await sql`
-            INSERT INTO users (name, email, is_verified, password, phone)
-            VALUES (${profile.displayName}, ${profile.emails[0].value}, true, 'google-oauth', '')
-            RETURNING *
-        `;
-        
-        done(null, newUser[0]);
-    } catch (err) {
-        console.error("Google OAuth error:", err);
-        done(err, null);
-    }
-}));
+    }));
+} else {
+    console.log("⚠️ Google OAuth not configured - GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET missing");
+}
 
 const { neon } = require("@neondatabase/serverless");
 const sql = neon(process.env.POSTGRES_URL || process.env.NEON_DB);
@@ -465,25 +470,36 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// Google OAuth Routes
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+// Google OAuth Routes - only enable if configured
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  app.get('/auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
 
-app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
-  (req, res) => {
-    // Successful authentication
-    const token = jwt.sign(
-      { id: req.user.id, email: req.user.email },
-      process.env.JWT_SECRET || "SECRET_KEY",
-      { expiresIn: "7d" }
-    );
-    
-    // Redirect to homepage with token as query parameter
-    res.redirect(`/?token=${token}&googleAuth=true`);
-  }
-);
+  app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req, res) => {
+      // Successful authentication
+      const token = jwt.sign(
+        { id: req.user.id, email: req.user.email },
+        process.env.JWT_SECRET || "SECRET_KEY",
+        { expiresIn: "7d" }
+      );
+      
+      // Redirect to homepage with token as query parameter
+      res.redirect(`/?token=${token}&googleAuth=true`);
+    }
+  );
+} else {
+  // Fallback routes if Google OAuth not configured
+  app.get('/auth/google', (req, res) => {
+    res.status(503).send('Google authentication is not configured on this server');
+  });
+  
+  app.get('/auth/google/callback', (req, res) => {
+    res.redirect('/');
+  });
+}
 
 // Login Route
 app.post("/login", async (req, res) => {
