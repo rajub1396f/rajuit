@@ -1411,7 +1411,12 @@ app.get("/check-password-reset-status", verifyToken, async (req, res) => {
 // check-login route
 app.get("/check-login", (req, res) => {
   if (req.session && req.session.user) {
-    return res.json({ loggedIn: true, user: req.session.user });
+    const user = req.session.user;
+    // Add flag for Google OAuth users
+    if (user.password === 'google-oauth') {
+      user.isGoogleUser = true;
+    }
+    return res.json({ loggedIn: true, user });
   }
   return res.json({ loggedIn: false });
 });
@@ -1507,8 +1512,12 @@ app.get("/dashboard", async (req, res) => {
   // API call - return JSON data
   if (req.session && req.session.user) {
     try {
-      const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${req.session.user.id} LIMIT 1`;
+      const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit, password FROM users WHERE id = ${req.session.user.id} LIMIT 1`;
       const user = (userRows && userRows[0]) || req.session.user;
+      // Add flag for Google OAuth users
+      if (user.password === 'google-oauth') {
+        user.isGoogleUser = true;
+      }
       return res.json({ message: "Welcome!", user });
     } catch (err) {
       console.error("User data fetch error:", err);
@@ -1524,8 +1533,12 @@ app.get("/dashboard", async (req, res) => {
       if (err) return res.status(401).json({ message: "Invalid token" });
       
       try {
-        const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${decoded.id} LIMIT 1`;
+        const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit, password FROM users WHERE id = ${decoded.id} LIMIT 1`;
         const user = (userRows && userRows[0]) || decoded;
+        // Add flag for Google OAuth users
+        if (user.password === 'google-oauth') {
+          user.isGoogleUser = true;
+        }
         return res.json({ message: "Welcome!", user });
       } catch (err) {
         console.error("User data fetch error:", err);
@@ -1541,8 +1554,12 @@ app.get("/dashboard", async (req, res) => {
 app.get("/api/user-data", verifyToken, async (req, res) => {
   if (req.user && req.user.id) {
     try {
-      const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${req.user.id} LIMIT 1`;
+      const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit, password FROM users WHERE id = ${req.user.id} LIMIT 1`;
       const user = (userRows && userRows[0]) || req.user;
+      // Add flag for Google OAuth users
+      if (user.password === 'google-oauth') {
+        user.isGoogleUser = true;
+      }
       return res.json({ message: "Welcome!", user });
     } catch (err) {
       console.error("User data fetch error:", err);

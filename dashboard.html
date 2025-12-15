@@ -890,6 +890,28 @@
             document.getElementById("name").textContent = u.name || "N/A";
             document.getElementById("email").textContent = u.email || "N/A";
             document.getElementById("navUserName").textContent = u.name || u.email || "User";
+            
+            // ✅ Check if Google OAuth user and disable password change
+            if (u.isGoogleUser) {
+              const passwordForm = document.getElementById("changePasswordForm");
+              const passwordInputs = passwordForm.querySelectorAll("input");
+              const passwordBtn = document.getElementById("changePasswordBtn");
+              
+              // Disable all inputs and button
+              passwordInputs.forEach(input => {
+                input.disabled = true;
+                input.style.backgroundColor = "#f0f0f0";
+              });
+              passwordBtn.disabled = true;
+              passwordBtn.style.opacity = "0.6";
+              
+              // Add informational message
+              const infoMsg = document.createElement("div");
+              infoMsg.className = "alert alert-info mt-3";
+              infoMsg.innerHTML = '<i class="fas fa-info-circle me-2"></i><strong>Note:</strong> Password change is not available for Google authenticated users. Your account is secured through Google.';
+              passwordForm.appendChild(infoMsg);
+            }
+            
             return;
           }
         } catch (e) {
@@ -910,6 +932,27 @@
       document.getElementById("phone").textContent = u.phone || "N/A";
       document.getElementById("address").textContent = u.address || "N/A";
       document.getElementById("navUserName").textContent = u.name || u.email || "User";
+      
+      // ✅ Check if Google OAuth user and disable password change
+      if (u.isGoogleUser) {
+        const passwordForm = document.getElementById("changePasswordForm");
+        const passwordInputs = passwordForm.querySelectorAll("input");
+        const passwordBtn = document.getElementById("changePasswordBtn");
+        
+        // Disable all inputs and button
+        passwordInputs.forEach(input => {
+          input.disabled = true;
+          input.style.backgroundColor = "#f0f0f0";
+        });
+        passwordBtn.disabled = true;
+        passwordBtn.style.opacity = "0.6";
+        
+        // Add informational message
+        const infoMsg = document.createElement("div");
+        infoMsg.className = "alert alert-info mt-3";
+        infoMsg.innerHTML = '<i class="fas fa-info-circle me-2"></i><strong>Note:</strong> Password change is not available for Google authenticated users. Your account is secured through Google.';
+        passwordForm.appendChild(infoMsg);
+      }
       
       // Set last edit date
       userLastEditDate = u.last_profile_edit || null;
