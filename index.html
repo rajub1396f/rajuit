@@ -1059,6 +1059,7 @@ const googleToken = urlParams.get('token');
 const isGoogleAuth = urlParams.get('googleAuth');
 
 if (googleToken && isGoogleAuth) {
+  console.log("✅ Google OAuth token received, storing and reloading...");
   localStorage.setItem('token', googleToken);
   
   // Check for pending cart item
@@ -1075,7 +1076,7 @@ if (googleToken && isGoogleAuth) {
   
   // Remove query parameters and reload
   window.history.replaceState({}, document.title, window.location.pathname);
-  window.location.reload();
+  window.location.href = window.location.pathname; // Force navigation instead of reload
 }
 
 // Update badge counts function - defined early for use everywhere
@@ -1095,6 +1096,12 @@ function updateBadgeCounts() {
 }
 
 (async function initAuth() {
+  // Skip auth initialization if we're processing Google OAuth callback
+  if (urlParams.get('token') && urlParams.get('googleAuth')) {
+    console.log("⏳ Skipping auth init during Google OAuth redirect...");
+    return;
+  }
+  
   const authContainer = document.getElementById("authContainer");
   const navLogin = document.getElementById("navLoginBtn");
   if (!navLogin || !authContainer) return;
