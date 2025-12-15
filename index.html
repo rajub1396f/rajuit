@@ -1133,8 +1133,14 @@ function updateBadgeCounts() {
     // ✅ Show cart and wishlist after login
     const cartContainer = document.getElementById("cartContainer");
     const wishlistContainer = document.getElementById("wishlistContainer");
-    if (cartContainer) cartContainer.style.display = "block";
-    if (wishlistContainer) wishlistContainer.style.display = "block";
+    if (cartContainer) {
+      cartContainer.style.display = "";
+      cartContainer.style.removeProperty('display');
+    }
+    if (wishlistContainer) {
+      wishlistContainer.style.display = "";
+      wishlistContainer.style.removeProperty('display');
+    }
     
     // ✅ Update cart and wishlist counts
     updateBadgeCounts();
