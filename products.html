@@ -2144,6 +2144,7 @@
                 }
 
                 function showLogout(userName) {
+                    console.log("🔐 showLogout called for user:", userName);
                     isUserLoggedIn = true; // Set global login status
                     
                     navLogin.innerText = userName;
@@ -2170,11 +2171,14 @@
                     
                     const cartContainer = document.getElementById("cartContainer");
                     const wishlistContainer = document.getElementById("wishlistContainer");
+                    console.log("🛒 Cart container:", cartContainer, "Wishlist container:", wishlistContainer);
                     if (cartContainer) {
                         cartContainer.removeAttribute('style');
+                        console.log("✅ Cart container style removed");
                     }
                     if (wishlistContainer) {
                         wishlistContainer.removeAttribute('style');
+                        console.log("✅ Wishlist container style removed");
                     }
                     
                     // Show WhatsApp widget after login

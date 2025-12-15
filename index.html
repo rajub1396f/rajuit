@@ -1111,6 +1111,7 @@ function updateBadgeCounts() {
   }
 
   function showLogout(userName) {
+    console.log("🔐 showLogout called for user:", userName);
     navLogin.innerText = userName;
     navLogin.removeAttribute("data-bs-toggle");
     navLogin.removeAttribute("data-bs-target");
@@ -1133,11 +1134,14 @@ function updateBadgeCounts() {
     // ✅ Show cart and wishlist after login
     const cartContainer = document.getElementById("cartContainer");
     const wishlistContainer = document.getElementById("wishlistContainer");
+    console.log("🛒 Cart container:", cartContainer, "Wishlist container:", wishlistContainer);
     if (cartContainer) {
       cartContainer.removeAttribute('style');
+      console.log("✅ Cart container style removed");
     }
     if (wishlistContainer) {
       wishlistContainer.removeAttribute('style');
+      console.log("✅ Wishlist container style removed");
     }
     
     // ✅ Update cart and wishlist counts
@@ -1148,6 +1152,8 @@ function updateBadgeCounts() {
     if (whatsappWidget) {
       whatsappWidget.style.display = "block";
     }
+    
+    console.log("✅ showLogout completed");
   }
 
   // Cart and Wishlist Dropdown Functions
@@ -1415,30 +1421,36 @@ function updateBadgeCounts() {
 
   // Fallback: validate local token
   const token = localStorage.getItem("token");
+  console.log("🔑 Token from localStorage:", token ? "exists" : "missing");
   if (!token) { showLogin(); return; }
 
   try {
     const parts = token.split('.');
     if (parts.length !== 3) throw new Error("Invalid token format");
     const decoded = JSON.parse(atob(parts[1]));
+    console.log("📝 Decoded token:", decoded);
     if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Token expired");
 
+    console.log("🌐 Fetching /dashboard with token...");
     const apiRes = await fetch("/dashboard", {
       method: "GET",
       headers: { "Authorization": `Bearer ${token}` },
       credentials: "include"
     });
 
+    console.log("📡 Dashboard response status:", apiRes.status);
     if (apiRes.ok) {
       const apiData = await apiRes.json().catch(()=>null);
+      console.log("📦 Dashboard data:", apiData);
       const name = apiData?.user?.name || decoded.name || decoded.email || "User";
       showLogout(name);
       return;
     } else {
+      console.warn("⚠️ Dashboard request failed with status:", apiRes.status);
       showLogin();
     }
   } catch (err) {
-    console.log("Token invalid:", err.message);
+    console.log("❌ Token invalid:", err.message);
     showLogin();
   }
 })();
