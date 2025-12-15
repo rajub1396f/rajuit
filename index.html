@@ -1153,8 +1153,12 @@ function updateBadgeCounts() {
     
     // ✅ Show WhatsApp widget after login
     const whatsappWidget = document.getElementById("whatsappWidget");
+    console.log("📱 WhatsApp widget element:", whatsappWidget);
     if (whatsappWidget) {
       whatsappWidget.style.display = "block";
+      console.log("✅ WhatsApp widget displayed");
+    } else {
+      console.error("❌ WhatsApp widget not found!");
     }
     
     console.log("✅ showLogout completed");
@@ -1403,21 +1407,27 @@ function updateBadgeCounts() {
 
   // WhatsApp Chat Functions
   function toggleWhatsAppChat() {
+    console.log("📱 toggleWhatsAppChat called");
     const chatBox = document.getElementById('whatsappChatBox');
+    console.log("📱 Chat box element:", chatBox);
     if (chatBox.style.display === 'none' || chatBox.style.display === '') {
       chatBox.style.display = 'block';
+      console.log("✅ Chat box opened");
     } else {
       chatBox.style.display = 'none';
+      console.log("✅ Chat box closed");
     }
   }
 
   function sendWhatsAppMessage() {
+    console.log("📱 sendWhatsAppMessage called");
     const input = document.getElementById('whatsappInput');
     const message = input.value.trim();
     
     if (message) {
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
+      console.log("📱 Opening WhatsApp URL:", whatsappUrl);
       window.open(whatsappUrl, '_blank');
       input.value = '';
       
