@@ -1498,18 +1498,22 @@ app.get("/dashboard", async (req, res) => {
   // Check if request expects JSON (API call)
   const wantsJson = req.headers["accept"]?.includes("application/json") || req.headers["authorization"];
   
-  if (req.session && req.session.user) {
-    if (wantsJson) {
-      try {
-        const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${req.session.user.id} LIMIT 1`;
-        const user = (userRows && userRows[0]) || req.session.user;
-        return res.json({ message: "Welcome!", user });
-      } catch (err) {
-        console.error("User data fetch error:", err);
-        return res.status(500).json({ message: "Server error" });
-      }
-    }
+  // For browser navigation (not API calls), always serve the HTML file
+  // The dashboard.html will check localStorage for token and redirect if needed
+  if (!wantsJson) {
     return res.sendFile(path.join(__dirname, "dashboard.html"));
+  }
+  
+  // API call - return JSON data
+  if (req.session && req.session.user) {
+    try {
+      const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${req.session.user.id} LIMIT 1`;
+      const user = (userRows && userRows[0]) || req.session.user;
+      return res.json({ message: "Welcome!", user });
+    } catch (err) {
+      console.error("User data fetch error:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
   }
   
   const header = req.headers["authorization"];
@@ -1517,26 +1521,19 @@ app.get("/dashboard", async (req, res) => {
   
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", async (err, decoded) => {
-      if (err) {
-        if (wantsJson) return res.status(401).json({ message: "Invalid token" });
-        return res.redirect("/");
-      }
+      if (err) return res.status(401).json({ message: "Invalid token" });
       
-      if (wantsJson) {
-        try {
-          const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${decoded.id} LIMIT 1`;
-          const user = (userRows && userRows[0]) || decoded;
-          return res.json({ message: "Welcome!", user });
-        } catch (err) {
-          console.error("User data fetch error:", err);
-          return res.status(500).json({ message: "Server error" });
-        }
+      try {
+        const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${decoded.id} LIMIT 1`;
+        const user = (userRows && userRows[0]) || decoded;
+        return res.json({ message: "Welcome!", user });
+      } catch (err) {
+        console.error("User data fetch error:", err);
+        return res.status(500).json({ message: "Server error" });
       }
-      return res.sendFile(path.join(__dirname, "dashboard.html"));
     });
   } else {
-    if (wantsJson) return res.status(401).json({ message: "Not authenticated" });
-    return res.redirect("/");
+    return res.status(401).json({ message: "Not authenticated" });
   }
 });
 
