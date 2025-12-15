@@ -2171,12 +2171,10 @@
                     const cartContainer = document.getElementById("cartContainer");
                     const wishlistContainer = document.getElementById("wishlistContainer");
                     if (cartContainer) {
-                        cartContainer.style.display = "";
-                        cartContainer.style.removeProperty('display');
+                        cartContainer.removeAttribute('style');
                     }
                     if (wishlistContainer) {
-                        wishlistContainer.style.display = "";
-                        wishlistContainer.style.removeProperty('display');
+                        wishlistContainer.removeAttribute('style');
                     }
                     
                     // Show WhatsApp widget after login

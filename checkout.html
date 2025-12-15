@@ -939,8 +939,8 @@
                         navLoginBtn.href = '/dashboard';
                         
                         // Show cart and wishlist
-                        if (cartContainer) cartContainer.style.display = 'block';
-                        if (wishlistContainer) wishlistContainer.style.display = 'block';
+                        if (cartContainer) cartContainer.removeAttribute('style');
+                        if (wishlistContainer) wishlistContainer.removeAttribute('style');
                         
                         return true;
                     }
