@@ -1115,11 +1115,20 @@ function updateBadgeCounts() {
     navLogin.innerText = userName;
     navLogin.removeAttribute("data-bs-toggle");
     navLogin.removeAttribute("data-bs-target");
-    navLogin.setAttribute("href", "/dashboard");
-    navLogin.addEventListener("click", (e) => { 
-      e.preventDefault(); 
+    navLogin.href = "/dashboard";
+    
+    // Remove existing click listeners by cloning and replacing
+    const newNavLogin = navLogin.cloneNode(true);
+    navLogin.parentNode.replaceChild(newNavLogin, navLogin);
+    
+    // Add new click handler to the cloned element
+    newNavLogin.addEventListener("click", function(e) { 
+      e.preventDefault();
+      console.log("➡️ Redirecting to dashboard..."); 
       window.location.href = "/dashboard"; 
-    }, { capture: true });
+    });
+    
+    console.log("✅ Username click handler attached to:", newNavLogin.innerText);
 
     // ✅ Add Logout button
     let logoutBtn = document.getElementById("logoutBtn");
