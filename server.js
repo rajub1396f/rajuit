@@ -1494,8 +1494,21 @@ app.get("/dashboard.html", (req, res) => {
   }
 });
 
-app.get("/dashboard", (req, res) => {
+app.get("/dashboard", async (req, res) => {
+  // Check if request expects JSON (API call)
+  const wantsJson = req.headers["accept"]?.includes("application/json") || req.headers["authorization"];
+  
   if (req.session && req.session.user) {
+    if (wantsJson) {
+      try {
+        const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${req.session.user.id} LIMIT 1`;
+        const user = (userRows && userRows[0]) || req.session.user;
+        return res.json({ message: "Welcome!", user });
+      } catch (err) {
+        console.error("User data fetch error:", err);
+        return res.status(500).json({ message: "Server error" });
+      }
+    }
     return res.sendFile(path.join(__dirname, "dashboard.html"));
   }
   
@@ -1503,11 +1516,26 @@ app.get("/dashboard", (req, res) => {
   const token = header?.split(" ")[1];
   
   if (token) {
-    jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
-      if (err) return res.redirect("/");
+    jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", async (err, decoded) => {
+      if (err) {
+        if (wantsJson) return res.status(401).json({ message: "Invalid token" });
+        return res.redirect("/");
+      }
+      
+      if (wantsJson) {
+        try {
+          const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit FROM users WHERE id = ${decoded.id} LIMIT 1`;
+          const user = (userRows && userRows[0]) || decoded;
+          return res.json({ message: "Welcome!", user });
+        } catch (err) {
+          console.error("User data fetch error:", err);
+          return res.status(500).json({ message: "Server error" });
+        }
+      }
       return res.sendFile(path.join(__dirname, "dashboard.html"));
     });
   } else {
+    if (wantsJson) return res.status(401).json({ message: "Not authenticated" });
     return res.redirect("/");
   }
 });
