@@ -1451,7 +1451,9 @@
 
             // Check if user is logged in (for cart/wishlist buttons)
             function checkLoginAndAct(action) {
-                if (!isUserLoggedIn) {
+                // Check both global login status and localStorage token as backup
+                const token = localStorage.getItem('token');
+                if (!isUserLoggedIn && !token) {
                     alert('Please login to ' + action);
                     const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
                     loginModal.show();
