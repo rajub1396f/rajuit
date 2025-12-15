@@ -1699,23 +1699,39 @@
             });
 
             // Attach click events to cart and wishlist buttons on load
-            document.addEventListener('DOMContentLoaded', function() {
+            function attachCartWishlistHandlers() {
                 const cartBtn = document.getElementById('cartBtn');
                 const wishlistBtn = document.getElementById('wishlistBtn');
                 
                 if (cartBtn) {
-                    cartBtn.addEventListener('click', (e) => {
+                    // Remove existing listeners by cloning
+                    const newCartBtn = cartBtn.cloneNode(true);
+                    cartBtn.parentNode.replaceChild(newCartBtn, cartBtn);
+                    
+                    newCartBtn.addEventListener('click', (e) => {
                         e.preventDefault();
+                        console.log("🛒 Cart button clicked!");
                         toggleCartDropdown();
                     });
+                    console.log("✅ Cart button click handler attached");
                 }
                 
                 if (wishlistBtn) {
-                    wishlistBtn.addEventListener('click', (e) => {
+                    // Remove existing listeners by cloning
+                    const newWishlistBtn = wishlistBtn.cloneNode(true);
+                    wishlistBtn.parentNode.replaceChild(newWishlistBtn, wishlistBtn);
+                    
+                    newWishlistBtn.addEventListener('click', (e) => {
                         e.preventDefault();
+                        console.log("❤️ Wishlist button clicked!");
                         toggleWishlistDropdown();
                     });
+                    console.log("✅ Wishlist button click handler attached");
                 }
+            }
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                attachCartWishlistHandlers();
             });
 
             // Add to cart function
@@ -2174,18 +2190,28 @@
                     console.log("🛒 Cart container:", cartContainer, "Wishlist container:", wishlistContainer);
                     if (cartContainer) {
                         cartContainer.removeAttribute('style');
-                        console.log("✅ Cart container style removed");
+                        const cartDisplay = window.getComputedStyle(cartContainer).display;
+                        console.log("✅ Cart container style removed, computed display:", cartDisplay);
                     }
                     if (wishlistContainer) {
                         wishlistContainer.removeAttribute('style');
-                        console.log("✅ Wishlist container style removed");
+                        const wishlistDisplay = window.getComputedStyle(wishlistContainer).display;
+                        console.log("✅ Wishlist container style removed, computed display:", wishlistDisplay);
                     }
+                    
+                    // Update badge counts
+                    updateBadgeCounts();
+                    
+                    // Re-attach cart and wishlist click handlers
+                    attachCartWishlistHandlers();
                     
                     // Show WhatsApp widget after login
                     const whatsappWidget = document.getElementById("whatsappWidget");
                     if (whatsappWidget) {
                         whatsappWidget.style.display = "block";
                     }
+                    
+                    console.log("✅ showLogout completed");
                 }
 
                 try {
