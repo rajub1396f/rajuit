@@ -1405,8 +1405,8 @@ function updateBadgeCounts() {
     attachCartWishlistHandlers();
   });
 
-  // WhatsApp Chat Functions
-  function toggleWhatsAppChat() {
+  // WhatsApp Chat Functions - Make them global
+  window.toggleWhatsAppChat = function() {
     console.log("📱 toggleWhatsAppChat called");
     const chatBox = document.getElementById('whatsappChatBox');
     console.log("📱 Chat box element:", chatBox);
@@ -1419,7 +1419,7 @@ function updateBadgeCounts() {
     }
   }
 
-  function sendWhatsAppMessage() {
+  window.sendWhatsAppMessage = function() {
     console.log("📱 sendWhatsAppMessage called");
     const input = document.getElementById('whatsappInput');
     const message = input.value.trim();
