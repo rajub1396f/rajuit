@@ -1571,7 +1571,11 @@
                     return;
                 }
                 
-                const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const total = cartItems.reduce((sum, item) => {
+                    const price = parseFloat(item.price) || 0;
+                    const quantity = parseInt(item.quantity) || 1;
+                    return sum + (price * quantity);
+                }, 0);
                 
                 dropdown.innerHTML = `
                     <div class="dropdown-header">
@@ -2168,13 +2172,11 @@
                     navLogin.removeAttribute("data-bs-target");
                     navLogin.setAttribute("href", "/dashboard");
                     
-                    // Remove any previous click handlers and add new one
-                    const newNavLogin = navLogin.cloneNode(true);
-                    navLogin.parentNode.replaceChild(newNavLogin, navLogin);
-                    newNavLogin.addEventListener("click", (e) => { 
+                    // Add click handler without cloning (fixes dashboard redirect)
+                    navLogin.addEventListener("click", (e) => { 
                         e.preventDefault(); 
                         window.location.href = "/dashboard"; 
-                    });
+                    }, { once: false });
 
                     let logoutBtn = document.getElementById("logoutBtn");
                     if (!logoutBtn) {
@@ -2229,29 +2231,35 @@
                 }
 
                 const token = localStorage.getItem("token");
+                console.log("🔑 Token from localStorage:", token ? "exists" : "missing");
                 if (!token) { showLogin(); return; }
 
                 try {
                     const parts = token.split('.');
                     if (parts.length !== 3) throw new Error("Invalid token format");
                     const decoded = JSON.parse(atob(parts[1]));
+                    console.log("📝 Decoded token:", decoded);
                     if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Token expired");
 
+                    console.log("🌐 Fetching /dashboard with token...");
                     const apiRes = await fetch("/dashboard", {
                         method: "GET",
                         headers: { "Authorization": `Bearer ${token}` },
                         credentials: "include"
                     });
 
+                    console.log("📡 Dashboard response status:", apiRes.status);
                     if (apiRes.ok) {
-                        const apiData = await apiRes.json();
-                        const name = apiData?.user?.name || apiData?.user?.email || "User";
+                        const apiData = await apiRes.json().catch(()=>null);
+                        console.log("📦 Dashboard data:", apiData);
+                        const name = apiData?.user?.name || decoded.name || decoded.email || "User";
                         showLogout(name);
                     } else {
+                        console.warn("⚠️ Dashboard request failed with status:", apiRes.status);
                         showLogin();
                     }
                 } catch (err) {
-                    console.debug("Token validation failed", err);
+                    console.log("❌ Token invalid:", err.message);
                     showLogin();
                 }
             })();

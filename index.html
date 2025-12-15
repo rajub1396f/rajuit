@@ -1212,7 +1212,11 @@ function updateBadgeCounts() {
       return;
     }
     
-    const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const total = cartItems.reduce((sum, item) => {
+      const price = parseFloat(item.price) || 0;
+      const quantity = parseInt(item.quantity) || 1;
+      return sum + (price * quantity);
+    }, 0);
     
     dropdown.innerHTML = `
       <div class="dropdown-header">
