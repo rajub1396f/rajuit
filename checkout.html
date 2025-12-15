@@ -647,6 +647,20 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Handle Google OAuth callback
+        const urlParams = new URLSearchParams(window.location.search);
+        const googleToken = urlParams.get('token');
+        const isGoogleAuth = urlParams.get('googleAuth');
+
+        if (googleToken && isGoogleAuth) {
+            console.log("✅ Google OAuth token received on checkout page, storing...");
+            localStorage.setItem('token', googleToken);
+            
+            // Remove query parameters from URL without reloading
+            window.history.replaceState({}, document.title, window.location.pathname);
+            console.log("✅ Google OAuth complete on checkout page");
+        }
+    
         // Constants
         const SHIPPING_COST = 50;
         const TAX_RATE = 0.15;
