@@ -1115,20 +1115,19 @@ function updateBadgeCounts() {
     navLogin.innerText = userName;
     navLogin.removeAttribute("data-bs-toggle");
     navLogin.removeAttribute("data-bs-target");
-    navLogin.href = "/dashboard";
+    navLogin.removeAttribute("href");
+    navLogin.style.cursor = "pointer";
     
-    // Remove existing click listeners by cloning and replacing
-    const newNavLogin = navLogin.cloneNode(true);
-    navLogin.parentNode.replaceChild(newNavLogin, navLogin);
-    
-    // Add new click handler to the cloned element
-    newNavLogin.addEventListener("click", function(e) { 
+    // Add click handler with high priority
+    navLogin.onclick = function(e) { 
       e.preventDefault();
+      e.stopPropagation();
       console.log("➡️ Redirecting to dashboard..."); 
-      window.location.href = "/dashboard"; 
-    });
+      window.location.href = "/dashboard";
+      return false;
+    };
     
-    console.log("✅ Username click handler attached to:", newNavLogin.innerText);
+    console.log("✅ Username click handler attached to:", navLogin.innerText);
 
     // ✅ Add Logout button
     let logoutBtn = document.getElementById("logoutBtn");
