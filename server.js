@@ -1809,7 +1809,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
     <div class="invoice-header">
         <h1>INVOICE</h1>
         <p>Raju IT - Premium Fashion Store</p>
-        <p>📧 rajuit1396@gmail.com | 📱 +966539082027</p>
+        <p>📧 rajuit1396@gmail.com | 📱 +8801726466000</p>
     </div>
     
     <div class="invoice-details">
@@ -1882,7 +1882,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
     <div class="footer">
         <p><strong>Terms & Conditions:</strong></p>
         <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
-        For questions about this invoice, contact us at rajuit1396@gmail.com or +966539082027</p>
+        For questions about this invoice, contact us at rajuit1396@gmail.com or +8801726466000</p>
         <p style="margin-top: 20px;">© 2025 Raju IT. All rights reserved.</p>
     </div>
 </body>
@@ -2084,7 +2084,7 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     <div class="invoice-header">
         <h1>INVOICE</h1>
         <p>Raju IT - Premium Fashion Store</p>
-        <p>📧 rajuit1396@gmail.com | 📱 +966539082027</p>
+        <p>📧 rajuit1396@gmail.com | 📱 +8801726466000</p>
     </div>
     
     <div class="invoice-details">
@@ -2157,7 +2157,7 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     <div class="footer">
         <p><strong>Terms & Conditions:</strong></p>
         <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
-        For questions about this invoice, contact us at rajuit1396@gmail.com or +966539082027</p>
+        For questions about this invoice, contact us at rajuit1396@gmail.com or +8801726466000</p>
         <p style="margin-top: 20px;">© 2025 Raju IT. All rights reserved.</p>
     </div>
 </body>

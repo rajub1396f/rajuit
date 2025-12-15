@@ -46,7 +46,7 @@
           "url": "https://rajuit.online",
           "logo": "https://rajuit.online/assets/img/navbar-logo.svg",
           "image": "https://rajuit.online/assets/img/navbar-logo.svg",
-          "telephone": "+966539082027",
+          "telephone": "+8801726466000",
           "email": "rajuit1396@gmail.com",
           "address": {
             "@type": "PostalAddress",
@@ -1059,7 +1059,7 @@ const googleToken = urlParams.get('token');
 const isGoogleAuth = urlParams.get('googleAuth');
 
 if (googleToken && isGoogleAuth) {
-  console.log("✅ Google OAuth token received, storing and reloading...");
+  console.log("✅ Google OAuth token received, storing...");
   localStorage.setItem('token', googleToken);
   
   // Check for pending cart item
@@ -1071,12 +1071,11 @@ if (googleToken && isGoogleAuth) {
     cart.push(item);
     localStorage.setItem('cart', JSON.stringify(cart));
     localStorage.removeItem('pendingCartItem');
-    alert(`✅ ${item.name} has been added to your cart!`);
   }
   
-  // Remove query parameters and reload
+  // Remove query parameters from URL without reloading
   window.history.replaceState({}, document.title, window.location.pathname);
-  window.location.href = window.location.pathname; // Force navigation instead of reload
+  console.log("✅ Google OAuth complete, initializing auth...");
 }
 
 // Update badge counts function - defined early for use everywhere
@@ -1096,12 +1095,6 @@ function updateBadgeCounts() {
 }
 
 (async function initAuth() {
-  // Skip auth initialization if we're processing Google OAuth callback
-  if (urlParams.get('token') && urlParams.get('googleAuth')) {
-    console.log("⏳ Skipping auth init during Google OAuth redirect...");
-    return;
-  }
-  
   const authContainer = document.getElementById("authContainer");
   const navLogin = document.getElementById("navLoginBtn");
   if (!navLogin || !authContainer) return;
@@ -1390,7 +1383,7 @@ function updateBadgeCounts() {
     
     if (message) {
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/966539082027?text=${encodedMessage}`;
+      const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
       window.open(whatsappUrl, '_blank');
       input.value = '';
       
