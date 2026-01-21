@@ -1152,7 +1152,7 @@ app.post("/resend-verification", async (req, res) => {
 
 
     // Lookup user by email in database
-    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(`$${email}`)`;
+    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(`${email}`)`;
     if (!userRows || userRows.length === 0) {
       return res.status(404).json({ success: false, message: "Email address not found in our system." });
     }
@@ -3579,6 +3579,7 @@ app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`);
     console.log(`âœ… ImageKit configured: ${process.env.IMAGEKIT_URL_ENDPOINT}`);
 });
+
 
 
 
