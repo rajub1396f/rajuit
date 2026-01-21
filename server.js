@@ -1036,9 +1036,6 @@ app.get("/verify-email", async (req, res) => {
     }
 
 
-    // Lookup user by email
-    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(`${email}`)`
-    if (!userRows || userRows.length === 0) {
       return res.status(404).json({ success: false, message: "Email address not found in our system." });
     }
 
@@ -1333,6 +1330,12 @@ app.post("/api/forgot-password", async (req, res) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ success: false, message: "Invalid email format" });
+
+    // Lookup user by email
+    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(`${email}`)`
+    if (!userRows || userRows.length === 0) {
+      return res.status(404).json({ success: false, message: "Email address not found in our system." });
+    }
     }
 
     // Check if Brevo API key is configured
