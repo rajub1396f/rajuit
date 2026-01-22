@@ -59,7 +59,7 @@ passport.deserializeUser(async (id, done) => {
 
 // Google OAuth Strategy - only initialize if credentials are configured
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    console.log("âœ… Initializing Google OAuth Strategy");
+    console.log("✅ Initializing Google OAuth Strategy");
     passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -88,7 +88,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         }
     }));
 } else {
-    console.log("âš ï¸ Google OAuth not configured - GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET missing");
+    console.log("⚠️ Google OAuth not configured - GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET missing");
 }
 
 const { neon } = require("@neondatabase/serverless");
@@ -101,7 +101,7 @@ const imagekit = new ImageKit({
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
 });
 
-// âœ… Initialize Brevo API Client
+// ✅ Initialize Brevo API Client
 let brevoApiInstance = new brevo.TransactionalEmailsApi();
 let brevoApiKey = brevoApiInstance.authentications['apiKey'];
 brevoApiKey.apiKey = process.env.BREVO_API_KEY;
@@ -115,8 +115,8 @@ const BREVO_SENDER = {
 // Helper function to send email via Brevo
 async function sendBrevoEmail({ to, subject, htmlContent, replyTo = null }) {
     try {
-        console.log(`ðŸ“§ Sending email via Brevo to: ${to}, subject: ${subject}`);
-        console.log(`ðŸ”‘ Using sender: ${BREVO_SENDER.email} (${BREVO_SENDER.name})`);
+        console.log(`📧 Sending email via Brevo to: ${to}, subject: ${subject}`);
+        console.log(`🔑 Using sender: ${BREVO_SENDER.email} (${BREVO_SENDER.name})`);
         
         let sendSmtpEmail = new brevo.SendSmtpEmail();
         sendSmtpEmail.sender = BREVO_SENDER;
@@ -128,11 +128,11 @@ async function sendBrevoEmail({ to, subject, htmlContent, replyTo = null }) {
         }
         
         const result = await brevoApiInstance.sendTransacEmail(sendSmtpEmail);
-        console.log('âœ… Email sent via Brevo successfully!');
-        console.log('ðŸ“¬ Full Brevo response:', JSON.stringify(result, null, 2));
+        console.log('✅ Email sent via Brevo successfully!');
+        console.log('📬 Full Brevo response:', JSON.stringify(result, null, 2));
         return { success: true, messageId: result.messageId };
     } catch (error) {
-        console.error('âŒ Brevo email error:', {
+        console.error('❌ Brevo email error:', {
             message: error.message,
             response: error.response?.text || error.response?.body,
             status: error.status
@@ -142,13 +142,13 @@ async function sendBrevoEmail({ to, subject, htmlContent, replyTo = null }) {
 }
 
 // Verify Brevo API connection
-console.log("âœ… Brevo email service initialized");
+console.log("✅ Brevo email service initialized");
 
 // Test connection and create tables
 (async () => {
   try {
     await sql`SELECT 1`;
-    console.log("âœ… Connected to Neon DB!");
+    console.log("✅ Connected to Neon DB!");
     
     // Create orders table if not exists
     await sql`
@@ -162,7 +162,7 @@ console.log("âœ… Brevo email service initialized");
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
-    console.log("âœ… Orders table ready");
+    console.log("✅ Orders table ready");
     
     // Add invoice_pdf_url column if it doesn't exist (for existing tables)
     try {
@@ -170,7 +170,7 @@ console.log("âœ… Brevo email service initialized");
         ALTER TABLE orders 
         ADD COLUMN IF NOT EXISTS invoice_pdf_url TEXT
       `;
-      console.log("âœ… invoice_pdf_url column added/verified");
+      console.log("✅ invoice_pdf_url column added/verified");
     } catch (alterErr) {
       console.log("Note: Column might already exist or other issue:", alterErr.message);
     }
@@ -187,7 +187,7 @@ console.log("âœ… Brevo email service initialized");
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
-    console.log("âœ… Order_items table ready");
+    console.log("✅ Order_items table ready");
     
     // Add email verification columns to users table
     try {
@@ -195,7 +195,7 @@ console.log("âœ… Brevo email service initialized");
         ALTER TABLE users 
         ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE
       `;
-      console.log("âœ… is_verified column added/verified");
+      console.log("✅ is_verified column added/verified");
     } catch (alterErr) {
       console.log("Note: is_verified column might already exist:", alterErr.message);
     }
@@ -205,7 +205,7 @@ console.log("âœ… Brevo email service initialized");
         ALTER TABLE users 
         ADD COLUMN IF NOT EXISTS verification_token TEXT
       `;
-      console.log("âœ… verification_token column added/verified");
+      console.log("✅ verification_token column added/verified");
     } catch (alterErr) {
       console.log("Note: verification_token column might already exist:", alterErr.message);
     }
@@ -216,7 +216,7 @@ console.log("âœ… Brevo email service initialized");
         ALTER TABLE users 
         ADD COLUMN IF NOT EXISTS last_password_reset TIMESTAMP
       `;
-      console.log("âœ… last_password_reset column added/verified");
+      console.log("✅ last_password_reset column added/verified");
     } catch (alterErr) {
       console.log("Note: last_password_reset column might already exist:", alterErr.message);
     }
@@ -227,7 +227,7 @@ console.log("âœ… Brevo email service initialized");
         ALTER TABLE users 
         ADD COLUMN IF NOT EXISTS last_reset_request_time TIMESTAMP
       `;
-      console.log("âœ… last_reset_request_time column added/verified");
+      console.log("✅ last_reset_request_time column added/verified");
     } catch (alterErr) {
       console.log("Note: last_reset_request_time column might already exist:", alterErr.message);
     }
@@ -238,7 +238,7 @@ console.log("âœ… Brevo email service initialized");
         ALTER TABLE users 
         ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE
       `;
-      console.log("âœ… is_admin column added/verified");
+      console.log("✅ is_admin column added/verified");
     } catch (alterErr) {
       console.log("Note: is_admin column might already exist:", alterErr.message);
     }
@@ -260,13 +260,13 @@ console.log("âœ… Brevo email service initialized");
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `;
-      console.log("âœ… Products table ready");
+      console.log("✅ Products table ready");
     } catch (productsErr) {
       console.log("Note: Products table might already exist:", productsErr.message);
     }
     
   } catch (err) {
-    console.error("âŒ Database initialization error:", err);
+    console.error("❌ Database initialization error:", err);
   }
   
   // Add instagram_video_url column if it doesn't exist
@@ -275,7 +275,7 @@ console.log("âœ… Brevo email service initialized");
       ALTER TABLE products 
       ADD COLUMN IF NOT EXISTS instagram_video_url TEXT
     `;
-    console.log("âœ… Instagram video URL column added to products table");
+    console.log("✅ Instagram video URL column added to products table");
     
     // Verify the column exists
     const tableInfo = await sql`
@@ -284,12 +284,12 @@ console.log("âœ… Brevo email service initialized");
       WHERE table_name = 'products' AND column_name = 'instagram_video_url'
     `;
     if (tableInfo.length > 0) {
-      console.log("âœ… Confirmed: instagram_video_url column exists");
+      console.log("✅ Confirmed: instagram_video_url column exists");
     } else {
-      console.log("âš ï¸ Warning: instagram_video_url column not found");
+      console.log("⚠️ Warning: instagram_video_url column not found");
     }
   } catch (err) {
-    console.error("âŒ Error adding instagram_video_url column:", err.message);
+    console.error("❌ Error adding instagram_video_url column:", err.message);
   }
 })();
 
@@ -297,7 +297,7 @@ console.log("âœ… Brevo email service initialized");
 async function generateAndUploadInvoice(htmlContent, orderId) {
   let browser;
   try {
-    console.log(`ðŸ“„ Generating PDF for order #${orderId}...`);
+    console.log(`📄 Generating PDF for order #${orderId}...`);
     
     // Launch puppeteer browser with Render-compatible settings
     browser = await puppeteer.launch({
@@ -327,10 +327,10 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
     });
     
     await browser.close();
-    console.log(`âœ… PDF generated successfully (${pdfBuffer.length} bytes)`);
+    console.log(`✅ PDF generated successfully (${pdfBuffer.length} bytes)`);
     
     // Upload PDF to ImageKit
-    console.log(`â˜ï¸ Uploading PDF to ImageKit...`);
+    console.log(`☁️ Uploading PDF to ImageKit...`);
     const uploadResponse = await imagekit.upload({
       file: pdfBuffer.toString('base64'),
       fileName: `invoice_${orderId}_${Date.now()}.pdf`,
@@ -339,7 +339,7 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
       tags: ['invoice', `order_${orderId}`]
     });
     
-    console.log('âœ… PDF uploaded to ImageKit:', uploadResponse.url);
+    console.log('✅ PDF uploaded to ImageKit:', uploadResponse.url);
     return uploadResponse.url;
     
   } catch (error) {
@@ -350,288 +350,36 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
         console.error('Error closing browser:', closeError);
       }
     }
-    console.error('âŒ Error generating/uploading invoice:', error);
+    console.error('❌ Error generating/uploading invoice:', error);
     console.error('Error stack:', error.stack);
     throw error;
   }
 }
 
 // Register Route
-
-// ==================== JWT HELPER FUNCTIONS ====================
-
-// Generate JWT Token
-function generateToken(userId, email) {
-  return jwt.sign(
-    { userId, email, timestamp: Date.now() },
-    process.env.JWT_SECRET || "your-secret-key-change-this",
-    { expiresIn: "30d" }
-  );
-}
-
-// Save token to database
-async function saveToken(userId, token) {
-  try {
-    await sql`
-      INSERT INTO user_tokens (user_id, token, token_type, expires_at)
-      VALUES (
-        ${userId},
-        ${token},
-        'bearer',
-        NOW() + INTERVAL '30 days'
-      )
-      ON CONFLICT (token) DO UPDATE SET last_used_at = NOW()
-    `;
-    return true;
-  } catch (error) {
-    console.error("Error saving token:", error);
-    return false;
-  }
-}
-
-// Middleware to verify token
-async function verifyTokenMiddleware(req, res, next) {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "No token provided" });
-    }
-
-    const token = authHeader.slice(7);
-
-    // Verify token in database
-    const tokenData = await sql`
-      SELECT user_id, expires_at FROM user_tokens
-      WHERE token = ${token} AND is_active = true
-      AND expires_at > NOW()
-      LIMIT 1
-    `;
-
-    if (!tokenData || tokenData.length === 0) {
-      return res.status(401).json({ message: "Invalid or expired token" });
-    }
-
-    // Update last used time
-    await sql`
-      UPDATE user_tokens SET last_used_at = NOW()
-      WHERE token = ${token}
-    `;
-
-    // Verify JWT signature
-    jwt.verify(token, process.env.JWT_SECRET || "your-secret-key-change-this");
-
-    req.userId = tokenData[0].user_id;
-    req.token = token;
-    next();
-  } catch (error) {
-    console.error("Token verification error:", error);
-    res.status(401).json({ message: "Invalid token" });
-  }
-}
-
-// ==================== JWT API ENDPOINTS ====================
-
-// POST /api/login - Login with JWT
-app.post("/api/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
-    }
-
-    // Find user
-    const users = await sql`
-      SELECT id, name, email, password, is_admin FROM users WHERE email = ${email} LIMIT 1
-    `;
-
-    if (!users || users.length === 0) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    const user = users[0];
-
-    // Check password
-    const passwordValid = await bcrypt.compare(password, user.password);
-    if (!passwordValid) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    // Generate token
-    const token = generateToken(user.id, user.email);
-    await saveToken(user.id, token);
-
-    res.json({
-      message: "Login successful",
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        is_admin: user.is_admin,
-      },
-      token: token,
-      token_type: "bearer",
-      expires_in: 2592000, // 30 days in seconds
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Login failed" });
-  }
-});
-
-// POST /api/register - Register with JWT
-app.post("/api/register", async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-
-    if (!email || !password || !name) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    // Check if email exists
-    const existing = await sql`
-      SELECT id FROM users WHERE email = ${email} LIMIT 1
-    `;
-    
-    if (existing && existing.length > 0) {
-      return res.status(400).json({ message: "Email already registered" });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const result = await sql`
-      INSERT INTO users (name, email, password, is_active)
-      VALUES (${name}, ${email}, ${hashedPassword}, true)
-      RETURNING id, name, email, is_admin
-    `;
-
-    const user = result[0];
-    const token = generateToken(user.id, user.email);
-    await saveToken(user.id, token);
-
-    res.status(201).json({
-      message: "Registration successful",
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        is_admin: user.is_admin,
-      },
-      token: token,
-      token_type: "bearer",
-      expires_in: 2592000, // 30 days in seconds
-    });
-  } catch (error) {
-    console.error("Register error:", error);
-    res.status(500).json({ message: "Registration failed" });
-  }
-});
-
-// POST /api/logout - Logout and invalidate token
-app.post("/api/logout", verifyTokenMiddleware, async (req, res) => {
-  try {
-    await sql`
-      UPDATE user_tokens SET is_active = false
-      WHERE token = ${req.token}
-    `;
-
-    res.json({ message: "Logged out successfully" });
-  } catch (error) {
-    console.error("Logout error:", error);
-    res.status(500).json({ message: "Logout failed" });
-  }
-});
-
-// GET /api/user/profile - Get protected user profile
-app.get("/api/user/profile", verifyTokenMiddleware, async (req, res) => {
-  try {
-    const user = await sql`
-      SELECT id, name, email, phone, address, is_admin
-      FROM users WHERE id = ${req.userId} LIMIT 1
-    `;
-
-    if (!user || user.length === 0) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.json(user[0]);
-  } catch (error) {
-    console.error("Error fetching profile:", error);
-    res.status(500).json({ message: "Error fetching profile" });
-  }
-});
-
-// POST /api/refresh-token - Refresh JWT token
-app.post("/api/refresh-token", async (req, res) => {
-  try {
-    const { token } = req.body;
-
-    if (!token) {
-      return res.status(400).json({ message: "Token required" });
-    }
-
-    // Verify token exists in database
-    const tokenData = await sql`
-      SELECT user_id, expires_at FROM user_tokens
-      WHERE token = ${token} AND is_active = true
-      LIMIT 1
-    `;
-
-    if (!tokenData || tokenData.length === 0) {
-      return res.status(401).json({ message: "Invalid token" });
-    }
-
-    // Verify JWT
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key-change-this");
-
-    // Generate new token
-    const newToken = generateToken(decoded.userId, decoded.email);
-    await saveToken(decoded.userId, newToken);
-
-    // Invalidate old token
-    await sql`
-      UPDATE user_tokens SET is_active = false WHERE token = ${token}
-    `;
-
-    res.json({
-      token: newToken,
-      token_type: "bearer",
-      expires_in: 2592000,
-    });
-  } catch (error) {
-    console.error("Refresh token error:", error);
-    res.status(401).json({ message: "Token refresh failed" });
-  }
-});
-
-
-// ==================== OLD REGISTER ENDPOINT (KEPT FOR COMPATIBILITY) ====================
-
 app.post("/register", async (req, res) => {
   try {
-    console.log("ðŸ“ Registration request received:", req.body);
+    console.log("📝 Registration request received:", req.body);
     const { name, email, password, confirmpassword, phone } = req.body;
 
     if (!name || !email || !password) {
-      console.log("âŒ Missing required fields");
+      console.log("❌ Missing required fields");
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     if (password !== confirmpassword) {
-      console.log("âŒ Passwords do not match");
+      console.log("❌ Passwords do not match");
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
-    console.log("ðŸ” Checking if email exists:", email);
+    console.log("🔍 Checking if email exists:", email);
     const existing = await sql`SELECT id FROM users WHERE email = ${email} LIMIT 1`;
     if (existing && existing.length > 0) {
-      console.log("âŒ Email already registered");
+      console.log("❌ Email already registered");
       return res.status(409).json({ message: "Email already registered" });
     }
 
-    console.log("ðŸ” Hashing password...");
+    console.log("🔐 Hashing password...");
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate email verification token
@@ -641,7 +389,7 @@ app.post("/register", async (req, res) => {
       { expiresIn: "24h" }
     );
 
-    console.log("ðŸ’¾ Inserting user into database...");
+    console.log("💾 Inserting user into database...");
     const result = await sql`
       INSERT INTO users (name, email, password, phone, is_verified, verification_token)
       VALUES (${name}, ${email}, ${hashedPassword}, ${phone}, FALSE, ${verificationToken})
@@ -649,7 +397,7 @@ app.post("/register", async (req, res) => {
     `;
 
     const inserted = result[0] || null;
-    console.log("âœ… User registered successfully:", inserted);
+    console.log("✅ User registered successfully:", inserted);
 
     // Send verification email
     try {
@@ -658,7 +406,7 @@ app.post("/register", async (req, res) => {
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
           <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <h2 style="color: #ffc800; margin-bottom: 20px;">Welcome to Raju IT! ðŸŽ‰</h2>
+            <h2 style="color: #ffc800; margin-bottom: 20px;">Welcome to Raju IT! 🎉</h2>
             <p style="font-size: 16px; color: #333; line-height: 1.6;">Hi ${name},</p>
             <p style="font-size: 16px; color: #333; line-height: 1.6;">
               Thank you for registering with us! To complete your registration and access your dashboard, 
@@ -692,7 +440,7 @@ app.post("/register", async (req, res) => {
         htmlContent: emailHtml
       });
 
-      console.log("âœ… Verification email sent to:", email);
+      console.log("✅ Verification email sent to:", email);
 
       res.status(201).json({
         message: "Registration successful! Please check your email to verify your account.",
@@ -702,7 +450,7 @@ app.post("/register", async (req, res) => {
       });
 
     } catch (emailError) {
-      console.error("âŒ Error sending verification email:", emailError);
+      console.error("❌ Error sending verification email:", emailError);
       console.error("Email error details:", emailError.message);
       console.error("Email error response:", emailError.response?.text || emailError.response?.body);
       
@@ -717,7 +465,7 @@ app.post("/register", async (req, res) => {
     }
 
   } catch (err) {
-    console.error("âŒ Register error:", err);
+    console.error("❌ Register error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
@@ -778,7 +526,7 @@ app.post("/login", async (req, res) => {
 
     // Check if email is verified (handles NULL, false, or undefined)
     if (storedUser.is_verified !== true) {
-      console.log("âš ï¸ Login attempt with unverified email:", email);
+      console.log("⚠️ Login attempt with unverified email:", email);
       console.log("User verification status:", storedUser.is_verified);
       
       // Generate new verification token or use existing one
@@ -807,7 +555,7 @@ app.post("/login", async (req, res) => {
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
             <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-              <h2 style="color: #ffc800; margin-bottom: 20px;">Email Verification Required ðŸ”</h2>
+              <h2 style="color: #ffc800; margin-bottom: 20px;">Email Verification Required 🔐</h2>
               <p style="font-size: 16px; color: #333; line-height: 1.6;">Hi ${storedUser.name},</p>
               <p style="font-size: 16px; color: #333; line-height: 1.6;">
                 You tried to log in, but your email address hasn't been verified yet. 
@@ -835,7 +583,7 @@ app.post("/login", async (req, res) => {
           </div>
         `;
 
-        console.log("ðŸ“§ Attempting to send verification email to:", email);
+        console.log("📧 Attempting to send verification email to:", email);
         
         await sendBrevoEmail({
           to: email,
@@ -843,7 +591,7 @@ app.post("/login", async (req, res) => {
           htmlContent: emailHtml
         });
 
-        console.log("âœ… Verification email sent successfully to:", email);
+        console.log("✅ Verification email sent successfully to:", email);
         
         return res.status(403).json({ 
           message: "Please verify your email address before logging in. We've sent a verification link to your email.",
@@ -853,7 +601,7 @@ app.post("/login", async (req, res) => {
         });
         
       } catch (emailError) {
-        console.error("âŒ Error sending verification email during login:", emailError);
+        console.error("❌ Error sending verification email during login:", emailError);
         console.error("Email error details:", emailError.message);
         console.error("Email error stack:", emailError.stack);
         
@@ -925,7 +673,7 @@ app.post("/admin/login", async (req, res) => {
 
     req.session.admin = { id: admin.id, name: admin.name, email: admin.email, isAdmin: true };
 
-    console.log("âœ… Admin logged in:", admin.email);
+    console.log("✅ Admin logged in:", admin.email);
 
     return res.json({
       success: true,
@@ -960,7 +708,7 @@ app.get("/verify-email", async (req, res) => {
         </head>
         <body>
           <div class="container">
-            <h1>âŒ Invalid Verification Link</h1>
+            <h1>❌ Invalid Verification Link</h1>
             <p>The verification link is missing or invalid.</p>
             <p><a href="/index.html">Return to Home</a></p>
           </div>
@@ -969,14 +717,14 @@ app.get("/verify-email", async (req, res) => {
       `);
     }
 
-    console.log("ðŸ“§ Email verification attempt with token:", token.substring(0, 20) + "...");
+    console.log("📧 Email verification attempt with token:", token.substring(0, 20) + "...");
 
     // Verify token
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
     } catch (jwtError) {
-      console.error("âŒ Invalid or expired token:", jwtError.message);
+      console.error("❌ Invalid or expired token:", jwtError.message);
       return res.status(400).send(`
         <!DOCTYPE html>
         <html>
@@ -991,7 +739,7 @@ app.get("/verify-email", async (req, res) => {
         </head>
         <body>
           <div class="container">
-            <h1>â° Verification Link Expired</h1>
+            <h1>⏰ Verification Link Expired</h1>
             <p>This verification link has expired. Please register again or contact support.</p>
             <p><a href="/index.html">Return to Home</a></p>
           </div>
@@ -1011,7 +759,7 @@ app.get("/verify-email", async (req, res) => {
     `;
 
     if (!userRows || userRows.length === 0) {
-      console.log("âŒ User not found or token mismatch");
+      console.log("❌ User not found or token mismatch");
       return res.status(400).send(`
         <!DOCTYPE html>
         <html>
@@ -1026,7 +774,7 @@ app.get("/verify-email", async (req, res) => {
         </head>
         <body>
           <div class="container">
-            <h1>âŒ Verification Failed</h1>
+            <h1>❌ Verification Failed</h1>
             <p>Unable to verify your email. The link may have already been used.</p>
             <p><a href="/index.html">Return to Home</a></p>
           </div>
@@ -1035,15 +783,11 @@ app.get("/verify-email", async (req, res) => {
       `);
     }
 
-
-      return res.status(404).json({ success: false, message: "Email address not found in our system." });
-    }
-
     const user = userRows[0];
 
     // Check if already verified
     if (user.is_verified) {
-      console.log("âš ï¸ User already verified:", email);
+      console.log("⚠️ User already verified:", email);
       return res.send(`
         <!DOCTYPE html>
         <html>
@@ -1061,7 +805,7 @@ app.get("/verify-email", async (req, res) => {
         </head>
         <body>
           <div class="container">
-            <h1>âœ… Email Already Verified!</h1>
+            <h1>✅ Email Already Verified!</h1>
             <p>Your email has already been verified. Redirecting to dashboard...</p>
             <div class="spinner"></div>
             <p><a href="/dashboard.html">Click here if not redirected automatically</a></p>
@@ -1078,7 +822,7 @@ app.get("/verify-email", async (req, res) => {
       WHERE id = ${user.id}
     `;
 
-    console.log("âœ… Email verified successfully for:", email);
+    console.log("✅ Email verified successfully for:", email);
 
     // Send success page with redirect to dashboard
     res.send(`
@@ -1099,7 +843,7 @@ app.get("/verify-email", async (req, res) => {
       </head>
       <body>
         <div class="container">
-          <div class="checkmark">âœ“</div>
+          <div class="checkmark">✓</div>
           <h1>Email Verified Successfully!</h1>
           <p>Welcome, ${user.name}! Your account has been activated.</p>
           <p>Redirecting to your dashboard...</p>
@@ -1111,7 +855,7 @@ app.get("/verify-email", async (req, res) => {
     `);
 
   } catch (err) {
-    console.error("âŒ Email verification error:", err);
+    console.error("❌ Email verification error:", err);
     res.status(500).send(`
       <!DOCTYPE html>
       <html>
@@ -1126,7 +870,7 @@ app.get("/verify-email", async (req, res) => {
       </head>
       <body>
         <div class="container">
-          <h1>âŒ Server Error</h1>
+          <h1>❌ Server Error</h1>
           <p>An error occurred while verifying your email. Please try again later.</p>
           <p><a href="/index.html">Return to Home</a></p>
         </div>
@@ -1141,22 +885,15 @@ app.post("/resend-verification", async (req, res) => {
   try {
     const { email } = req.body;
 
-    console.log(`ðŸ“§ Resend verification request for: ${email}`);
+    console.log(`📧 Resend verification request for: ${email}`);
 
     if (!email) {
       return res.status(400).json({ success: false, message: "Email is required" });
     }
 
-
-    // Lookup user by email in database
-    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(`${email}`)`;
-    if (!userRows || userRows.length === 0) {
-      return res.status(404).json({ success: false, message: "Email address not found in our system." });
-    }
-
     // Check if Brevo API key is configured
     if (!process.env.BREVO_API_KEY) {
-      console.error("âŒ BREVO_API_KEY not configured!");
+      console.error("❌ BREVO_API_KEY not configured!");
       return res.status(500).json({ 
         success: false, 
         message: "Email service not configured. Please contact support." 
@@ -1209,7 +946,7 @@ app.post("/resend-verification", async (req, res) => {
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
         <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-          <h2 style="color: #ffc800; margin-bottom: 20px;">Verify Your Email ðŸ“§</h2>
+          <h2 style="color: #ffc800; margin-bottom: 20px;">Verify Your Email 📧</h2>
           <p style="font-size: 16px; color: #333; line-height: 1.6;">Hi ${user.name},</p>
           <p style="font-size: 16px; color: #333; line-height: 1.6;">
             You requested a new verification link. Please verify your email address by clicking the button below:
@@ -1242,7 +979,7 @@ app.post("/resend-verification", async (req, res) => {
       htmlContent: emailHtml
     });
 
-    console.log("âœ… Verification email resent to:", email);
+    console.log("✅ Verification email resent to:", email);
 
     res.json({ 
       success: true, 
@@ -1250,7 +987,7 @@ app.post("/resend-verification", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("âŒ Resend verification error:", error);
+    console.error("❌ Resend verification error:", error);
     res.status(500).json({ 
       success: false, 
       message: "Failed to send verification email. Please try again later.",
@@ -1262,7 +999,7 @@ app.post("/resend-verification", async (req, res) => {
 // Test email endpoint - send test email to verify Brevo configuration
 app.get("/test-email", async (req, res) => {
   try {
-    console.log("ðŸ§ª Test email endpoint called");
+    console.log("🧪 Test email endpoint called");
     
     // Check if Brevo API key is configured
     if (!process.env.BREVO_API_KEY) {
@@ -1276,7 +1013,7 @@ app.get("/test-email", async (req, res) => {
     
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #ffc800;">âœ… Brevo Email Test Successful!</h2>
+        <h2 style="color: #ffc800;">✅ Brevo Email Test Successful!</h2>
         <p>This is a test email to verify your Brevo email configuration is working correctly.</p>
         <p><strong>If you received this email, your password reset feature should work!</strong></p>
         <hr>
@@ -1306,7 +1043,7 @@ app.get("/test-email", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("âŒ Test email error:", error);
+    console.error("❌ Test email error:", error);
     res.status(500).json({ 
       success: false, 
       error: error.message,
@@ -1316,11 +1053,11 @@ app.get("/test-email", async (req, res) => {
 });
 
 // Forgot password - send reset link via Brevo
-app.post("/api/forgot-password", async (req, res) => {
+app.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
 
-    console.log(`ðŸ“§ Password reset request received for: ${email}`);
+    console.log(`📧 Password reset request received for: ${email}`);
 
     if (!email) {
       return res.status(400).json({ success: false, message: "Email is required" });
@@ -1330,17 +1067,11 @@ app.post("/api/forgot-password", async (req, res) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ success: false, message: "Invalid email format" });
-
-    // Lookup user by email
-    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(`${email}`)`
-    if (!userRows || userRows.length === 0) {
-      return res.status(404).json({ success: false, message: "Email address not found in our system." });
-    }
     }
 
     // Check if Brevo API key is configured
     if (!process.env.BREVO_API_KEY) {
-      console.error("âŒ BREVO_API_KEY not configured!");
+      console.error("❌ BREVO_API_KEY not configured!");
       return res.status(500).json({ success: false, message: "Email service not configured. Please contact support." });
     }
 
@@ -1348,13 +1079,13 @@ app.post("/api/forgot-password", async (req, res) => {
     const userRows = await sql`SELECT * FROM users WHERE email = ${email} LIMIT 1`;
 
     if (!userRows || userRows.length === 0) {
-      console.log(`âš ï¸ No user found with email: ${email}`);
+      console.log(`⚠️ No user found with email: ${email}`);
       // Don't reveal if email exists for security, but still return success
       return res.json({ success: true, message: "If an account exists with this email, you will receive a password reset link." });
     }
 
     const user = userRows[0];
-    console.log(`âœ… User found: ${user.name} (ID: ${user.id})`);
+    console.log(`✅ User found: ${user.name} (ID: ${user.id})`);
 
     const now = new Date();
 
@@ -1365,7 +1096,7 @@ app.post("/api/forgot-password", async (req, res) => {
       
       if (hoursSinceLastReset < 24) {
         const hoursRemaining = Math.ceil(24 - hoursSinceLastReset);
-        console.log(`â° User ${email} tried to reset password too soon after successful reset. Last reset: ${lastResetTime}`);
+        console.log(`⏰ User ${email} tried to reset password too soon after successful reset. Last reset: ${lastResetTime}`);
         return res.status(429).json({ 
           success: false, 
           message: `You have recently reset your password. You can request another reset in ${hoursRemaining} hour(s).`,
@@ -1382,7 +1113,7 @@ app.post("/api/forgot-password", async (req, res) => {
       
       if (minutesSinceLastRequest < 5) {
         const minutesRemaining = Math.ceil(5 - minutesSinceLastRequest);
-        console.log(`â° User ${email} tried to request reset too soon. Last request: ${lastRequestTime}`);
+        console.log(`⏰ User ${email} tried to request reset too soon. Last request: ${lastRequestTime}`);
         return res.status(429).json({ 
           success: false, 
           message: `Please wait ${minutesRemaining} minute(s) before requesting another password reset link.`,
@@ -1422,9 +1153,9 @@ app.post("/api/forgot-password", async (req, res) => {
     `;
 
     try {
-      console.log(`ðŸ“¤ Attempting to send password reset email via Brevo to: ${email}`);
-      console.log(`ðŸ”‘ Brevo API Key configured: ${!!process.env.BREVO_API_KEY}`);
-      console.log(`ðŸ“§ Sender email: ${BREVO_SENDER.email}`);
+      console.log(`📤 Attempting to send password reset email via Brevo to: ${email}`);
+      console.log(`🔑 Brevo API Key configured: ${!!process.env.BREVO_API_KEY}`);
+      console.log(`📧 Sender email: ${BREVO_SENDER.email}`);
       
       const emailResult = await sendBrevoEmail({
         to: email,
@@ -1432,7 +1163,7 @@ app.post("/api/forgot-password", async (req, res) => {
         htmlContent: emailHtml
       });
 
-      console.log(`âœ… Password reset email sent successfully to ${email}`, emailResult);
+      console.log(`✅ Password reset email sent successfully to ${email}`, emailResult);
       
       // Update last reset request time
       await sql`
@@ -1447,7 +1178,7 @@ app.post("/api/forgot-password", async (req, res) => {
         emailSent: true
       });
     } catch (emailError) {
-      console.error(`âŒ Failed to send password reset email to ${email}:`, {
+      console.error(`❌ Failed to send password reset email to ${email}:`, {
         error: emailError.message,
         stack: emailError.stack,
         response: emailError.response?.text || emailError.response?.body || 'No response details'
@@ -1463,7 +1194,7 @@ app.post("/api/forgot-password", async (req, res) => {
     }
 
   } catch (error) {
-    console.error("âŒ Forgot password error:", {
+    console.error("❌ Forgot password error:", {
       error: error.message,
       stack: error.stack
     });
@@ -1502,8 +1233,8 @@ app.post("/reset-password", async (req, res) => {
       WHERE id = ${decoded.userId}
     `;
 
-    console.log(`âœ… Password reset successful for user ID: ${decoded.userId}`);
-    console.log(`â° Password reset timestamp updated for rate limiting`);
+    console.log(`✅ Password reset successful for user ID: ${decoded.userId}`);
+    console.log(`⏰ Password reset timestamp updated for rate limiting`);
     
     // Send confirmation email via Brevo
     const userRows = await sql`SELECT name, email FROM users WHERE id = ${decoded.userId} LIMIT 1`;
@@ -1530,16 +1261,16 @@ app.post("/reset-password", async (req, res) => {
           subject: "Password Changed Successfully - Raju IT",
           htmlContent: confirmationHtml
         });
-        console.log(`âœ… Password change confirmation sent to ${user.email}`);
+        console.log(`✅ Password change confirmation sent to ${user.email}`);
       } catch (emailError) {
-        console.error("âŒ Failed to send confirmation email:", emailError.message);
+        console.error("❌ Failed to send confirmation email:", emailError.message);
       }
     }
 
     res.json({ success: true, message: "Password reset successful. You can now login with your new password." });
 
   } catch (error) {
-    console.error("âŒ Reset password error:", error);
+    console.error("❌ Reset password error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -1580,7 +1311,7 @@ app.post("/change-password", verifyToken, async (req, res) => {
 
       if (hoursSinceLastReset < 24) {
         const hoursRemaining = Math.ceil(24 - hoursSinceLastReset);
-        console.log(`â° Password change rate limited for user ${userId}. ${hoursRemaining} hours remaining.`);
+        console.log(`⏰ Password change rate limited for user ${userId}. ${hoursRemaining} hours remaining.`);
         return res.status(429).json({
           rateLimited: true,
           message: `You can only change your password once every 24 hours. Please try again in ${hoursRemaining} hour(s).`,
@@ -1599,8 +1330,8 @@ app.post("/change-password", verifyToken, async (req, res) => {
       WHERE id = ${userId}
     `;
 
-    console.log(`âœ… Password changed successfully for user ID: ${userId}`);
-    console.log(`â° Password change timestamp updated for rate limiting`);
+    console.log(`✅ Password changed successfully for user ID: ${userId}`);
+    console.log(`⏰ Password change timestamp updated for rate limiting`);
 
     // Send confirmation email via Brevo
     const confirmationHtml = `
@@ -1624,9 +1355,9 @@ app.post("/change-password", verifyToken, async (req, res) => {
         subject: "Password Changed Successfully - Raju IT",
         htmlContent: confirmationHtml
       });
-      console.log(`âœ… Password change confirmation sent to ${user.email}`);
+      console.log(`✅ Password change confirmation sent to ${user.email}`);
     } catch (emailError) {
-      console.error("âŒ Failed to send confirmation email:", emailError.message);
+      console.error("❌ Failed to send confirmation email:", emailError.message);
     }
 
     res.json({ 
@@ -1635,7 +1366,7 @@ app.post("/change-password", verifyToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error("âŒ Change password error:", error);
+    console.error("❌ Change password error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -1672,7 +1403,7 @@ app.get("/check-password-reset-status", verifyToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error("âŒ Check password reset status error:", error);
+    console.error("❌ Check password reset status error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -1695,25 +1426,25 @@ function verifyToken(req, res, next) {
   const header = req.headers["authorization"];
   const token = header?.split(" ")[1];
 
-  console.log("ðŸ” Auth Header:", header); // âœ… Debug log
-  console.log("ðŸ” Token:", token ? "Found" : "Not found");
+  console.log("🔍 Auth Header:", header); // ✅ Debug log
+  console.log("🔍 Token:", token ? "Found" : "Not found");
 
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
       if (err) {
-        console.error("âŒ Token verification failed:", err.message);
+        console.error("❌ Token verification failed:", err.message);
         return res.status(401).json({ message: "Invalid token", error: err.message });
       }
-      console.log("âœ… Token valid, user:", decoded.email);
+      console.log("✅ Token valid, user:", decoded.email);
       req.user = decoded;
       next();
     });
   } else if (req.session && req.session.user) {
-    console.log("âœ… Using session user:", req.session.user.email);
+    console.log("✅ Using session user:", req.session.user.email);
     req.user = req.session.user;
     next();
   } else {
-    console.error("âŒ No token or session found");
+    console.error("❌ No token or session found");
     return res.status(403).json({ message: "No token provided" });
   }
 }
@@ -1723,33 +1454,33 @@ function verifyAdmin(req, res, next) {
   const header = req.headers["authorization"];
   const token = header?.split(" ")[1];
 
-  console.log("ðŸ” Admin Auth Check");
+  console.log("🔍 Admin Auth Check");
 
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY", (err, decoded) => {
       if (err) {
-        console.error("âŒ Admin token verification failed:", err.message);
+        console.error("❌ Admin token verification failed:", err.message);
         return res.status(401).json({ message: "Invalid token", error: err.message });
       }
       if (!decoded.isAdmin) {
-        console.error("âŒ User is not admin");
+        console.error("❌ User is not admin");
         return res.status(403).json({ message: "Access denied. Admin only." });
       }
-      console.log("âœ… Admin token valid:", decoded.email);
+      console.log("✅ Admin token valid:", decoded.email);
       req.user = decoded;
       next();
     });
   } else if (req.session && req.session.admin) {
-    console.log("âœ… Using admin session:", req.session.admin.email);
+    console.log("✅ Using admin session:", req.session.admin.email);
     req.user = req.session.admin;
     next();
   } else {
-    console.error("âŒ No admin token or session found");
+    console.error("❌ No admin token or session found");
     return res.status(403).json({ message: "Access denied. Admin login required." });
   }
 }
 
-// âœ… PROTECTED ROUTES (BEFORE static files)
+// ✅ PROTECTED ROUTES (BEFORE static files)
 app.get("/dashboard.html", (req, res) => {
   if (req.session && req.session.user) {
     return res.sendFile(path.join(__dirname, "dashboard.html"));
@@ -1841,7 +1572,7 @@ app.get("/api/user-data", verifyToken, async (req, res) => {
 // Update Profile Route
 app.post("/update-profile", verifyToken, async (req, res) => {
   try {
-    console.log("ðŸ“ Update profile request received");
+    console.log("📝 Update profile request received");
     console.log("Request body:", req.body);
     console.log("User from token:", req.user);
     
@@ -1849,11 +1580,11 @@ app.post("/update-profile", verifyToken, async (req, res) => {
     const { name, phone, address } = req.body;
 
     if (!userId) {
-      console.log("âŒ No user ID found");
+      console.log("❌ No user ID found");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    console.log("ðŸ“ Updating profile for user:", userId);
+    console.log("📝 Updating profile for user:", userId);
 
     // Check last edit date
     const userRows = await sql`SELECT last_profile_edit FROM users WHERE id = ${userId} LIMIT 1`;
@@ -1865,7 +1596,7 @@ app.post("/update-profile", verifyToken, async (req, res) => {
       
       if (daysSinceEdit < 7) {
         const daysLeft = 7 - daysSinceEdit;
-        console.log(`âŒ User tried to edit before 7 days. Days left: ${daysLeft}`);
+        console.log(`❌ User tried to edit before 7 days. Days left: ${daysLeft}`);
         return res.status(403).json({ 
           message: `You can only edit your profile once every 7 days. Please try again in ${daysLeft} day(s).`,
           daysLeft
@@ -1874,7 +1605,7 @@ app.post("/update-profile", verifyToken, async (req, res) => {
     }
 
     // Update profile
-    console.log("ðŸ’¾ Updating profile...");
+    console.log("💾 Updating profile...");
     const result = await sql`
       UPDATE users 
       SET name = ${name}, 
@@ -1886,7 +1617,7 @@ app.post("/update-profile", verifyToken, async (req, res) => {
     `;
 
     const updatedUser = result[0];
-    console.log("âœ… Profile updated successfully:", updatedUser);
+    console.log("✅ Profile updated successfully:", updatedUser);
 
     res.json({
       message: "Profile updated successfully",
@@ -1895,7 +1626,7 @@ app.post("/update-profile", verifyToken, async (req, res) => {
     });
 
   } catch (err) {
-    console.error("âŒ Update profile error:", err);
+    console.error("❌ Update profile error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
@@ -1918,7 +1649,7 @@ app.get("/get-shipping", verifyToken, async (req, res) => {
 
     res.json({ shipping: result[0] || {} });
   } catch (err) {
-    console.error("âŒ Get shipping error:", err);
+    console.error("❌ Get shipping error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
@@ -1950,7 +1681,7 @@ app.post("/update-shipping", verifyToken, async (req, res) => {
 
     res.json({ message: "Shipping address updated successfully" });
   } catch (err) {
-    console.error("âŒ Update shipping error:", err);
+    console.error("❌ Update shipping error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
@@ -1959,10 +1690,10 @@ app.post("/update-shipping", verifyToken, async (req, res) => {
 app.get("/get-orders", verifyToken, async (req, res) => {
   try {
     const userId = req.user?.id;
-    console.log(`ðŸ“‹ Fetching orders for user ID: ${userId}`);
+    console.log(`📋 Fetching orders for user ID: ${userId}`);
     
     if (!userId) {
-      console.log("âŒ User not authenticated");
+      console.log("❌ User not authenticated");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
@@ -1980,7 +1711,7 @@ app.get("/get-orders", verifyToken, async (req, res) => {
       ORDER BY created_at DESC
     `;
 
-    console.log(`âœ… Found ${ordersData.length} orders for user ${userId}`);
+    console.log(`✅ Found ${ordersData.length} orders for user ${userId}`);
 
     // If no orders, return empty array
     if (ordersData.length === 0) {
@@ -2026,10 +1757,10 @@ app.get("/get-orders", verifyToken, async (req, res) => {
       }
     }
 
-    console.log(`âœ… Returning ${orders.length} orders with items`);
+    console.log(`✅ Returning ${orders.length} orders with items`);
     res.json({ orders });
   } catch (err) {
-    console.error("âŒ Get orders error:", err);
+    console.error("❌ Get orders error:", err);
     console.error("Error message:", err.message);
     console.error("Stack:", err.stack);
     res.status(500).json({ message: "Server error", error: err.message, stack: err.stack });
@@ -2044,23 +1775,23 @@ app.post("/create-order", verifyToken, async (req, res) => {
     const userId = req.user?.id;
     const { items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
-    console.log(`ðŸ›’ Create order request from user ID: ${userId}`);
-    console.log(`ðŸ“¦ Items count: ${items?.length}, Total: à§³${totalAmount}`);
+    console.log(`🛒 Create order request from user ID: ${userId}`);
+    console.log(`📦 Items count: ${items?.length}, Total: ৳${totalAmount}`);
 
     if (!userId) {
-      console.log("âŒ User not authenticated");
+      console.log("❌ User not authenticated");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
     if (!items || items.length === 0) {
-      console.log("âŒ No items in order");
+      console.log("❌ No items in order");
       return res.status(400).json({ message: "No items in order" });
     }
 
     // Get user details
     const userResult = await sql`SELECT name, email FROM users WHERE id = ${userId}`;
     const user = userResult[0];
-    console.log(`ðŸ‘¤ Creating order for: ${user.name} (${user.email})`);
+    console.log(`👤 Creating order for: ${user.name} (${user.email})`);
 
     // Create order (without PDF URL initially)
     const orderResult = await sql`
@@ -2071,17 +1802,17 @@ app.post("/create-order", verifyToken, async (req, res) => {
 
     const orderId = orderResult[0].id;
     const orderDate = new Date(orderResult[0].created_at);
-    console.log(`âœ… Order created with ID: ${orderId}`);
+    console.log(`✅ Order created with ID: ${orderId}`);
 
     // Insert order items
-    console.log(`ðŸ“ Inserting ${items.length} order items...`);
+    console.log(`📝 Inserting ${items.length} order items...`);
     for (const item of items) {
       await sql`
         INSERT INTO order_items (order_id, product_name, product_image, quantity, price)
         VALUES (${orderId}, ${item.name}, ${item.image || null}, ${item.quantity}, ${item.price})
       `;
     }
-    console.log(`âœ… All order items inserted`);
+    console.log(`✅ All order items inserted`);
 
     // Generate invoice HTML
     const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -2120,7 +1851,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
     <div class="invoice-header">
         <h1>INVOICE</h1>
         <p>Raju IT - Premium Fashion Store</p>
-        <p>ðŸ“§ rajuit1396@gmail.com | ðŸ“± +8801726466000</p>
+        <p>📧 rajuit1396@gmail.com | 📱 +8801726466000</p>
     </div>
     
     <div class="invoice-details">
@@ -2158,9 +1889,9 @@ app.post("/create-order", verifyToken, async (req, res) => {
               return `
             <tr>
                 <td>${item.name}</td>
-                <td class="text-right">à§³${price.toFixed(2)}</td>
+                <td class="text-right">৳${price.toFixed(2)}</td>
                 <td class="text-right">${quantity}</td>
-                <td class="text-right">à§³${(price * quantity).toFixed(2)}</td>
+                <td class="text-right">৳${(price * quantity).toFixed(2)}</td>
             </tr>
             `;
             }).join('')}
@@ -2171,30 +1902,30 @@ app.post("/create-order", verifyToken, async (req, res) => {
     <div class="totals">
         <div class="totals-row">
             <span>Subtotal:</span>
-            <span>à§³${subtotal.toFixed(2)}</span>
+            <span>৳${subtotal.toFixed(2)}</span>
         </div>
         <div class="totals-row">
             <span>Shipping:</span>
-            <span>à§³${shipping.toFixed(2)}</span>
+            <span>৳${shipping.toFixed(2)}</span>
         </div>
         <div class="totals-row">
             <span>Tax (15%):</span>
-            <span>à§³${tax.toFixed(2)}</span>
+            <span>৳${tax.toFixed(2)}</span>
         </div>
         <div class="totals-row total">
             <span>TOTAL:</span>
-            <span>à§³${total.toFixed(2)}</span>
+            <span>৳${total.toFixed(2)}</span>
         </div>
     </div>
     
     <div style="clear: both;"></div>
-    <div class="thank-you">Thank You for Your Order! ðŸŽ‰</div>
+    <div class="thank-you">Thank You for Your Order! 🎉</div>
     
     <div class="footer">
         <p><strong>Terms & Conditions:</strong></p>
         <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
         For questions about this invoice, contact us at rajuit1396@gmail.com or +8801726466000</p>
-        <p style="margin-top: 20px;">Â© 2025 Raju IT. All rights reserved.</p>
+        <p style="margin-top: 20px;">© 2025 Raju IT. All rights reserved.</p>
     </div>
 </body>
 </html>
@@ -2207,9 +1938,9 @@ app.post("/create-order", verifyToken, async (req, res) => {
     // Start PDF generation in background
     (async () => {
       try {
-        console.log(`ðŸš€ Starting background invoice generation for order #${orderId}...`);
+        console.log(`🚀 Starting background invoice generation for order #${orderId}...`);
         const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-        console.log(`âœ… Invoice PDF uploaded successfully: ${pdfUrl}`);
+        console.log(`✅ Invoice PDF uploaded successfully: ${pdfUrl}`);
         
         // Update order with PDF URL
         const updateResult = await sql`
@@ -2220,12 +1951,12 @@ app.post("/create-order", verifyToken, async (req, res) => {
         `;
         
         if (updateResult && updateResult.length > 0) {
-          console.log(`âœ… Order #${orderId} updated with PDF URL`);
+          console.log(`✅ Order #${orderId} updated with PDF URL`);
         } else {
-          console.warn(`âš ï¸ Order #${orderId} update returned no rows`);
+          console.warn(`⚠️ Order #${orderId} update returned no rows`);
         }
       } catch (error) {
-        console.error(`âŒ Background PDF generation failed for order #${orderId}:`, error.message);
+        console.error(`❌ Background PDF generation failed for order #${orderId}:`, error.message);
       }
     })();
 
@@ -2236,15 +1967,15 @@ app.post("/create-order", verifyToken, async (req, res) => {
     // Send email in background to not block response via Brevo
     (async () => {
       try {
-        console.log(`ðŸ“§ Attempting to send invoice to ${user.email} via Brevo...`);
+        console.log(`📧 Attempting to send invoice to ${user.email} via Brevo...`);
         
         const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #212529;">Order Confirmed! ðŸŽ‰</h2>
+              <h2 style="color: #212529;">Order Confirmed! 🎉</h2>
               <p>Thank you for your order at Raju IT!</p>
               <div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #ffc800; margin: 20px 0;">
                 <p><strong>Order Number:</strong> #${orderId.toString().padStart(6, '0')}</p>
-                <p><strong>Total Amount:</strong> à§³${totalAmount}</p>
+                <p><strong>Total Amount:</strong> ৳${totalAmount}</p>
               </div>
               <p>You can view and download your invoice from your dashboard.</p>
               <a href="https://rajuit.online/dashboard" style="display: inline-block; background: #ffc800; color: #212529; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0;">View My Orders</a>
@@ -2258,17 +1989,17 @@ app.post("/create-order", verifyToken, async (req, res) => {
           htmlContent: emailHtml
         });
         
-        console.log(`âœ… Invoice email sent successfully to ${user.email} via Brevo`);
+        console.log(`✅ Invoice email sent successfully to ${user.email} via Brevo`);
         
         // Send invoice copy to admin
         const adminEmailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #212529;">New Order Received! ðŸŽ‰</h2>
+              <h2 style="color: #212529;">New Order Received! 🎉</h2>
               <p><strong>A new order has been placed on Raju IT.</strong></p>
               <div style="background: #f8f9fa; padding: 15px; border-left: 4px solid #ffc800; margin: 20px 0;">
                 <p><strong>Order Number:</strong> #${orderId.toString().padStart(6, '0')}</p>
                 <p><strong>Customer:</strong> ${user.name} (${user.email})</p>
-                <p><strong>Total Amount:</strong> à§³${totalAmount}</p>
+                <p><strong>Total Amount:</strong> ৳${totalAmount}</p>
                 <p><strong>Payment Method:</strong> ${paymentMethod === 'cod' ? 'Cash on Delivery' : paymentMethod === 'card' ? 'Credit/Debit Card' : 'Bank Transfer'}</p>
               </div>
               <p><strong>Shipping Address:</strong></p>
@@ -2283,14 +2014,14 @@ app.post("/create-order", verifyToken, async (req, res) => {
           htmlContent: adminEmailHtml
         });
         
-        console.log(`âœ… Admin notification email sent to rajuit1396@gmail.com`);
+        console.log(`✅ Admin notification email sent to rajuit1396@gmail.com`);
         
       } catch (error) {
-        console.error(`âŒ Background email sending failed for order #${orderId}:`, error.message);
+        console.error(`❌ Background email sending failed for order #${orderId}:`, error.message);
       }
     })();
 
-    console.log(`âœ… Order #${orderId} created successfully, returning response to client`);
+    console.log(`✅ Order #${orderId} created successfully, returning response to client`);
     
     res.json({ 
       success: true, 
@@ -2303,7 +2034,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
       pdfNote: "Invoice PDF is being generated and will be available shortly in your dashboard"
     });
   } catch (err) {
-    console.error("âŒ Create order error:", err);
+    console.error("❌ Create order error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
@@ -2314,10 +2045,10 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     const userId = req.user?.id;
     const orderId = req.params.orderId;
 
-    console.log(`ðŸ“„ Fetching invoice for order #${orderId}, user: ${userId}`);
+    console.log(`📄 Fetching invoice for order #${orderId}, user: ${userId}`);
 
     if (!userId) {
-      console.log("âŒ User not authenticated");
+      console.log("❌ User not authenticated");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
@@ -2340,12 +2071,12 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     console.log(`Order query completed, found ${orderResult.length} orders`);
 
     if (!orderResult || orderResult.length === 0) {
-      console.log(`âŒ Order #${orderId} not found for user ${userId}`);
+      console.log(`❌ Order #${orderId} not found for user ${userId}`);
       return res.status(404).json({ message: "Order not found" });
     }
 
     const order = orderResult[0];
-    console.log(`âœ… Order found: #${order.id}, total: ${order.total_amount}`);
+    console.log(`✅ Order found: #${order.id}, total: ${order.total_amount}`);
 
     // Get order items
     const itemsResult = await sql`
@@ -2395,7 +2126,7 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     <div class="invoice-header">
         <h1>INVOICE</h1>
         <p>Raju IT - Premium Fashion Store</p>
-        <p>ðŸ“§ rajuit1396@gmail.com | ðŸ“± +8801726466000</p>
+        <p>📧 rajuit1396@gmail.com | 📱 +8801726466000</p>
     </div>
     
     <div class="invoice-details">
@@ -2433,9 +2164,9 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
               return `
             <tr>
                 <td>${item.name}</td>
-                <td class="text-right">à§³${price.toFixed(2)}</td>
+                <td class="text-right">৳${price.toFixed(2)}</td>
                 <td class="text-right">${quantity}</td>
-                <td class="text-right">à§³${(price * quantity).toFixed(2)}</td>
+                <td class="text-right">৳${(price * quantity).toFixed(2)}</td>
             </tr>
             `;
             }).join('')}
@@ -2446,36 +2177,36 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     <div class="totals">
         <div class="totals-row">
             <span>Subtotal:</span>
-            <span>à§³${subtotal.toFixed(2)}</span>
+            <span>৳${subtotal.toFixed(2)}</span>
         </div>
         <div class="totals-row">
             <span>Shipping:</span>
-            <span>à§³${shipping.toFixed(2)}</span>
+            <span>৳${shipping.toFixed(2)}</span>
         </div>
         <div class="totals-row">
             <span>Tax (15%):</span>
-            <span>à§³${tax.toFixed(2)}</span>
+            <span>৳${tax.toFixed(2)}</span>
         </div>
         <div class="totals-row total">
             <span>TOTAL:</span>
-            <span>à§³${total.toFixed(2)}</span>
+            <span>৳${total.toFixed(2)}</span>
         </div>
     </div>
     
     <div style="clear: both;"></div>
-    <div class="thank-you">Thank You for Your Order! ðŸŽ‰</div>
+    <div class="thank-you">Thank You for Your Order! 🎉</div>
     
     <div class="footer">
         <p><strong>Terms & Conditions:</strong></p>
         <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
         For questions about this invoice, contact us at rajuit1396@gmail.com or +8801726466000</p>
-        <p style="margin-top: 20px;">Â© 2025 Raju IT. All rights reserved.</p>
+        <p style="margin-top: 20px;">© 2025 Raju IT. All rights reserved.</p>
     </div>
 </body>
 </html>
     `;
 
-    console.log(`âœ… Returning invoice for order #${orderId}`);
+    console.log(`✅ Returning invoice for order #${orderId}`);
     res.json({ 
       success: true, 
       invoice: invoiceHtml,
@@ -2483,7 +2214,7 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
       orderId
     });
   } catch (err) {
-    console.error("âŒ Get invoice error:", err);
+    console.error("❌ Get invoice error:", err);
     console.error("Error message:", err.message);
     console.error("Error stack:", err.stack);
     res.status(500).json({ 
@@ -2498,7 +2229,7 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
 app.get("/logout", (req, res) => {
     req.session.destroy(() => {
         res.clearCookie('connect.sid', { path: '/' });
-        // âœ… Send HTML that clears localStorage before redirect
+        // ✅ Send HTML that clears localStorage before redirect
         res.send(`
           <script>
             localStorage.removeItem("token");
@@ -2544,7 +2275,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// âœ… STATIC FILES LAST (so routes execute first)
+// ✅ STATIC FILES LAST (so routes execute first)
 app.use(express.static(path.join(__dirname)));
 app.use(express.static(path.join(__dirname, 'project')));
 
@@ -2552,7 +2283,7 @@ app.use(express.static(path.join(__dirname, 'project')));
 app.post("/send", async (req, res) => {
     const { name, email, phone, message } = req.body;
 
-    console.log("ðŸ“§ Contact form submission:", { name, email, phone });
+    console.log("📧 Contact form submission:", { name, email, phone });
 
     const emailHtml = `
         <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
@@ -2572,7 +2303,7 @@ app.post("/send", async (req, res) => {
     `;
 
     try {
-        console.log("ðŸ“¤ Sending contact form email via Brevo...");
+        console.log("📤 Sending contact form email via Brevo...");
         
         await sendBrevoEmail({
             to: process.env.BREVO_SENDER_EMAIL || "rajuit1396@gmail.com",
@@ -2581,11 +2312,11 @@ app.post("/send", async (req, res) => {
             replyTo: email
         });
         
-        console.log("âœ… Contact form email sent successfully via Brevo!");
+        console.log("✅ Contact form email sent successfully via Brevo!");
         res.json({ success: true, message: "Message sent successfully!" });
 
     } catch (error) {
-        console.error("âŒ Contact form email error:", error.message);
+        console.error("❌ Contact form email error:", error.message);
         console.error("Full error:", error);
         res.status(500).json({ success: false, message: "Failed to send message.", error: error.message });
     }
@@ -2594,7 +2325,7 @@ app.post("/send", async (req, res) => {
 // Check if tables exist and show structure
 app.get("/check-tables", async (req, res) => {
   try {
-    console.log("ðŸ” Checking database tables...");
+    console.log("🔍 Checking database tables...");
     
     // Check if orders table exists
     const ordersTableCheck = await sql`
@@ -2669,7 +2400,7 @@ app.get("/check-tables", async (req, res) => {
     });
     
   } catch (error) {
-    console.error("âŒ Check tables error:", error);
+    console.error("❌ Check tables error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to check tables",
@@ -2681,7 +2412,7 @@ app.get("/check-tables", async (req, res) => {
 // Create tables if they don't exist
 app.get("/create-tables", async (req, res) => {
   try {
-    console.log("ðŸ”¨ Creating tables...");
+    console.log("🔨 Creating tables...");
     
     // Create orders table
     await sql`
@@ -2695,7 +2426,7 @@ app.get("/create-tables", async (req, res) => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
-    console.log("âœ… Orders table created/verified");
+    console.log("✅ Orders table created/verified");
     
     // Create order_items table
     await sql`
@@ -2710,7 +2441,7 @@ app.get("/create-tables", async (req, res) => {
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
       )
     `;
-    console.log("âœ… Order_items table created/verified");
+    console.log("✅ Order_items table created/verified");
     
     res.json({
       success: true,
@@ -2718,7 +2449,7 @@ app.get("/create-tables", async (req, res) => {
     });
     
   } catch (error) {
-    console.error("âŒ Create tables error:", error);
+    console.error("❌ Create tables error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to create tables",
@@ -2730,20 +2461,20 @@ app.get("/create-tables", async (req, res) => {
 // Migration endpoint to add invoice_pdf_url column
 app.get("/migrate-invoice-column", async (req, res) => {
   try {
-    console.log("ðŸ”„ Adding invoice_pdf_url column to orders table...");
+    console.log("🔄 Adding invoice_pdf_url column to orders table...");
     
     await sql`
       ALTER TABLE orders 
       ADD COLUMN IF NOT EXISTS invoice_pdf_url TEXT
     `;
     
-    console.log("âœ… Migration completed successfully");
+    console.log("✅ Migration completed successfully");
     res.json({ 
       success: true, 
       message: "invoice_pdf_url column added to orders table" 
     });
   } catch (error) {
-    console.error("âŒ Migration error:", error);
+    console.error("❌ Migration error:", error);
     res.status(500).json({ 
       success: false, 
       message: "Migration failed", 
@@ -2755,7 +2486,7 @@ app.get("/migrate-invoice-column", async (req, res) => {
 // Migration endpoint to add email verification columns to users table
 app.get("/migrate-email-verification", async (req, res) => {
   try {
-    console.log("ðŸ”„ Adding email verification columns to users table...");
+    console.log("🔄 Adding email verification columns to users table...");
     
     // Add is_verified column (default to false)
     await sql`
@@ -2781,13 +2512,13 @@ app.get("/migrate-email-verification", async (req, res) => {
       ADD COLUMN IF NOT EXISTS last_reset_request_time TIMESTAMP
     `;
     
-    console.log("âœ… Email verification and password reset migration completed successfully");
+    console.log("✅ Email verification and password reset migration completed successfully");
     res.json({ 
       success: true, 
       message: "Email verification and password reset columns added to users table" 
     });
   } catch (error) {
-    console.error("âŒ Migration error:", error);
+    console.error("❌ Migration error:", error);
     res.status(500).json({ 
       success: false, 
       message: "Migration failed", 
@@ -2831,7 +2562,7 @@ app.get("/debug-all-orders", verifyToken, async (req, res) => {
   try {
     const userId = req.user?.id;
     
-    console.log(`ðŸ” Debug: Checking all orders for user ${userId}`);
+    console.log(`🔍 Debug: Checking all orders for user ${userId}`);
     
     const allOrders = await sql`
       SELECT * FROM orders WHERE user_id = ${userId} ORDER BY created_at DESC
@@ -2862,7 +2593,7 @@ app.get("/debug-all-orders", verifyToken, async (req, res) => {
 // Test endpoint to verify ImageKit and Puppeteer setup
 app.get("/test-invoice", async (req, res) => {
   try {
-    console.log("ðŸ§ª Testing invoice generation...");
+    console.log("🧪 Testing invoice generation...");
     console.log("Puppeteer executable:", puppeteer.executablePath());
     console.log("ImageKit endpoint:", process.env.IMAGEKIT_URL_ENDPOINT);
     
@@ -2896,7 +2627,7 @@ app.get("/test-invoice", async (req, res) => {
       pdfUrl 
     });
   } catch (error) {
-    console.error("âŒ Test invoice error:", error);
+    console.error("❌ Test invoice error:", error);
     console.error("Error stack:", error.stack);
     res.status(500).json({ 
       success: false, 
@@ -2925,7 +2656,7 @@ app.get("/admin/stats", verifyAdmin, async (req, res) => {
       totalUsers: parseInt(totalUsersResult[0]?.count || 0)
     });
   } catch (error) {
-    console.error("âŒ Error fetching admin stats:", error);
+    console.error("❌ Error fetching admin stats:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -2960,7 +2691,7 @@ app.get("/admin/orders", verifyAdmin, async (req, res) => {
     const orders = await query;
     res.json(orders);
   } catch (error) {
-    console.error("âŒ Error fetching orders:", error);
+    console.error("❌ Error fetching orders:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -2992,7 +2723,7 @@ app.get("/admin/orders/:id", verifyAdmin, async (req, res) => {
 
     res.json(order);
   } catch (error) {
-    console.error("âŒ Error fetching order details:", error);
+    console.error("❌ Error fetching order details:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -3079,9 +2810,9 @@ app.put("/admin/orders/:id", verifyAdmin, async (req, res) => {
           htmlContent: emailHtml
         });
 
-        console.log(`âœ… Order status update email sent to ${oldOrder.user_email}`);
+        console.log(`✅ Order status update email sent to ${oldOrder.user_email}`);
       } catch (emailError) {
-        console.error("âŒ Error sending status update email:", emailError);
+        console.error("❌ Error sending status update email:", emailError);
         // Don't fail the request if email fails
       }
     }
@@ -3100,7 +2831,7 @@ app.put("/admin/orders/:id", verifyAdmin, async (req, res) => {
       order: updatedOrder[0]
     });
   } catch (error) {
-    console.error("âŒ Error updating order:", error);
+    console.error("❌ Error updating order:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -3121,7 +2852,7 @@ app.delete("/admin/orders/:id", verifyAdmin, async (req, res) => {
       message: "Order deleted successfully"
     });
   } catch (error) {
-    console.error("âŒ Error deleting order:", error);
+    console.error("❌ Error deleting order:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -3156,7 +2887,7 @@ app.get("/api/products", async (req, res) => {
     const products = await query;
     res.json(products);
   } catch (error) {
-    console.error("âŒ Error fetching products:", error);
+    console.error("❌ Error fetching products:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -3169,7 +2900,7 @@ app.get("/admin/products", verifyAdmin, async (req, res) => {
     `;
     res.json(products);
   } catch (error) {
-    console.error("âŒ Error fetching products:", error);
+    console.error("❌ Error fetching products:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -3188,7 +2919,7 @@ app.get("/admin/products/:id", verifyAdmin, async (req, res) => {
     
     res.json(products[0]);
   } catch (error) {
-    console.error("âŒ Error fetching product:", error);
+    console.error("❌ Error fetching product:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -3216,7 +2947,7 @@ app.post("/admin/products", verifyAdmin, async (req, res) => {
       product: result[0]
     });
   } catch (error) {
-    console.error("âŒ Error creating product:", error);
+    console.error("❌ Error creating product:", error);
     console.error("Error details:", error.message);
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -3260,7 +2991,7 @@ app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
       product: result[0]
     });
   } catch (error) {
-    console.error("âŒ Error updating product:", error);
+    console.error("❌ Error updating product:", error);
     console.error("Error details:", error.message);
     console.error("Stack:", error.stack);
     res.status(500).json({ message: "Server error", error: error.message });
@@ -3279,7 +3010,7 @@ app.delete("/admin/products/:id", verifyAdmin, async (req, res) => {
       message: "Product deleted successfully"
     });
   } catch (error) {
-    console.error("âŒ Error deleting product:", error);
+    console.error("❌ Error deleting product:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -3290,7 +3021,7 @@ app.get("/admin/imagekit-auth", verifyAdmin, async (req, res) => {
     const authenticationParameters = imagekit.getAuthenticationParameters();
     res.json(authenticationParameters);
   } catch (error) {
-    console.error("âŒ Error getting ImageKit auth:", error);
+    console.error("❌ Error getting ImageKit auth:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -3322,7 +3053,7 @@ app.get("/admin/make-admin", async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("âŒ Error setting admin:", error);
+    console.error("❌ Error setting admin:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -3330,7 +3061,7 @@ app.get("/admin/make-admin", async (req, res) => {
 // Get all users for admin
 app.get("/admin/users", verifyAdmin, async (req, res) => {
   try {
-    console.log("ðŸ“Š Fetching users list...");
+    console.log("📊 Fetching users list...");
     
     // Get all users
     const users = await sql`
@@ -3346,7 +3077,7 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
       ORDER BY id DESC
     `;
     
-    console.log(`âœ… Found ${users.length} users`);
+    console.log(`✅ Found ${users.length} users`);
     
     // Get order counts for each user (with error handling)
     let orderCounts = [];
@@ -3356,9 +3087,9 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
         FROM orders
         GROUP BY user_id
       `;
-      console.log(`âœ… Found order counts for ${orderCounts.length} users`);
+      console.log(`✅ Found order counts for ${orderCounts.length} users`);
     } catch (orderError) {
-      console.warn("âš ï¸ Could not fetch order counts:", orderError.message);
+      console.warn("⚠️ Could not fetch order counts:", orderError.message);
       // Continue without order counts
     }
     
@@ -3380,10 +3111,10 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
       total_orders: orderCountMap[user.id] || 0
     }));
     
-    console.log("âœ… Sending users data to client");
+    console.log("✅ Sending users data to client");
     res.json(usersWithOrders);
   } catch (error) {
-    console.error("âŒ Error fetching users:", error);
+    console.error("❌ Error fetching users:", error);
     console.error("Error name:", error.name);
     console.error("Error message:", error.message);
     console.error("Error stack:", error.stack);
@@ -3398,7 +3129,7 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
 // Get user statistics (MUST be before /:id route)
 app.get("/admin/users/stats/summary", verifyAdmin, async (req, res) => {
   try {
-    console.log("ðŸ“Š Fetching user statistics...");
+    console.log("📊 Fetching user statistics...");
     
     const stats = await sql`
       SELECT 
@@ -3415,10 +3146,10 @@ app.get("/admin/users/stats/summary", verifyAdmin, async (req, res) => {
       new_users_7d: 0
     };
     
-    console.log("âœ… Stats fetched successfully:", statsWithDefaults);
+    console.log("✅ Stats fetched successfully:", statsWithDefaults);
     res.json(statsWithDefaults);
   } catch (error) {
-    console.error("âŒ Error fetching user statistics:", error);
+    console.error("❌ Error fetching user statistics:", error);
     console.error("Error details:", error.message);
     res.status(500).json({ 
       message: "Server error",
@@ -3455,7 +3186,7 @@ app.get("/admin/users/:id", verifyAdmin, async (req, res) => {
     
     res.json(user);
   } catch (error) {
-    console.error("âŒ Error fetching user details:", error);
+    console.error("❌ Error fetching user details:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -3521,10 +3252,10 @@ app.put("/admin/users/:id", verifyAdmin, async (req, res) => {
     const updateQuery = `UPDATE users SET ${updates.join(', ')} WHERE id = ${userId} RETURNING id, name, email, phone, address, is_verified, is_admin, created_at`;
     const result = await sql.query(updateQuery);
     
-    console.log(`âœ… User ${userId} updated successfully`);
+    console.log(`✅ User ${userId} updated successfully`);
     res.json({ message: "User updated successfully", user: result.rows[0] });
   } catch (error) {
-    console.error("âŒ Error updating user:", error);
+    console.error("❌ Error updating user:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -3565,14 +3296,14 @@ app.delete("/admin/users/:id", verifyAdmin, async (req, res) => {
     // Delete user (orders will remain but user_id will be null or cascade delete based on your schema)
     await sql`DELETE FROM users WHERE id = ${userId}`;
     
-    console.log(`âœ… User ${userId} (${user.email}) deleted successfully. Had ${orderCount} orders.`);
+    console.log(`✅ User ${userId} (${user.email}) deleted successfully. Had ${orderCount} orders.`);
     res.json({ 
       message: "User deleted successfully", 
       deletedUser: { id: userId, name: user.name, email: user.email },
       ordersCount: orderCount
     });
   } catch (error) {
-    console.error("âŒ Error deleting user:", error);
+    console.error("❌ Error deleting user:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -3580,9 +3311,5 @@ app.delete("/admin/users/:id", verifyAdmin, async (req, res) => {
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`);
-    console.log(`âœ… ImageKit configured: ${process.env.IMAGEKIT_URL_ENDPOINT}`);
+    console.log(`✅ ImageKit configured: ${process.env.IMAGEKIT_URL_ENDPOINT}`);
 });
-
-
-
-
