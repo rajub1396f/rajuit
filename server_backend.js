@@ -3579,6 +3579,76 @@ app.delete("/admin/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
+// Simple Test Endpoint - for verifying backend is working
+app.post("/api/order", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { items, totalAmount, shippingName, shippingPhone, shippingAddress1, shippingAddress2, shippingCity, shippingState, shippingPostal, shippingCountry, paymentMethod } = req.body;
+
+    console.log("🚀 NEW ORDER API ENDPOINT");
+    console.log("User:", userId);
+    console.log("Total:", totalAmount);
+
+    if (!userId) return res.status(401).json({ success: false, message: "Not authenticated" });
+    if (!totalAmount || totalAmount <= 0) return res.status(400).json({ success: false, message: "Invalid amount" });
+    if (!shippingName) return res.status(400).json({ success: false, message: "Shipping name required" });
+
+    const userResult = await sql`SELECT name, email FROM users WHERE id = ${userId}`;
+    if (!userResult || userResult.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const user = userResult[0];
+    const shippingAddress = `${shippingAddress1}${shippingAddress2 ? ', ' + shippingAddress2 : ''}, ${shippingCity}, ${shippingState}, ${shippingPostal}, ${shippingCountry}`;
+
+    const orderResult = await sql`
+      INSERT INTO orders (user_id, total_amount, status, shipping_address, shipping_name, shipping_phone, shipping_city, shipping_state, shipping_postal, shipping_country, payment_method)
+      VALUES (${userId}, ${totalAmount}, 'pending', ${shippingAddress}, ${shippingName}, ${shippingPhone}, ${shippingCity}, ${shippingState}, ${shippingPostal}, ${shippingCountry}, ${paymentMethod || 'cod'})
+      RETURNING id
+    `;
+
+    const orderId = orderResult[0].id;
+    console.log("✅ Order created:", orderId);
+
+    res.status(201).json({
+      success: true,
+      message: "Order placed successfully",
+      orderId: orderId,
+      orderNumber: `ORD-${orderId.toString().padStart(6, '0')}`
+    });
+
+    // Background: Insert items
+    setImmediate(async () => {
+      try {
+        for (const item of items) {
+          await sql`INSERT INTO order_items (order_id, product_name, product_image, quantity, price) VALUES (${orderId}, ${item.name}, ${item.image || null}, ${item.quantity}, ${item.price})`;
+        }
+        console.log("✅ Items inserted");
+      } catch (err) {
+        console.error("❌ Error inserting items:", err);
+      }
+    });
+
+    // Background: Send email
+    setImmediate(async () => {
+      try {
+        await sendBrevoEmail({
+          to: user.email,
+          subject: `Order Confirmation - #ORD-${orderId.toString().padStart(6, '0')}`,
+          htmlContent: `<h2>Order Confirmation</h2><p>Hi ${user.name},</p><p>Your order #ORD-${orderId.toString().padStart(6, '0')} placed successfully!</p><p>Total: ৳${totalAmount}</p>`
+        });
+        console.log("✅ Email sent");
+      } catch (err) {
+        console.log("⚠️ Email failed:", err.message);
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Order error:", error);
+    res.status(500).json({ success: false, message: "Failed to place order", error: error.message });
+  }
+});
+
 // Place Order Endpoint - for mobile app checkout with Neon persistence
 app.post("/place-order", verifyToken, async (req, res) => {
   console.log("\n🚀🚀🚀 PLACE ORDER REQUEST RECEIVED 🚀🚀🚀");
@@ -4160,5 +4230,3 @@ app.listen(PORT, () => {
 
 
 
-/ /   D e p l o y m e n t   t r i g g e r :   0 1 / 2 3 / 2 0 2 6   1 8 : 4 8 : 2 1  
- 
