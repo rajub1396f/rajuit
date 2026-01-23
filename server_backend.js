@@ -1035,10 +1035,6 @@ app.get("/verify-email", async (req, res) => {
       `);
     }
 
-
-      return res.status(404).json({ success: false, message: "Email address not found in our system." });
-    }
-
     const user = userRows[0];
 
     // Check if already verified
@@ -1149,7 +1145,7 @@ app.post("/resend-verification", async (req, res) => {
 
 
     // Lookup user by email in database
-    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(`${email}`)`;
+    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(${email})`;
     if (!userRows || userRows.length === 0) {
       return res.status(404).json({ success: false, message: "Email address not found in our system." });
     }
@@ -1164,21 +1160,6 @@ app.post("/resend-verification", async (req, res) => {
     }
 
     // Find user
-    const userRows = await sql`
-      SELECT id, name, email, is_verified 
-      FROM users 
-      WHERE email = ${email} 
-      LIMIT 1
-    `;
-
-    if (!userRows || userRows.length === 0) {
-      // Don't reveal if email exists for security
-      return res.json({ 
-        success: true, 
-        message: "If an account exists with this email, you will receive a verification link." 
-      });
-    }
-
     const user = userRows[0];
 
     // Check if already verified
@@ -1333,7 +1314,7 @@ app.post("/api/forgot-password", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid email format" });
 
     // Lookup user by email
-    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(`${email}`)`
+    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(${email})`
     if (!userRows || userRows.length === 0) {
       return res.status(404).json({ success: false, message: "Email address not found in our system." });
     }
