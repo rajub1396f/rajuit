@@ -1035,10 +1035,6 @@ app.get("/verify-email", async (req, res) => {
       `);
     }
 
-
-      return res.status(404).json({ success: false, message: "Email address not found in our system." });
-    }
-
     const user = userRows[0];
 
     // Check if already verified
@@ -1149,7 +1145,7 @@ app.post("/resend-verification", async (req, res) => {
 
 
     // Lookup user by email in database
-    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(`${email}`)`;
+    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(${email})`;
     if (!userRows || userRows.length === 0) {
       return res.status(404).json({ success: false, message: "Email address not found in our system." });
     }
@@ -1164,21 +1160,6 @@ app.post("/resend-verification", async (req, res) => {
     }
 
     // Find user
-    const userRows = await sql`
-      SELECT id, name, email, is_verified 
-      FROM users 
-      WHERE email = ${email} 
-      LIMIT 1
-    `;
-
-    if (!userRows || userRows.length === 0) {
-      // Don't reveal if email exists for security
-      return res.json({ 
-        success: true, 
-        message: "If an account exists with this email, you will receive a verification link." 
-      });
-    }
-
     const user = userRows[0];
 
     // Check if already verified
@@ -1333,7 +1314,7 @@ app.post("/api/forgot-password", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid email format" });
 
     // Lookup user by email
-    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(`${email}`)`
+    const userRows = await sql`SELECT id, name, email, last_password_reset, last_reset_request_time FROM users WHERE LOWER(email) = LOWER(${email})`
     if (!userRows || userRows.length === 0) {
       return res.status(404).json({ success: false, message: "Email address not found in our system." });
     }
@@ -2549,7 +2530,13 @@ app.get("/", (req, res) => {
 });
 
 // Handle clean URLs - serve .html files without extension
+// SKIP for API routes (starting with /api, /checkout, /place-order, etc.)
 app.use((req, res, next) => {
+    // Don't intercept API routes
+    if (req.path.startsWith('/api') || req.path.startsWith('/checkout') || req.path.startsWith('/place-order') || req.path.startsWith('/get-')) {
+        return next();
+    }
+    
     if (!req.path.includes('.') && req.path !== '/') {
         const htmlPath = path.join(__dirname, req.path + '.html');
         if (require('fs').existsSync(htmlPath)) {
@@ -3592,6 +3579,81 @@ app.delete("/admin/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
+// Simple Test Endpoint - for verifying backend is working
+app.post("/api/order", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { items, totalAmount, shippingName, shippingPhone, shippingAddress1, shippingAddress2, shippingCity, shippingState, shippingPostal, shippingCountry, paymentMethod } = req.body;
+
+    console.log("🚀 NEW ORDER API ENDPOINT");
+    console.log("User:", userId);
+    console.log("Total:", totalAmount);
+    console.log("Items:", items?.length || 0);
+
+    if (!userId) return res.status(401).json({ success: false, message: "Not authenticated" });
+    if (!totalAmount || totalAmount <= 0) return res.status(400).json({ success: false, message: "Invalid amount" });
+    if (!shippingName) return res.status(400).json({ success: false, message: "Shipping name required" });
+    if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ success: false, message: "No items in order" });
+
+    const userResult = await sql`SELECT name, email FROM users WHERE id = ${userId}`;
+    if (!userResult || userResult.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const user = userResult[0];
+    const shippingAddress = `${shippingAddress1}${shippingAddress2 ? ', ' + shippingAddress2 : ''}, ${shippingCity}, ${shippingState}, ${shippingPostal}, ${shippingCountry}`;
+
+    console.log("📝 Creating order in database...");
+    const orderResult = await sql`
+      INSERT INTO orders (user_id, total_amount, status, shipping_address, shipping_name, shipping_phone, shipping_city, shipping_state, shipping_postal, shipping_country, payment_method)
+      VALUES (${userId}, ${totalAmount}, 'pending', ${shippingAddress}, ${shippingName}, ${shippingPhone}, ${shippingCity}, ${shippingState}, ${shippingPostal}, ${shippingCountry}, ${paymentMethod || 'cod'})
+      RETURNING id
+    `;
+
+    const orderId = orderResult[0].id;
+    console.log("✅ Order created:", orderId);
+
+    res.status(201).json({
+      success: true,
+      message: "Order placed successfully",
+      orderId: orderId,
+      orderNumber: `ORD-${orderId.toString().padStart(6, '0')}`
+    });
+
+    // Background: Insert items
+    setImmediate(async () => {
+      try {
+        console.log("🔧 Inserting", items.length, "items in background...");
+        for (const item of items) {
+          await sql`INSERT INTO order_items (order_id, product_name, product_image, quantity, price) VALUES (${orderId}, ${item.name}, ${item.image || null}, ${item.quantity}, ${item.price})`;
+        }
+        console.log("✅ Items inserted");
+      } catch (err) {
+        console.error("❌ Error inserting items:", err);
+      }
+    });
+
+    // Background: Send email
+    setImmediate(async () => {
+      try {
+        console.log("📧 Sending email in background...");
+        await sendBrevoEmail({
+          to: user.email,
+          subject: `Order Confirmation - #ORD-${orderId.toString().padStart(6, '0')}`,
+          htmlContent: `<h2>Order Confirmation</h2><p>Hi ${user.name},</p><p>Your order #ORD-${orderId.toString().padStart(6, '0')} placed successfully!</p><p>Total: ৳${totalAmount}</p>`
+        });
+        console.log("✅ Email sent");
+      } catch (err) {
+        console.log("⚠️ Email failed:", err.message);
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Order error:", error);
+    res.status(500).json({ success: false, message: "Failed to place order", error: error.message });
+  }
+});
+
 // Place Order Endpoint - for mobile app checkout with Neon persistence
 app.post("/place-order", verifyToken, async (req, res) => {
   console.log("\n🚀🚀🚀 PLACE ORDER REQUEST RECEIVED 🚀🚀🚀");
@@ -3783,6 +3845,152 @@ app.post("/place-order", verifyToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to place order",
+      error: error.message
+    });
+  }
+});
+
+// ALIAS: /api/checkout endpoint (same as /place-order for compatibility)
+app.post("/api/checkout", verifyToken, async (req, res) => {
+  console.log("\n🚀🚀🚀 CHECKOUT REQUEST RECEIVED (via /checkout endpoint) 🚀🚀🚀");
+  console.log(`Timestamp: ${new Date().toISOString()}`);
+  console.log(`User ID: ${req.user?.id}`);
+  
+  try {
+    const userId = req.user?.id;
+    const { 
+      items, 
+      totalAmount, 
+      shippingName,
+      shippingPhone,
+      shippingAddress1,
+      shippingAddress2,
+      shippingCity,
+      shippingState,
+      shippingPostal,
+      shippingCountry,
+      paymentMethod
+    } = req.body;
+
+    // Validate required fields
+    console.log("📋 Validating shipping fields...");
+    if (!shippingName) return res.status(400).json({ success: false, message: "Shipping name is required" });
+    if (!shippingPhone) return res.status(400).json({ success: false, message: "Shipping phone is required" });
+    if (!shippingAddress1) return res.status(400).json({ success: false, message: "Shipping address is required" });
+    if (!shippingCity) return res.status(400).json({ success: false, message: "City is required" });
+    if (!shippingState) return res.status(400).json({ success: false, message: "State is required" });
+    if (!shippingPostal) return res.status(400).json({ success: false, message: "Postal code is required" });
+    if (!shippingCountry) return res.status(400).json({ success: false, message: "Country is required" });
+
+    const shippingAddress = `${shippingAddress1}${shippingAddress2 ? ', ' + shippingAddress2 : ''}, ${shippingCity}, ${shippingState}, ${shippingPostal}, ${shippingCountry}`;
+    console.log(`📍 Full Address: ${shippingAddress}`);
+
+    const userResult = await sql`SELECT name, email FROM users WHERE id = ${userId}`;
+    if (!userResult || userResult.length === 0) {
+      console.log("❌ User not found");
+      return res.status(404).json({ 
+        success: false, 
+        message: "User not found" 
+      });
+    }
+
+    const user = userResult[0];
+    console.log(`👤 Order for: ${user.name} (${user.email})`);
+
+    // Create order in Neon database with full shipping details
+    console.log(`📝 Creating order in database...`);
+    const orderResult = await sql`
+      INSERT INTO orders (
+        user_id, 
+        total_amount, 
+        status, 
+        shipping_address,
+        shipping_name,
+        shipping_phone,
+        shipping_city,
+        shipping_state,
+        shipping_postal,
+        shipping_country,
+        payment_method
+      )
+      VALUES (
+        ${userId}, 
+        ${totalAmount}, 
+        'pending', 
+        ${shippingAddress},
+        ${shippingName},
+        ${shippingPhone},
+        ${shippingCity},
+        ${shippingState},
+        ${shippingPostal},
+        ${shippingCountry},
+        ${paymentMethod || 'cod'}
+      )
+      RETURNING id, created_at
+    `;
+
+    const orderId = orderResult[0].id;
+    const orderDate = new Date(orderResult[0].created_at);
+    console.log(`✅ Order created: ID #${orderId}`);
+
+    // Send response immediately to client
+    console.log(`\n✅ CHECKOUT SUCCESSFUL - ORDER ID: #${orderId}\n`);
+    res.status(201).json({
+      success: true,
+      message: "Order placed successfully",
+      orderId: orderId,
+      orderNumber: `ORD-${orderId.toString().padStart(6, '0')}`
+    });
+
+    // Insert order items ASYNCHRONOUSLY (don't block response)
+    setImmediate(async () => {
+      try {
+        console.log(`🔧 Inserting ${items.length} items for order #${orderId} in background...`);
+        for (const item of items) {
+          console.log(`  - Inserting: ${item.name} x${item.quantity}`);
+          await sql`
+            INSERT INTO order_items (order_id, product_name, product_image, quantity, price)
+            VALUES (${orderId}, ${item.name}, ${item.image || null}, ${item.quantity}, ${item.price})
+          `;
+        }
+        console.log(`✅ All items inserted for order #${orderId}`);
+      } catch (itemErr) {
+        console.error(`❌ Error inserting items for order #${orderId}:`, itemErr);
+      }
+    });
+
+    // Send confirmation email ASYNCHRONOUSLY (don't wait for it)
+    setImmediate(async () => {
+      try {
+        console.log(`📧 Sending confirmation email in background...`);
+        const emailHtml = `
+          <h2>Order Confirmation 🎉</h2>
+          <p>Hi ${user.name},</p>
+          <p>Your order #ORD-${orderId.toString().padStart(6, '0')} has been placed successfully!</p>
+          <p><strong>Total:</strong> ₹${totalAmount}</p>
+          <p><strong>Items:</strong> ${items.length} item(s)</p>
+          <p><strong>Shipping Name:</strong> ${shippingName}</p>
+          <p><strong>Shipping Address:</strong> ${shippingAddress}</p>
+          <p><strong>Payment Method:</strong> ${paymentMethod === 'cod' ? 'Cash on Delivery' : paymentMethod === 'card' ? 'Credit/Debit Card' : 'Bank Transfer'}</p>
+          <p>We will process your order soon.</p>
+        `;
+        
+        await sendBrevoEmail({
+          to: user.email,
+          subject: `Order Confirmation - #ORD-${orderId.toString().padStart(6, '0')}`,
+          htmlContent: emailHtml
+        });
+        console.log(`✅ Email sent`);
+      } catch (emailErr) {
+        console.log(`⚠️ Email failed:`, emailErr.message);
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Error in checkout:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to process checkout",
       error: error.message
     });
   }
