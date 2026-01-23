@@ -3794,8 +3794,8 @@ app.post("/place-order", verifyToken, async (req, res) => {
   }
 });
 
-// ALIAS: /checkout endpoint (same as /place-order for compatibility)
-app.post("/checkout", verifyToken, async (req, res) => {
+// ALIAS: /api/checkout endpoint (same as /place-order for compatibility)
+app.post("/api/checkout", verifyToken, async (req, res) => {
   console.log("\n🚀🚀🚀 CHECKOUT REQUEST RECEIVED (via /checkout endpoint) 🚀🚀🚀");
   console.log(`Timestamp: ${new Date().toISOString()}`);
   console.log(`User ID: ${req.user?.id}`);
