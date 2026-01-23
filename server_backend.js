@@ -3788,6 +3788,152 @@ app.post("/place-order", verifyToken, async (req, res) => {
   }
 });
 
+// ALIAS: /checkout endpoint (same as /place-order for compatibility)
+app.post("/checkout", verifyToken, async (req, res) => {
+  console.log("\n🚀🚀🚀 CHECKOUT REQUEST RECEIVED (via /checkout endpoint) 🚀🚀🚀");
+  console.log(`Timestamp: ${new Date().toISOString()}`);
+  console.log(`User ID: ${req.user?.id}`);
+  
+  try {
+    const userId = req.user?.id;
+    const { 
+      items, 
+      totalAmount, 
+      shippingName,
+      shippingPhone,
+      shippingAddress1,
+      shippingAddress2,
+      shippingCity,
+      shippingState,
+      shippingPostal,
+      shippingCountry,
+      paymentMethod
+    } = req.body;
+
+    // Validate required fields
+    console.log("📋 Validating shipping fields...");
+    if (!shippingName) return res.status(400).json({ success: false, message: "Shipping name is required" });
+    if (!shippingPhone) return res.status(400).json({ success: false, message: "Shipping phone is required" });
+    if (!shippingAddress1) return res.status(400).json({ success: false, message: "Shipping address is required" });
+    if (!shippingCity) return res.status(400).json({ success: false, message: "City is required" });
+    if (!shippingState) return res.status(400).json({ success: false, message: "State is required" });
+    if (!shippingPostal) return res.status(400).json({ success: false, message: "Postal code is required" });
+    if (!shippingCountry) return res.status(400).json({ success: false, message: "Country is required" });
+
+    const shippingAddress = `${shippingAddress1}${shippingAddress2 ? ', ' + shippingAddress2 : ''}, ${shippingCity}, ${shippingState}, ${shippingPostal}, ${shippingCountry}`;
+    console.log(`📍 Full Address: ${shippingAddress}`);
+
+    const userResult = await sql`SELECT name, email FROM users WHERE id = ${userId}`;
+    if (!userResult || userResult.length === 0) {
+      console.log("❌ User not found");
+      return res.status(404).json({ 
+        success: false, 
+        message: "User not found" 
+      });
+    }
+
+    const user = userResult[0];
+    console.log(`👤 Order for: ${user.name} (${user.email})`);
+
+    // Create order in Neon database with full shipping details
+    console.log(`📝 Creating order in database...`);
+    const orderResult = await sql`
+      INSERT INTO orders (
+        user_id, 
+        total_amount, 
+        status, 
+        shipping_address,
+        shipping_name,
+        shipping_phone,
+        shipping_city,
+        shipping_state,
+        shipping_postal,
+        shipping_country,
+        payment_method
+      )
+      VALUES (
+        ${userId}, 
+        ${totalAmount}, 
+        'pending', 
+        ${shippingAddress},
+        ${shippingName},
+        ${shippingPhone},
+        ${shippingCity},
+        ${shippingState},
+        ${shippingPostal},
+        ${shippingCountry},
+        ${paymentMethod || 'cod'}
+      )
+      RETURNING id, created_at
+    `;
+
+    const orderId = orderResult[0].id;
+    const orderDate = new Date(orderResult[0].created_at);
+    console.log(`✅ Order created: ID #${orderId}`);
+
+    // Send response immediately to client
+    console.log(`\n✅ CHECKOUT SUCCESSFUL - ORDER ID: #${orderId}\n`);
+    res.status(201).json({
+      success: true,
+      message: "Order placed successfully",
+      orderId: orderId,
+      orderNumber: `ORD-${orderId.toString().padStart(6, '0')}`
+    });
+
+    // Insert order items ASYNCHRONOUSLY (don't block response)
+    setImmediate(async () => {
+      try {
+        console.log(`🔧 Inserting ${items.length} items for order #${orderId} in background...`);
+        for (const item of items) {
+          console.log(`  - Inserting: ${item.name} x${item.quantity}`);
+          await sql`
+            INSERT INTO order_items (order_id, product_name, product_image, quantity, price)
+            VALUES (${orderId}, ${item.name}, ${item.image || null}, ${item.quantity}, ${item.price})
+          `;
+        }
+        console.log(`✅ All items inserted for order #${orderId}`);
+      } catch (itemErr) {
+        console.error(`❌ Error inserting items for order #${orderId}:`, itemErr);
+      }
+    });
+
+    // Send confirmation email ASYNCHRONOUSLY (don't wait for it)
+    setImmediate(async () => {
+      try {
+        console.log(`📧 Sending confirmation email in background...`);
+        const emailHtml = `
+          <h2>Order Confirmation 🎉</h2>
+          <p>Hi ${user.name},</p>
+          <p>Your order #ORD-${orderId.toString().padStart(6, '0')} has been placed successfully!</p>
+          <p><strong>Total:</strong> ₹${totalAmount}</p>
+          <p><strong>Items:</strong> ${items.length} item(s)</p>
+          <p><strong>Shipping Name:</strong> ${shippingName}</p>
+          <p><strong>Shipping Address:</strong> ${shippingAddress}</p>
+          <p><strong>Payment Method:</strong> ${paymentMethod === 'cod' ? 'Cash on Delivery' : paymentMethod === 'card' ? 'Credit/Debit Card' : 'Bank Transfer'}</p>
+          <p>We will process your order soon.</p>
+        `;
+        
+        await sendBrevoEmail({
+          to: user.email,
+          subject: `Order Confirmation - #ORD-${orderId.toString().padStart(6, '0')}`,
+          htmlContent: emailHtml
+        });
+        console.log(`✅ Email sent`);
+      } catch (emailErr) {
+        console.log(`⚠️ Email failed:`, emailErr.message);
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Error in checkout:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to process checkout",
+      error: error.message
+    });
+  }
+});
+
 // Get specific order by ID from Neon
 app.get("/get-order/:orderId", verifyToken, async (req, res) => {
   try {
