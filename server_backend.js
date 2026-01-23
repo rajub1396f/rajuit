@@ -2549,7 +2549,13 @@ app.get("/", (req, res) => {
 });
 
 // Handle clean URLs - serve .html files without extension
+// SKIP for API routes (starting with /api, /checkout, /place-order, etc.)
 app.use((req, res, next) => {
+    // Don't intercept API routes
+    if (req.path.startsWith('/api') || req.path.startsWith('/checkout') || req.path.startsWith('/place-order') || req.path.startsWith('/get-')) {
+        return next();
+    }
+    
     if (!req.path.includes('.') && req.path !== '/') {
         const htmlPath = path.join(__dirname, req.path + '.html');
         if (require('fs').existsSync(htmlPath)) {
