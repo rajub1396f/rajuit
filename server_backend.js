@@ -3850,6 +3850,153 @@ app.post("/place-order", verifyToken, async (req, res) => {
   }
 });
 
+// SIMPLIFIED CHECKOUT - works with existing database columns only
+app.post("/checkout", verifyToken, async (req, res) => {
+  console.log("\n🚀 SIMPLE CHECKOUT - Using existing orders table");
+  console.log(`Timestamp: ${new Date().toISOString()}`);
+  console.log(`User ID: ${req.user?.id}`);
+  
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "User not authenticated" });
+    }
+
+    const { 
+      items, 
+      totalAmount, 
+      shippingName,
+      shippingPhone,
+      shippingAddress1,
+      shippingAddress2,
+      shippingCity,
+      shippingState,
+      shippingPostal,
+      shippingCountry,
+      paymentMethod
+    } = req.body;
+
+    console.log("📋 Validating order data...");
+    if (!totalAmount || totalAmount <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid total amount" });
+    }
+    if (!shippingAddress1) {
+      return res.status(400).json({ success: false, message: "Shipping address is required" });
+    }
+
+    console.log("✅ Validation passed");
+
+    // Build simple shipping address
+    const shippingAddress = `${shippingName || 'Guest'}, ${shippingAddress1}${shippingAddress2 ? ', ' + shippingAddress2 : ''}, ${shippingCity}, ${shippingState}, ${shippingPostal}, ${shippingCountry}`;
+    console.log(`📍 Shipping: ${shippingAddress}`);
+
+    // Get user details
+    const userResult = await sql`SELECT name, email FROM users WHERE id = ${userId}`;
+    if (!userResult || userResult.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const user = userResult[0];
+    console.log(`👤 Order for: ${user.name} (${user.email})`);
+
+    // Create order with ONLY existing columns
+    console.log("💾 Creating order...");
+    const orderResult = await sql`
+      INSERT INTO orders (
+        user_id, 
+        total_amount, 
+        status, 
+        shipping_address
+      )
+      VALUES (
+        ${userId},
+        ${totalAmount},
+        'pending',
+        ${shippingAddress}
+      )
+      RETURNING id
+    `;
+    
+    const orderId = orderResult[0]?.id;
+    if (!orderId) {
+      return res.status(500).json({ success: false, message: "Failed to create order" });
+    }
+
+    console.log(`✅ Order #${orderId} created successfully`);
+    
+    const orderNumber = `ORD-${orderId.toString().padStart(6, '0')}`;
+    res.status(201).json({
+      success: true,
+      message: "Order placed successfully",
+      orderId: orderId,
+      orderNumber: orderNumber
+    });
+
+    // Insert items in background
+    setImmediate(async () => {
+      try {
+        console.log(`🔄 [Background] Inserting ${items?.length || 0} items...`);
+        if (Array.isArray(items) && items.length > 0) {
+          for (const item of items) {
+            try {
+              await sql`
+                INSERT INTO order_items (
+                  order_id, 
+                  product_name, 
+                  product_image, 
+                  quantity, 
+                  price
+                )
+                VALUES (
+                  ${orderId},
+                  ${item.name},
+                  ${item.image || null},
+                  ${item.quantity},
+                  ${item.price}
+                )
+              `;
+            } catch (itemErr) {
+              console.error(`❌ Item error:`, itemErr.message);
+            }
+          }
+          console.log(`✅ Items inserted`);
+        }
+      } catch (err) {
+        console.error(`❌ Items error:`, err.message);
+      }
+
+      // Send email
+      try {
+        console.log(`📧 Sending email to ${user.email}...`);
+        await sendBrevoEmail({
+          to: user.email,
+          subject: `Order Confirmed! #${orderNumber}`,
+          htmlContent: `
+            <h2>Order Confirmation</h2>
+            <p>Hi ${user.name},</p>
+            <p><strong>Your order #${orderNumber} has been placed successfully!</strong></p>
+            <p><strong>Total:</strong> ₹${totalAmount}</p>
+            <p><strong>Items:</strong> ${items?.length || 0}</p>
+            <p><strong>Shipping Address:</strong> ${shippingAddress.replace(/,/g, '<br>')}</p>
+            <p style="margin-top: 20px; color: #666;">Thank you!</p>
+          `
+        });
+        console.log(`✅ Email sent`);
+      } catch (emailErr) {
+        console.error(`⚠️ Email failed:`, emailErr.message);
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Checkout error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to process checkout",
+      error: error.message
+    });
+  }
+});
+
 // ALIAS: /api/checkout endpoint (same as /place-order for compatibility)
 app.post("/api/checkout", verifyToken, async (req, res) => {
   console.log("\n🚀🚀🚀 CHECKOUT REQUEST RECEIVED (via /checkout endpoint) 🚀🚀🚀");
