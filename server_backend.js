@@ -2601,86 +2601,52 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
   }
 });
 
-// Regenerate invoice for existing order
-app.post("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
+// Regenerate invoice (GET for easier testing)
+app.get("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
   try {
     const userId = req.user?.id;
     const orderId = req.params.orderId;
-
-    console.log(`ðŸ"„ Regenerating invoice for order #${orderId}, user: ${userId}`);
+    console.log(`ðŸš€ GET /regenerate-invoice/${orderId} - User: ${userId}`);
 
     if (!userId) {
-      console.log("âŒ User not authenticated");
-      return res.status(401).json({ message: "User not authenticated" });
+      return res.status(401).json({ message: "Not authenticated" });
     }
 
     // Get order details
     const orderResult = await sql`
-      SELECT 
-        o.id,
-        o.user_id,
-        o.total_amount,
-        o.status,
-        o.shipping_address,
-        o.created_at,
-        u.name,
-        u.email
-      FROM orders o
-      JOIN users u ON o.user_id = u.id
+      SELECT o.id, o.user_id, o.total_amount, o.status, o.shipping_address, o.created_at,
+             u.name, u.email
+      FROM orders o JOIN users u ON o.user_id = u.id
       WHERE o.id = ${orderId} AND o.user_id = ${userId}
     `;
 
-    if (!orderResult || orderResult.length === 0) {
-      console.log(`âŒ Order #${orderId} not found for user ${userId}`);
+    if (!orderResult || !orderResult[0]) {
       return res.status(404).json({ message: "Order not found" });
     }
 
     const order = orderResult[0];
-
-    // Get order items
     const itemsResult = await sql`
       SELECT product_name as name, product_image as image, quantity, price
-      FROM order_items
-      WHERE order_id = ${orderId}
+      FROM order_items WHERE order_id = ${orderId}
     `;
-
     const items = itemsResult || [];
 
-    // Generate invoice HTML
-    const invoiceHtml = generateInvoiceHtml(order, items);
-    console.log(`ðŸ"„ Generated invoice HTML (${invoiceHtml.length} chars)`);
-
-    // Generate and upload PDF
-    console.log(`ðŸš€ Generating PDF for order #${orderId}...`);
+    // Generate invoice in background
     (async () => {
       try {
+        const invoiceHtml = generateInvoiceHtml(order, items);
         const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-        console.log(`âœ… Invoice PDF generated: ${pdfUrl}`);
-
-        // Update order with PDF URL
-        const updateResult = await sql`
-          UPDATE orders 
-          SET invoice_pdf_url = ${pdfUrl}
-          WHERE id = ${orderId}
-          RETURNING id
-        `;
-
-        if (updateResult && updateResult.length > 0) {
-          console.log(`âœ… Order #${orderId} updated with new PDF URL`);
-        }
+        await sql`UPDATE orders SET invoice_pdf_url = ${pdfUrl} WHERE id = ${orderId}`;
+        console.log(`âœ… Invoice generated for order ${orderId}: ${pdfUrl}`);
       } catch (error) {
-        console.error(`âŒ Error regenerating invoice for order #${orderId}:`, error.message);
+        console.error(`âŒ Invoice generation failed for order ${orderId}:`, error.message);
       }
     })();
 
-    res.json({ 
-      success: true, 
-      message: "Invoice regeneration started. Please check back in a few moments.",
-      orderId 
-    });
+    res.json({ success: true, message: "Invoice generation started" });
   } catch (err) {
-    console.error("âŒ Regenerate invoice error:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("âŒ Error:", err.message);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
