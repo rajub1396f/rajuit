@@ -403,6 +403,92 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           ),
                         ],
                       ),
+                    const SizedBox(height: 16),
+
+                    // Invoice Buttons (right under total)
+                    Text(
+                      'Invoice',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    if (order.invoicePdfUrl != null && order.invoicePdfUrl!.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              _viewInvoice(order.invoicePdfUrl!);
+                            },
+                            icon: const Icon(Icons.visibility),
+                            label: const Text('View Invoice'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFFC800),
+                              foregroundColor: const Color(0xFF212529),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              _downloadInvoice(order.invoicePdfUrl!);
+                            },
+                            icon: const Icon(Icons.download),
+                            label: const Text('Download Invoice'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF212529),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.orange[50],
+                              border: Border.all(color: Colors.orange[300]!),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Invoice is being generated',
+                                  style: TextStyle(
+                                    color: Colors.orange[800],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Please check back in a few moments',
+                                  style: TextStyle(
+                                    color: Colors.orange[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              // Call regenerate invoice on backend
+                              await context.read<OrderProvider>().regenerateInvoice(order.id);
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Check Again'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF212529),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 );
               },
