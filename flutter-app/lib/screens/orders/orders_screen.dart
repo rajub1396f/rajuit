@@ -317,9 +317,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
-                    // Invoice Buttons
+                    // Invoice Buttons (right under total)
                     Text(
                       'Invoice',
                       style: Theme.of(context).textTheme.titleMedium,
