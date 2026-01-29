@@ -398,8 +398,8 @@ function generateInvoiceHtml(order, items) {
     
     <div class="invoice-details">
         <div class="invoice-details-row">
-            <div><strong>Invoice Number:</strong> #INV-${order.id.toString().padStart(6, '0')}</div>
-            <div><strong>Order Number:</strong> #ORD-${order.id.toString().padStart(6, '0')}</div>
+            <div><strong>Invoice Number:</strong> #INV-${String(order.id).padStart(6, '0')}</div>
+            <div><strong>Order Number:</strong> #ORD-${String(order.id).padStart(6, '0')}</div>
         </div>
         <div class="invoice-details-row">
             <div><strong>Invoice Date:</strong> ${orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
@@ -2648,6 +2648,7 @@ app.post("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
 
     // Generate invoice HTML
     const invoiceHtml = generateInvoiceHtml(order, items);
+    console.log(`ðŸ"„ Generated invoice HTML (${invoiceHtml.length} chars)`);
 
     // Generate and upload PDF
     console.log(`ðŸš€ Generating PDF for order #${orderId}...`);
