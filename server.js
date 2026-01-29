@@ -3308,6 +3308,55 @@ app.delete("/admin/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
+// ==================== REGENERATE INVOICE ====================
+app.get("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const orderId = req.params.orderId;
+    console.log(`🚀 GET /regenerate-invoice/${orderId} - User: ${userId}`);
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    // Get order details
+    const orderResult = await sql`
+      SELECT o.id, o.user_id, o.total_amount, o.status, o.shipping_address, o.created_at,
+             u.name, u.email
+      FROM orders o JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId} AND o.user_id = ${userId}
+    `;
+
+    if (!orderResult || !orderResult[0]) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const order = orderResult[0];
+    const itemsResult = await sql`
+      SELECT product_name as name, product_image as image, quantity, price
+      FROM order_items WHERE order_id = ${orderId}
+    `;
+    const items = itemsResult || [];
+
+    // Generate invoice in background
+    (async () => {
+      try {
+        const invoiceHtml = generateInvoiceHtml(order, items);
+        const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
+        await sql`UPDATE orders SET invoice_pdf_url = ${pdfUrl} WHERE id = ${orderId}`;
+        console.log(`✅ Invoice generated for order ${orderId}: ${pdfUrl}`);
+      } catch (error) {
+        console.error(`❌ Invoice generation failed for order ${orderId}:`, error.message);
+      }
+    })();
+
+    res.json({ success: true, message: "Invoice generation started" });
+  } catch (err) {
+    console.error("❌ Error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`);
