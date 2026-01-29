@@ -356,6 +356,116 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
   }
 }
 
+// Helper function to generate invoice HTML
+function generateInvoiceHtml(order, items) {
+  const orderDate = new Date(order.created_at);
+  const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+  const shipping = 50;
+  const tax = subtotal * 0.15;
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .invoice-header { background: #212529; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .invoice-header h1 { margin: 0; font-size: 2.5em; }
+        .invoice-header p { margin: 5px 0; }
+        .invoice-details { background: #f8f9fa; padding: 20px; border-left: 5px solid #ffc800; margin: 20px 0; }
+        .invoice-details-row { display: flex; justify-content: space-between; margin: 10px 0; }
+        .invoice-details strong { color: #212529; }
+        .section-title { background: #ffc800; color: #212529; padding: 10px 20px; font-weight: bold; margin: 20px 0 10px 0; }
+        .info-box { background: white; border: 1px solid #dee2e6; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #343a40; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #dee2e6; }
+        tr:hover { background: #f8f9fa; }
+        .text-right { text-align: right; }
+        .totals { margin-top: 20px; float: right; width: 300px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6; }
+        .totals-row.total { background: #212529; color: white; padding: 12px; margin-top: 10px; font-size: 1.2em; font-weight: bold; }
+        .footer { text-align: center; margin-top: 50px; padding: 20px; background: #f8f9fa; color: #6c757d; }
+        .thank-you { text-align: center; font-size: 1.5em; color: #28a745; margin: 30px 0; }
+    </style>
+</head>
+<body>
+    <div class="invoice-header">
+        <h1>INVOICE</h1>
+        <p>Raju IT - Premium Fashion Store</p>
+        <p>ðŸ"§ rajuit1396@gmail.com | ðŸ"± +8801726466000</p>
+    </div>
+    
+    <div class="invoice-details">
+        <div class="invoice-details-row">
+            <div><strong>Invoice Number:</strong> #INV-${order.id.toString().padStart(6, '0')}</div>
+            <div><strong>Order Number:</strong> #ORD-${order.id.toString().padStart(6, '0')}</div>
+        </div>
+        <div class="invoice-details-row">
+            <div><strong>Invoice Date:</strong> ${orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div><strong>Status:</strong> ${order.status}</div>
+        </div>
+    </div>
+    
+    <div class="section-title">CUSTOMER INFORMATION</div>
+    <div class="info-box">
+        <strong>${order.name}</strong><br>
+        Email: ${order.email}<br>
+        ${order.shipping_address}
+    </div>
+    
+    <div class="section-title">ORDER ITEMS</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th class="text-right">Price</th>
+                <th class="text-right">Quantity</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${items.map(item => {
+              const price = parseFloat(item.price) || 0;
+              const quantity = parseInt(item.quantity) || 0;
+              return '<tr><td>' + item.name + '</td><td class="text-right">৳' + price.toFixed(2) + '</td><td class="text-right">' + quantity + '</td><td class="text-right">৳' + (price * quantity).toFixed(2) + '</td></tr>';
+            }).join('')}
+        </tbody>
+    </table>
+    
+    <div style="clear: both;"></div>
+    <div class="totals">
+        <div class="totals-row">
+            <span>Subtotal:</span>
+            <span>৳${subtotal.toFixed(2)}</span>
+        </div>
+        <div class="totals-row">
+            <span>Shipping:</span>
+            <span>৳50.00</span>
+        </div>
+        <div class="totals-row">
+            <span>Tax (15%):</span>
+            <span>৳${tax.toFixed(2)}</span>
+        </div>
+        <div class="totals-row total">
+            <span>TOTAL:</span>
+            <span>৳${(subtotal + shipping + tax).toFixed(2)}</span>
+        </div>
+    </div>
+    
+    <div style="clear: both;"></div>
+    <div class="thank-you">Thank You for Your Order! ðŸŽ‰</div>
+    
+    <div class="footer">
+        <p><strong>Terms & Conditions:</strong></p>
+        <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
+        For questions about this invoice, contact us at rajuit1396@gmail.com or +8801726466000</p>
+        <p style="margin-top: 20px;">Â© 2025 Raju IT. All rights reserved.</p>
+    </div>
+</body>
+</html>`;
+}
+
 // Register Route
 
 // ==================== JWT HELPER FUNCTIONS ====================
@@ -2488,6 +2598,88 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
       stack: err.stack,
       orderId: req.params.orderId
     });
+  }
+});
+
+// Regenerate invoice for existing order
+app.post("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const orderId = req.params.orderId;
+
+    console.log(`ðŸ"„ Regenerating invoice for order #${orderId}, user: ${userId}`);
+
+    if (!userId) {
+      console.log("âŒ User not authenticated");
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Get order details
+    const orderResult = await sql`
+      SELECT 
+        o.id,
+        o.user_id,
+        o.total_amount,
+        o.status,
+        o.shipping_address,
+        o.created_at,
+        u.name,
+        u.email
+      FROM orders o
+      JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId} AND o.user_id = ${userId}
+    `;
+
+    if (!orderResult || orderResult.length === 0) {
+      console.log(`âŒ Order #${orderId} not found for user ${userId}`);
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const order = orderResult[0];
+
+    // Get order items
+    const itemsResult = await sql`
+      SELECT product_name as name, product_image as image, quantity, price
+      FROM order_items
+      WHERE order_id = ${orderId}
+    `;
+
+    const items = itemsResult || [];
+
+    // Generate invoice HTML
+    const invoiceHtml = generateInvoiceHtml(order, items);
+
+    // Generate and upload PDF
+    console.log(`ðŸš€ Generating PDF for order #${orderId}...`);
+    (async () => {
+      try {
+        const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
+        console.log(`âœ… Invoice PDF generated: ${pdfUrl}`);
+
+        // Update order with PDF URL
+        const updateResult = await sql`
+          UPDATE orders 
+          SET invoice_pdf_url = ${pdfUrl}
+          WHERE id = ${orderId}
+          RETURNING id
+        `;
+
+        if (updateResult && updateResult.length > 0) {
+          console.log(`âœ… Order #${orderId} updated with new PDF URL`);
+        }
+      } catch (error) {
+        console.error(`âŒ Error regenerating invoice for order #${orderId}:`, error.message);
+      }
+    })();
+
+    res.json({ 
+      success: true, 
+      message: "Invoice regeneration started. Please check back in a few moments.",
+      orderId 
+    });
+  } catch (err) {
+    console.error("âŒ Regenerate invoice error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
