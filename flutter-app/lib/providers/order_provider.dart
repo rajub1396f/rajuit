@@ -18,19 +18,25 @@ class OrderProvider extends ChangeNotifier {
   String? get error => _error;
   bool get isCreating => _isCreating;
 
-  Future<void> fetchOrders() async {
+  Future<void> fetchOrders({bool isAutoRefresh = false}) async {
     try {
-      _isLoading = true;
-      _error = null;
+      if (!isAutoRefresh) {
+        _isLoading = true;
+        _error = null;
+      }
       notifyListeners();
 
       _orders = await _apiService.getOrders();
 
-      _isLoading = false;
+      if (!isAutoRefresh) {
+        _isLoading = false;
+      }
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
+      if (!isAutoRefresh) {
+        _error = e.toString();
+        _isLoading = false;
+      }
       notifyListeners();
     }
   }
@@ -159,6 +165,10 @@ class OrderProvider extends ChangeNotifier {
       notifyListeners();
       
       await _apiService.regenerateInvoice(orderId);
+      
+      // Wait 5 seconds for the server to generate the PDF in background
+      // (includes puppeteer launch, PDF generation, and ImageKit upload)
+      await Future.delayed(const Duration(seconds: 5));
       
       // Fetch orders again to get the updated invoice URL
       await fetchOrders();

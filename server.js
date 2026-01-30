@@ -293,13 +293,129 @@ console.log("✅ Brevo email service initialized");
   }
 })();
 
+// Function to generate invoice HTML
+function generateInvoiceHtml(order, items) {
+  const orderDate = new Date(order.created_at);
+  const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+  const shipping = 50;
+  const tax = subtotal * 0.15;
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .invoice-header { background: #212529; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .invoice-header h1 { margin: 0; font-size: 2.5em; }
+        .invoice-header p { margin: 5px 0; }
+        .invoice-details { background: #f8f9fa; padding: 20px; border-left: 5px solid #ffc800; margin: 20px 0; }
+        .invoice-details-row { display: flex; justify-content: space-between; margin: 10px 0; }
+        .invoice-details strong { color: #212529; }
+        .section-title { background: #ffc800; color: #212529; padding: 10px 20px; font-weight: bold; margin: 20px 0 10px 0; }
+        .info-box { background: white; border: 1px solid #dee2e6; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #343a40; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #dee2e6; }
+        tr:hover { background: #f8f9fa; }
+        .text-right { text-align: right; }
+        .totals { margin-top: 20px; float: right; width: 300px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6; }
+        .totals-row.total { background: #212529; color: white; padding: 12px; margin-top: 10px; font-size: 1.2em; font-weight: bold; }
+        .footer { text-align: center; margin-top: 50px; padding: 20px; background: #f8f9fa; color: #6c757d; }
+        .thank-you { text-align: center; font-size: 1.5em; color: #28a745; margin: 30px 0; }
+    </style>
+</head>
+<body>
+    <div class="invoice-header">
+        <h1>INVOICE</h1>
+        <p>Raju IT - Premium Fashion Store</p>
+        <p>📧 rajuit1396@gmail.com | 📱 +8801726466000</p>
+    </div>
+    
+    <div class="invoice-details">
+        <div class="invoice-details-row">
+            <div><strong>Invoice Number:</strong> #INV-${String(order.id).padStart(6, '0')}</div>
+            <div><strong>Order Number:</strong> #ORD-${String(order.id).padStart(6, '0')}</div>
+        </div>
+        <div class="invoice-details-row">
+            <div><strong>Invoice Date:</strong> ${orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div><strong>Status:</strong> ${order.status}</div>
+        </div>
+    </div>
+    
+    <div class="section-title">CUSTOMER INFORMATION</div>
+    <div class="info-box">
+        <strong>${order.name}</strong><br>
+        Email: ${order.email}<br>
+        ${order.shipping_address}
+    </div>
+    
+    <div class="section-title">ORDER ITEMS</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th class="text-right">Price</th>
+                <th class="text-right">Quantity</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${items.map(item => {
+              const price = parseFloat(item.price) || 0;
+              const quantity = parseInt(item.quantity) || 0;
+              return '<tr><td>' + item.name + '</td><td class="text-right">৳' + price.toFixed(2) + '</td><td class="text-right">' + quantity + '</td><td class="text-right">৳' + (price * quantity).toFixed(2) + '</td></tr>';
+            }).join('')}
+        </tbody>
+    </table>
+    
+    <div style="clear: both;"></div>
+    <div class="totals">
+        <div class="totals-row">
+            <span>Subtotal:</span>
+            <span>৳${subtotal.toFixed(2)}</span>
+        </div>
+        <div class="totals-row">
+            <span>Shipping:</span>
+            <span>৳50.00</span>
+        </div>
+        <div class="totals-row">
+            <span>Tax (15%):</span>
+            <span>৳${tax.toFixed(2)}</span>
+        </div>
+        <div class="totals-row total">
+            <span>TOTAL:</span>
+            <span>৳${(subtotal + shipping + tax).toFixed(2)}</span>
+        </div>
+    </div>
+    
+    <div style="clear: both;"></div>
+    <div class="thank-you">Thank You for Your Order! 🎉</div>
+    
+    <div class="footer">
+        <p><strong>Terms & Conditions:</strong></p>
+        <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
+        For questions about this invoice, contact us at rajuit1396@gmail.com or +8801726466000</p>
+        <p style="margin-top: 20px;">© 2025 Raju IT. All rights reserved.</p>
+    </div>
+</body>
+</html>`;
+}
+
 // Function to generate PDF and upload to ImageKit
 async function generateAndUploadInvoice(htmlContent, orderId) {
   let browser;
   try {
-    console.log(`📄 Generating PDF for order #${orderId}...`);
+    console.log(`📄 [${new Date().toISOString()}] Generating PDF for order #${orderId}...`);
+    console.log(`📄 HTML Content length: ${htmlContent.length} bytes`);
+    
+    // Check if puppeteer is available
+    console.log(`🔍 Checking Puppeteer availability...`);
+    console.log(`🔍 Puppeteer executable path: ${puppeteer.executablePath()}`);
     
     // Launch puppeteer browser with Render-compatible settings
+    console.log(`🔍 Launching Puppeteer browser...`);
     browser = await puppeteer.launch({
       headless: true,
       args: [
@@ -312,14 +428,20 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
       ],
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
     });
+    console.log(`✅ Puppeteer browser launched successfully`);
     
     const page = await browser.newPage();
+    console.log(`✅ New page created`);
+    
+    console.log(`🔍 Setting page content...`);
     await page.setContent(htmlContent, { 
       waitUntil: 'networkidle0',
       timeout: 30000 
     });
+    console.log(`✅ Page content set successfully`);
     
     // Generate PDF as buffer
+    console.log(`🔍 Generating PDF buffer...`);
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
@@ -330,7 +452,12 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
     console.log(`✅ PDF generated successfully (${pdfBuffer.length} bytes)`);
     
     // Upload PDF to ImageKit
-    console.log(`☁️ Uploading PDF to ImageKit...`);
+    console.log(`☁️ [${new Date().toISOString()}] Uploading PDF to ImageKit...`);
+    console.log(`🔍 ImageKit Credentials Check:`);
+    console.log(`   - Public Key: ${process.env.IMAGEKIT_PUBLIC_KEY ? '✅ SET' : '❌ MISSING'}`);
+    console.log(`   - Private Key: ${process.env.IMAGEKIT_PRIVATE_KEY ? '✅ SET' : '❌ MISSING'}`);
+    console.log(`   - URL Endpoint: ${process.env.IMAGEKIT_URL_ENDPOINT || '❌ MISSING'}`);
+    
     const uploadResponse = await imagekit.upload({
       file: pdfBuffer.toString('base64'),
       fileName: `invoice_${orderId}_${Date.now()}.pdf`,
@@ -347,11 +474,12 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
       try {
         await browser.close();
       } catch (closeError) {
-        console.error('Error closing browser:', closeError);
+        console.error('❌ Error closing browser:', closeError.message);
       }
     }
-    console.error('❌ Error generating/uploading invoice:', error);
-    console.error('Error stack:', error.stack);
+    console.error(`❌ [${new Date().toISOString()}] Error generating/uploading invoice:`, error.message);
+    console.error(`❌ Error type:`, error.constructor.name);
+    console.error('❌ Error stack:', error.stack);
     throw error;
   }
 }
@@ -1716,7 +1844,7 @@ app.get("/get-orders", verifyToken, async (req, res) => {
     // If no orders, return empty array
     if (ordersData.length === 0) {
       console.log("No orders found, returning empty array");
-      return res.json({ orders: [] });
+      return res.json({ success: true, orders: [] });
     }
 
     // Get items for each order
@@ -1758,7 +1886,7 @@ app.get("/get-orders", verifyToken, async (req, res) => {
     }
 
     console.log(`✅ Returning ${orders.length} orders with items`);
-    res.json({ orders });
+    res.json({ success: true, orders });
   } catch (err) {
     console.error("❌ Get orders error:", err);
     console.error("Error message:", err.message);
@@ -1931,32 +2059,52 @@ app.post("/create-order", verifyToken, async (req, res) => {
 </html>
     `;
 
-    // Generate PDF and upload to ImageKit (async, non-blocking)
+    // Generate PDF and upload to ImageKit (async, non-blocking) with retry
     let invoicePdfUrl = null;
     let pdfError = null;
     
-    // Start PDF generation in background
+    // Start PDF generation in background with retry logic
+    console.log(`\n📝 [${new Date().toISOString()}] STARTING BACKGROUND INVOICE GENERATION for order #${orderId}`);
     (async () => {
-      try {
-        console.log(`🚀 Starting background invoice generation for order #${orderId}...`);
-        const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-        console.log(`✅ Invoice PDF uploaded successfully: ${pdfUrl}`);
-        
-        // Update order with PDF URL
-        const updateResult = await sql`
-          UPDATE orders 
-          SET invoice_pdf_url = ${pdfUrl}
-          WHERE id = ${orderId}
-          RETURNING id
-        `;
-        
-        if (updateResult && updateResult.length > 0) {
-          console.log(`✅ Order #${orderId} updated with PDF URL`);
-        } else {
-          console.warn(`⚠️ Order #${orderId} update returned no rows`);
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          console.log(`\n🚀 [Attempt ${4-retries}/3] Starting invoice generation for order #${orderId}...`);
+          console.log(`📝 Invoice HTML size: ${invoiceHtml.length} bytes`);
+          
+          const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
+          console.log(`✅ Invoice PDF uploaded successfully: ${pdfUrl}`);
+          
+          // Update order with PDF URL
+          console.log(`💾 Updating database with invoice URL...`);
+          const updateResult = await sql`
+            UPDATE orders 
+            SET invoice_pdf_url = ${pdfUrl}
+            WHERE id = ${orderId}
+            RETURNING id
+          `;
+          
+          if (updateResult && updateResult.length > 0) {
+            console.log(`✅ ✅ ✅ ORDER #${orderId} INVOICE COMPLETE: ${pdfUrl} ✅ ✅ ✅`);
+          } else {
+            console.warn(`⚠️ Order #${orderId} update returned no rows`);
+          }
+          break;
+        } catch (error) {
+          retries--;
+          console.error(`\n❌ [Attempt ${4-retries}/3] Attempt failed for order #${orderId}:`);
+          console.error(`   Error: ${error.message}`);
+          console.error(`   Type: ${error.constructor.name}`);
+          if (error.stack) {
+            console.error(`   Stack: ${error.stack.substring(0, 500)}`);
+          }
+          if (retries > 0) {
+            console.log(`⏳ Will retry in 3 seconds (${retries} retries left)...`);
+            await new Promise(r => setTimeout(r, 3000));
+          } else {
+            console.error(`❌ ❌ ❌ ALL ATTEMPTS FAILED FOR ORDER #${orderId} ❌ ❌ ❌`);
+          }
         }
-      } catch (error) {
-        console.error(`❌ Background PDF generation failed for order #${orderId}:`, error.message);
       }
     })();
 
@@ -2039,7 +2187,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
   }
 });
 
-// Get invoice for a specific order
+// Get invoice for a specific order - returns HTML invoice directly
 app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -2120,9 +2268,17 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
         .totals-row.total { background: #212529; color: white; padding: 12px; margin-top: 10px; font-size: 1.2em; font-weight: bold; }
         .footer { text-align: center; margin-top: 50px; padding: 20px; background: #f8f9fa; color: #6c757d; }
         .thank-you { text-align: center; font-size: 1.5em; color: #28a745; margin: 30px 0; }
+        .print-btn { text-align: center; margin: 20px 0; }
+        .print-btn button { background: #212529; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .print-btn button:hover { background: #ffc800; color: #212529; }
+        @media print { .print-btn { display: none; } }
     </style>
 </head>
 <body>
+    <div class="print-btn">
+        <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+    </div>
+    
     <div class="invoice-header">
         <h1>INVOICE</h1>
         <p>Raju IT - Premium Fashion Store</p>
@@ -2207,22 +2363,19 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
     `;
 
     console.log(`✅ Returning invoice for order #${orderId}`);
-    res.json({ 
-      success: true, 
-      invoice: invoiceHtml,
+    
+    // Return JSON response with invoice HTML and a data URL
+    const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(invoiceHtml)}`;
+    
+    res.json({
+      success: true,
+      invoice_pdf_url: dataUrl,
       invoiceHtml: invoiceHtml,
-      orderId
+      orderId: orderId
     });
   } catch (err) {
     console.error("❌ Get invoice error:", err);
-    console.error("Error message:", err.message);
-    console.error("Error stack:", err.stack);
-    res.status(500).json({ 
-      message: "Server error", 
-      error: err.message,
-      stack: err.stack,
-      orderId: req.params.orderId
-    });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
@@ -3313,13 +3466,15 @@ app.get("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
   try {
     const userId = req.user?.id;
     const orderId = req.params.orderId;
-    console.log(`🚀 GET /regenerate-invoice/${orderId} - User: ${userId}`);
+    console.log(`\n🚀 [${new Date().toISOString()}] GET /regenerate-invoice/${orderId} - User: ${userId}`);
 
     if (!userId) {
+      console.log("❌ User not authenticated");
       return res.status(401).json({ message: "Not authenticated" });
     }
 
     // Get order details
+    console.log(`🔍 Fetching order #${orderId} from database...`);
     const orderResult = await sql`
       SELECT o.id, o.user_id, o.total_amount, o.status, o.shipping_address, o.created_at,
              u.name, u.email
@@ -3328,31 +3483,56 @@ app.get("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
     `;
 
     if (!orderResult || !orderResult[0]) {
+      console.log(`❌ Order #${orderId} not found for user ${userId}`);
       return res.status(404).json({ message: "Order not found" });
     }
 
     const order = orderResult[0];
+    console.log(`✅ Order found: ${JSON.stringify(order)}`);
+    
+    console.log(`🔍 Fetching order items for order #${orderId}...`);
     const itemsResult = await sql`
       SELECT product_name as name, product_image as image, quantity, price
       FROM order_items WHERE order_id = ${orderId}
     `;
     const items = itemsResult || [];
+    console.log(`✅ Found ${items.length} items for order #${orderId}`);
 
-    // Generate invoice in background
+    // Generate invoice in background with retry logic
+    console.log(`📝 Starting background invoice generation for order #${orderId}...`);
     (async () => {
-      try {
-        const invoiceHtml = generateInvoiceHtml(order, items);
-        const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-        await sql`UPDATE orders SET invoice_pdf_url = ${pdfUrl} WHERE id = ${orderId}`;
-        console.log(`✅ Invoice generated for order ${orderId}: ${pdfUrl}`);
-      } catch (error) {
-        console.error(`❌ Invoice generation failed for order ${orderId}:`, error.message);
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          console.log(`📝 [Retry ${4-retries}/3] Generating invoice HTML for order ${orderId}...`);
+          const invoiceHtml = generateInvoiceHtml(order, items);
+          console.log(`✅ Invoice HTML generated (${invoiceHtml.length} chars)`);
+          
+          console.log(`🖨️ [Retry ${4-retries}/3] Starting PDF generation for order ${orderId}...`);
+          const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
+          console.log(`✅ PDF URL received: ${pdfUrl}`);
+          
+          console.log(`💾 Updating database with PDF URL for order ${orderId}...`);
+          const updateResult = await sql`UPDATE orders SET invoice_pdf_url = ${pdfUrl} WHERE id = ${orderId} RETURNING id`;
+          console.log(`✅ Invoice generation COMPLETE for order ${orderId}: ${pdfUrl}`);
+          break;
+        } catch (error) {
+          retries--;
+          console.error(`❌ [Retry ${4-retries}/3] Invoice generation failed for order ${orderId}:`, error.message);
+          console.error(`❌ Error details:`, error);
+          if (retries > 0) {
+            console.log(`⏳ Retrying in 2 seconds...`);
+            await new Promise(r => setTimeout(r, 2000));
+          } else {
+            console.error(`❌ All retry attempts failed for order ${orderId}`);
+          }
+        }
       }
     })();
 
     res.json({ success: true, message: "Invoice generation started" });
   } catch (err) {
-    console.error("❌ Error:", err.message);
+    console.error("❌ Error in /regenerate-invoice:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 });

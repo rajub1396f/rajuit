@@ -1,23 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 import '../../config/constants.dart';
 import '../../providers/order_provider.dart';
 
 class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({Key? key}) : super(key: key);
+  const OrdersScreen({super.key});
 
   @override
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
+  Timer? _refreshTimer;
+  int _refreshCount = 0;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OrderProvider>().fetchOrders();
+      _startAutoRefresh();
     });
+  }
+
+  void _startAutoRefresh() {
+    // Auto-refresh orders frequently to check for invoice updates
+    // Refresh every 2 seconds for the first 30 seconds, then every 5 seconds
+    _refreshTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (mounted) {
+        _refreshCount++;
+        // After 15 cycles (30 seconds), increase interval to 5 seconds
+        if (_refreshCount > 15) {
+          _refreshTimer?.cancel();
+          _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+            if (mounted) {
+              context.read<OrderProvider>().fetchOrders(isAutoRefresh: true);
+            }
+          });
+        } else {
+          context.read<OrderProvider>().fetchOrders(isAutoRefresh: true);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -221,15 +253,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
               orElse: () => null as dynamic,
             );
 
-            if (order == null) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-
             return DraggableScrollableSheet(
               expand: false,
               builder: (context, scrollController) {
@@ -319,93 +342,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Invoice Buttons (right under total)
-                    Text(
-                      'Invoice',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 12),
-                    if (order.invoicePdfUrl != null && order.invoicePdfUrl!.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _viewInvoice(order.invoicePdfUrl!);
-                            },
-                            icon: const Icon(Icons.visibility),
-                            label: const Text('View Invoice'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFC800),
-                              foregroundColor: const Color(0xFF212529),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _downloadInvoice(order.invoicePdfUrl!);
-                            },
-                            icon: const Icon(Icons.download),
-                            label: const Text('Download Invoice'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF212529),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.orange[50],
-                              border: Border.all(color: Colors.orange[300]!),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'Invoice is being generated',
-                                  style: TextStyle(
-                                    color: Colors.orange[800],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Please check back in a few moments',
-                                  style: TextStyle(
-                                    color: Colors.orange[600],
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          ElevatedButton.icon(
-                            onPressed: () async {
-                              // Call regenerate invoice on backend
-                              await context.read<OrderProvider>().regenerateInvoice(order.id);
-                            },
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Check Again'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF212529),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 16),
-
-                    // Invoice Buttons (right under total)
+                    // Invoice Buttons
                     Text(
                       'Invoice',
                       style: Theme.of(context).textTheme.titleMedium,
