@@ -78,10 +78,20 @@ class ApiService {
 
   Future<AuthResponse> login(String email, String password) async {
     try {
+      if (kDebugMode) {
+        print('[API] Attempting login to: ${Constants.baseUrl}/login');
+        print('[API] Email: $email');
+      }
+
       final response = await _dio.post(
         '/login',
         data: LoginRequest(email: email, password: password).toJson(),
       );
+
+      if (kDebugMode) {
+        print('[API] Login response status: ${response.statusCode}');
+        print('[API] Login response data: ${response.data}');
+      }
 
       if (response.statusCode == 200) {
         return AuthResponse.fromJson(response.data);
@@ -92,7 +102,17 @@ class ApiService {
         type: DioExceptionType.badResponse,
       );
     } on DioException catch (e) {
+      if (kDebugMode) {
+        print('[API] DioException in login: ${e.message}');
+        print('[API] Response data: ${e.response?.data}');
+        print('[API] Response status: ${e.response?.statusCode}');
+      }
       throw _handleError(e);
+    } catch (e) {
+      if (kDebugMode) {
+        print('[API] General exception in login: $e');
+      }
+      throw Exception('Login failed: ${e.toString()}');
     }
   }
 
@@ -400,15 +420,39 @@ class ApiService {
   dynamic _handleError(DioException error) {
     String message = 'An error occurred';
 
+    if (kDebugMode) {
+      print('[API] Handling error: ${error.type}');
+      print('[API] Error message: ${error.message}');
+      print('[API] Response: ${error.response?.data}');
+    }
+
     if (error.response != null) {
-      message =
-          error.response?.data['message'] ?? error.message ?? 'Server error';
+      final statusCode = error.response?.statusCode;
+      final responseData = error.response?.data;
+      
+      if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+        message = responseData['message'];
+      } else if (statusCode == 400) {
+        message = 'Invalid request. Please check your input.';
+      } else if (statusCode == 401) {
+        message = 'Invalid email or password.';
+      } else if (statusCode == 403) {
+        message = 'Access denied. Please verify your email.';
+      } else if (statusCode == 404) {
+        message = 'Service not found. Please try again later.';
+      } else if (statusCode == 500) {
+        message = 'Server error. Please try again later.';
+      } else {
+        message = error.message ?? 'Server error';
+      }
     } else if (error.type == DioExceptionType.connectionTimeout) {
-      message = 'Connection timeout. Please check your internet.';
+      message = 'Connection timeout. Please check your internet connection.';
     } else if (error.type == DioExceptionType.receiveTimeout) {
       message = 'Request timeout. Please try again.';
+    } else if (error.type == DioExceptionType.connectionError) {
+      message = 'Network error. Please check your internet connection.';
     } else if (error.type == DioExceptionType.unknown) {
-      message = 'Network error. Please check your connection.';
+      message = 'Network error. Please check your connection and try again.';
     }
 
     return Exception(message);
