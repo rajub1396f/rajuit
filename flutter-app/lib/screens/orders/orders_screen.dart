@@ -111,11 +111,65 @@ class _OrdersScreenState extends State<OrdersScreen> {
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(Constants.defaultPadding),
-            itemCount: orderProvider.orders.length,
-            itemBuilder: (context, index) {
-              final order = orderProvider.orders[index];
+          return Column(
+            children: [
+              // Invoice Access Information
+              Container(
+                margin: const EdgeInsets.all(Constants.defaultPadding),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.blue.shade200,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.blue.shade700,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Access Your Invoices',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'To view and download your invoices, please log in to your account on our website at rajuit.online using your registered credentials. Your invoices will be available in the Dashboard section.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade800,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Orders List
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: Constants.defaultPadding,
+                  ),
+                  itemCount: orderProvider.orders.length,
+                  itemBuilder: (context, index) {
+                    final order = orderProvider.orders[index];
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -206,6 +260,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ),
               );
             },
+          ),
+              ),
+            ],
           );
         },
       ),
@@ -352,92 +409,86 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Show email status message if available
-                          if (_emailStatus.containsKey(order.id))
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                color: _emailStatus[order.id]!.startsWith('✅')
-                                    ? Colors.green[50]
-                                    : Colors.red[50],
-                                border: Border.all(
-                                  color: _emailStatus[order.id]!.startsWith('✅')
-                                      ? Colors.green[300]!
-                                      : Colors.red[300]!,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    _emailStatus[order.id]!.startsWith('✅')
-                                        ? Icons.check_circle
-                                        : Icons.error,
-                                    color:
-                                        _emailStatus[order.id]!.startsWith('✅')
-                                            ? Colors.green
-                                            : Colors.red,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      _emailStatus[order.id]!,
-                                      style: TextStyle(
-                                        color: _emailStatus[order.id]!
-                                                .startsWith('✅')
-                                            ? Colors.green[700]
-                                            : Colors.red[700],
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () {
-                                      setState(() {
-                                        _emailStatus.remove(order.id);
-                                      });
-                                    },
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ElevatedButton.icon(
-                            onPressed: (_isSendingEmail[order.id] ?? false)
-                                ? null
-                                : () {
-                                    _sendInvoiceEmail(order.id);
-                                  },
-                            icon: (_isSendingEmail[order.id] ?? false)
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
-                                    ),
-                                  )
-                                : const Icon(Icons.email),
-                            label: Text(
-                              (_isSendingEmail[order.id] ?? false)
-                                  ? 'Sending...'
-                                  : 'Send Invoice Email',
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
+                    if (_emailStatus.containsKey(order.id))
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: _emailStatus[order.id]!.startsWith('✅')
+                              ? Colors.green[50]
+                              : Colors.red[50],
+                          border: Border.all(
+                            color: _emailStatus[order.id]!.startsWith('✅')
+                                ? Colors.green[300]!
+                                : Colors.red[300]!,
                           ),
-                        ],
-                      )
-                    else
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _emailStatus[order.id]!.startsWith('✅')
+                                  ? Icons.check_circle
+                                  : Icons.error,
+                              color:
+                                  _emailStatus[order.id]!.startsWith('✅')
+                                      ? Colors.green
+                                      : Colors.red,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _emailStatus[order.id]!,
+                                style: TextStyle(
+                                  color: _emailStatus[order.id]!
+                                          .startsWith('✅')
+                                      ? Colors.green[700]
+                                      : Colors.red[700],
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                setState(() {
+                                  _emailStatus.remove(order.id);
+                                });
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ElevatedButton.icon(
+                      onPressed: (_isSendingEmail[order.id] ?? false)
+                          ? null
+                          : () {
+                              _sendInvoiceEmail(order.id);
+                            },
+                      icon: (_isSendingEmail[order.id] ?? false)
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white),
+                              ),
+                            )
+                          : const Icon(Icons.email),
+                      label: Text(
+                        (_isSendingEmail[order.id] ?? false)
+                            ? 'Sending...'
+                            : 'Send Invoice Email',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                    if (order.invoicePdfUrl == null || order.invoicePdfUrl!.isEmpty)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
