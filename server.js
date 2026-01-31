@@ -8,7 +8,6 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const brevo = require('@getbrevo/brevo');
-const puppeteer = require('puppeteer');
 const ImageKit = require('imagekit');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
@@ -2098,52 +2097,30 @@ app.post("/create-order", verifyToken, async (req, res) => {
 </html>
     `;
 
-    // Generate PDF and upload to ImageKit (async, non-blocking) with retry
-    let invoicePdfUrl = null;
-    let pdfError = null;
+    // Create invoice URL (HTML page, no PDF generation needed)
+    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.onrender.com'}/invoice/${orderId}`;
+    console.log(`\n📝 Invoice URL created: ${invoiceUrl}`);
     
-    // Start PDF generation in background with retry logic
-    console.log(`\n📝 [${new Date().toISOString()}] STARTING BACKGROUND INVOICE GENERATION for order #${orderId}`);
+    // Update database with invoice URL  
     (async () => {
-      let retries = 3;
-      while (retries > 0) {
-        try {
-          console.log(`\n🚀 [Attempt ${4-retries}/3] Starting invoice generation for order #${orderId}...`);
-          console.log(`📝 Invoice HTML size: ${invoiceHtml.length} bytes`);
-          
-          const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-          console.log(`✅ Invoice PDF uploaded successfully: ${pdfUrl}`);
-          
-          // Update order with PDF URL
-          console.log(`💾 Updating database with invoice URL...`);
-          const updateResult = await sql`
-            UPDATE orders 
-            SET invoice_pdf_url = ${pdfUrl}
-            WHERE id = ${orderId}
-            RETURNING id
-          `;
-          
-          if (updateResult && updateResult.length > 0) {
-            console.log(`✅ ✅ ✅ ORDER #${orderId} INVOICE COMPLETE: ${pdfUrl} ✅ ✅ ✅`);
-          } else {
-            console.warn(`⚠️ Order #${orderId} update returned no rows`);
-          }
-          break;
-        } catch (error) {
-          retries--;
-          console.error(`\n❌ [Attempt ${4-retries}/3] Attempt failed for order #${orderId}:`);
-          console.error(`   Error: ${error.message}`);
-          console.error(`   Type: ${error.constructor.name}`);
-          if (error.stack) {
-            console.error(`   Stack: ${error.stack.substring(0, 500)}`);
-          }
-          if (retries > 0) {
-            console.log(`⏳ Will retry in 3 seconds (${retries} retries left)...`);
-            await new Promise(r => setTimeout(r, 3000));
-          } else {
-            console.error(`❌ ❌ ❌ ALL ATTEMPTS FAILED FOR ORDER #${orderId} ❌ ❌ ❌`);
-          }
+      try {
+        console.log(`💾 Updating database with invoice URL...`);
+        
+        const updateResult = await sql`
+          UPDATE orders 
+          SET invoice_pdf_url = ${invoiceUrl}
+          WHERE id = ${orderId}
+          RETURNING id
+        `;
+        
+        if (updateResult && updateResult.length > 0) {
+          console.log(`✅ ✅ ✅ ORDER #${orderId} INVOICE COMPLETE: ${invoiceUrl} ✅ ✅ ✅`);
+        } else {
+          console.warn(`⚠️ Order #${orderId} update returned no rows`);
         }
+      } catch (error) {
+        console.error(`\n❌ Invoice URL update failed for order #${orderId}:`);
+        console.error(`   Error: ${error.message}`);
       }
     })();
 
@@ -2811,12 +2788,13 @@ app.get("/test-invoice", async (req, res) => {
 </html>
     `;
     
-    const pdfUrl = await generateAndUploadInvoice(testHtml, 'TEST-' + Date.now());
+    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.onrender.com'}/invoice/TEST-${Date.now()}`;
     
     res.json({ 
       success: true, 
-      message: "Test invoice generated successfully!", 
-      pdfUrl 
+      message: "Invoice URL created successfully!", 
+      pdfUrl: invoiceUrl,
+      note: "Invoices are now HTML pages, not PDFs - lightweight and fast!"
     });
   } catch (error) {
     console.error("❌ Test invoice error:", error);
