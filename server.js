@@ -412,51 +412,43 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
     
     // Check if puppeteer is available
     console.log(`🔍 Checking Puppeteer availability...`);
-    console.log(`🔍 Puppeteer default executable path: ${puppeteer.executablePath()}`);
     
-    // Find Chrome executable on Render (handle wildcard in path)
-    let chromePath = process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath();
+    // On Render, find Chrome executable dynamically
+    let chromePath = puppeteer.executablePath(); // Default fallback
     
-    // If the path contains a wildcard, try to resolve it
-    if (chromePath.includes('*')) {
-      console.log(`🔍 Chrome path contains wildcard, attempting to resolve...`);
-      try {
-        const fs = require('fs');
-        const path = require('path');
-        const { globSync } = require('glob');
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Check if we're on Render (look for Render's cache directory)
+      const renderCacheDir = '/opt/render/.cache/puppeteer/chrome';
+      
+      if (fs.existsSync(renderCacheDir)) {
+        console.log(`🔍 Render cache directory found, searching for Chrome...`);
         
-        // Use glob to find the actual path
-        const matches = globSync(chromePath);
-        if (matches && matches.length > 0) {
-          chromePath = matches[0];
-          console.log(`✅ Resolved Chrome path via glob: ${chromePath}`);
-        } else {
-          console.log(`⚠️ Glob returned no matches, trying fallback paths...`);
-          // Try common Render paths
-          const possiblePaths = [
-            '/opt/render/.cache/puppeteer/chrome/linux-131.0.6778.204/chrome-linux64/chrome',
-            '/opt/render/.cache/puppeteer/chrome/linux-130.0.6723.116/chrome-linux64/chrome',
-            '/opt/render/.cache/puppeteer/chrome/linux-129.0.6668.100/chrome-linux64/chrome',
-            puppeteer.executablePath()
-          ];
+        // Read all version directories
+        const versions = fs.readdirSync(renderCacheDir).filter(dir => dir.startsWith('linux-'));
+        
+        if (versions.length > 0) {
+          // Use the first (or latest) version found
+          const chromeVersion = versions[versions.length - 1];
+          const possiblePath = path.join(renderCacheDir, chromeVersion, 'chrome-linux64', 'chrome');
           
-          for (const testPath of possiblePaths) {
-            try {
-              if (fs.existsSync(testPath)) {
-                chromePath = testPath;
-                console.log(`✅ Found Chrome at fallback path: ${chromePath}`);
-                break;
-              }
-            } catch (e) {
-              console.log(`⚠️ Could not check path ${testPath}: ${e.message}`);
-            }
+          if (fs.existsSync(possiblePath)) {
+            chromePath = possiblePath;
+            console.log(`✅ Found Chrome on Render: ${chromePath}`);
+          } else {
+            console.log(`⚠️ Chrome path doesn't exist: ${possiblePath}`);
           }
+        } else {
+          console.log(`⚠️ No Chrome versions found in ${renderCacheDir}`);
         }
-      } catch (err) {
-        console.log(`⚠️ Error resolving Chrome path: ${err.message}`);
-        console.log(`⚠️ Using default puppeteer path as fallback`);
-        chromePath = puppeteer.executablePath();
+      } else {
+        console.log(`🔍 Not on Render, using default Puppeteer executable: ${chromePath}`);
       }
+    } catch (err) {
+      console.log(`⚠️ Error finding Chrome executable: ${err.message}`);
+      console.log(`⚠️ Using default Puppeteer path: ${chromePath}`);
     }
     
     console.log(`🔍 Final Chrome path: ${chromePath}`);
