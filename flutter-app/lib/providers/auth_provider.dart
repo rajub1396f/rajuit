@@ -200,4 +200,24 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  Future<void> updateUser(UserModel updatedUser) async {
+    try {
+      _user = updatedUser;
+      
+      // Update storage
+      await StorageService.saveUserInfo(
+        userId: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        phone: updatedUser.phone,
+        isVerified: updatedUser.isVerified,
+      );
+      
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
 }

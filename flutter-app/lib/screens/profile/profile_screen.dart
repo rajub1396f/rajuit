@@ -2,10 +2,94 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/api_service.dart';
 import '../auth/login_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  bool _isEditing = false;
+  bool _isSaving = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  void _initializeControllers(AuthProvider authProvider) {
+    if (authProvider.user != null) {
+      _nameController.text = authProvider.user!.name;
+      _phoneController.text = authProvider.user!.phone;
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final authProvider = context.read<AuthProvider>();
+      final apiService = ApiService();
+      
+      final updatedUser = await apiService.updateUserProfile({
+        'name': _nameController.text.trim(),
+        'phone': _phoneController.text.trim(),
+      });
+
+      // Update the auth provider with new user data
+      authProvider.updateUser(updatedUser);
+
+      if (mounted) {
+        setState(() {
+          _isEditing = false;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update profile: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
+
+  void _cancelEdit(AuthProvider authProvider) {
+    setState(() {
+      _isEditing = false;
+      _initializeControllers(authProvider);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +98,16 @@ class ProfileScreen extends StatelessWidget {
         title: const Text('Profile'),
         elevation: 0,
         actions: [
+          if (!_isEditing)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                setState(() {
+                  _isEditing = true;
+                });
+              },
+              tooltip: 'Edit Profile',
+            ),
           Consumer<AuthProvider>(
             builder: (context, authProvider, _) {
               return IconButton(
@@ -52,8 +146,15 @@ class ProfileScreen extends StatelessWidget {
             );
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(Constants.defaultPadding),
+          // Initialize controllers with user data
+          if (_nameController.text.isEmpty && _phoneController.text.isEmpty) {
+            _initializeControllers(authProvider);
+          }
+
+          return Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(Constants.defaultPadding),
             child: Column(
               children: [
                 // Profile Header
@@ -70,14 +171,14 @@ class ProfileScreen extends StatelessWidget {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.person,
                           size: 40,
-                          color: const Color(0xFF212529),
+                          color: Color(0xFF212529),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -129,9 +230,79 @@ class ProfileScreen extends StatelessWidget {
                 // User Information
                 _buildSectionTitle('User Information'),
                 const SizedBox(height: 12),
-                _buildInfoCard('Name', user.name),
-                _buildInfoCard('Email', user.email),
-                _buildInfoCard('Phone', user.phone),
+                
+                // Name Field - Editable
+                _buildEditableField(
+                  label: 'Name',
+                  controller: _nameController,
+                  enabled: _isEditing,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Name is required';
+                    }
+                    if (value.trim().length < 2) {
+                      return 'Name must be at least 2 characters';
+                    }
+                    return null;
+                  },
+                ),
+                
+                // Email Field - Read only
+                _buildEditableField(
+                  label: 'Email',
+                  initialValue: user.email,
+                  enabled: false,
+                  readOnly: true,
+                ),
+                
+                // Phone Field - Editable
+                _buildEditableField(
+                  label: 'Phone',
+                  controller: _phoneController,
+                  enabled: _isEditing,
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Phone is required';
+                    }
+                    if (value.trim().length < 10) {
+                      return 'Phone must be at least 10 digits';
+                    }
+                    return null;
+                  },
+                ),
+
+                // Save/Cancel buttons when editing
+                if (_isEditing) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _isSaving ? null : () => _cancelEdit(authProvider),
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isSaving ? null : _saveProfile,
+                          child: _isSaving
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Text('Save Changes'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                
                 const SizedBox(height: 24),
 
                 // Account Settings
@@ -178,8 +349,82 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+            ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildEditableField({
+    required String label,
+    TextEditingController? controller,
+    String? initialValue,
+    bool enabled = true,
+    bool readOnly = false,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (readOnly)
+              Text(
+                initialValue ?? '',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              )
+            else
+              TextFormField(
+                controller: controller,
+                initialValue: initialValue,
+                enabled: enabled,
+                readOnly: readOnly,
+                keyboardType: keyboardType,
+                validator: validator,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: enabled ? Colors.black : Colors.grey,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                  border: InputBorder.none,
+                  enabledBorder: enabled
+                      ? const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.blue),
+                        )
+                      : InputBorder.none,
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  errorBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red),
+                  ),
+                  focusedErrorBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red, width: 2),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
