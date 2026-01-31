@@ -77,6 +77,7 @@ class MyApp extends StatelessWidget {
           },
         ),
         routes: {
+          '/home': (context) => const HomeScreen(),
           '/orders': (context) => const OrdersScreen(),
           '/order-confirmation': (context) {
             final orderId = ModalRoute.of(context)?.settings.arguments as int?;

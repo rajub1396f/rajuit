@@ -2,18 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
+import 'package:dio/dio.dart';
 import '../../providers/order_provider.dart';
 import '../../services/storage_service.dart';
 import '../../services/api_service.dart';
-
-extension FirstWhereOrNull<T> on Iterable<T> {
-  T? firstWhereOrNull(bool Function(T) test) {
-    for (var element in this) {
-      if (test(element)) return element;
-    }
-    return null;
-  }
-}
 
 class OrderConfirmationScreen extends StatefulWidget {
   final int orderId;
@@ -36,8 +28,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   int _refreshAttempts = 0;
   Timer? _autoRefreshTimer;
   final ApiService _apiService = ApiService();
-  bool _isCheckingAgain = false;
   bool _isSendingEmail = false;
+  String? _emailStatus; // Track email status message
 
   @override
   void initState() {
@@ -194,6 +186,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
     setState(() {
       _isSendingEmail = true;
+      _emailStatus = null; // Clear previous status
     });
 
     try {
@@ -204,7 +197,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
         throw Exception('Not authenticated');
       }
 
-      final response = await _apiService.dio.post(
+      final dio = Dio();
+      final response = await dio.post(
         '$baseUrl/send-invoice-email/${widget.orderId}',
         options: Options(
           headers: {
@@ -220,70 +214,31 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
         });
 
         if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Invoice sent successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          setState(() {
+            _emailStatus =
+                '✅ Invoice sent successfully! Check your email.'; // Show on page
+          });
+          // Auto-dismiss after 5 seconds
+          Future.delayed(const Duration(seconds: 5), () {
+            if (mounted) {
+              setState(() {
+                _emailStatus = null;
+              });
+            }
+          });
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  Text(response.data['message'] ?? 'Failed to send invoice'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          setState(() {
+            _emailStatus =
+                '❌ ${response.data['message'] ?? 'Failed to send invoice'}';
+          });
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isSendingEmail = false;
+          _emailStatus = '❌ Error: $e';
         });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error sending invoice: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _checkAgain() async {
-    if (_isCheckingAgain) return;
-
-    setState(() {
-      _isCheckingAgain = true;
-      _refreshAttempts = 0; // Reset attempts
-    });
-
-    try {
-      final orderProvider = context.read<OrderProvider>();
-
-      // Call regenerateInvoice which will update the orders list
-      await orderProvider.regenerateInvoice(widget.orderId);
-
-      // Reload invoice after regeneration
-      if (mounted) {
-        setState(() {
-          _invoiceFuture = _loadInvoice();
-          _isCheckingAgain = false;
-        });
-        // Restart auto-refresh
-        _startAutoRefresh();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _invoiceError = e.toString();
-          _isCheckingAgain = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error checking invoice: $e')),
-        );
       }
     }
   }
@@ -400,11 +355,23 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                         ),
                         const SizedBox(height: 12),
                         ElevatedButton.icon(
-                          onPressed: _isCheckingAgain ? null : _checkAgain,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Check Again'),
+                          onPressed: _isSendingEmail ? null : _sendInvoiceEmail,
+                          icon: _isSendingEmail
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Icon(Icons.email),
+                          label: Text(_isSendingEmail
+                              ? 'Sending...'
+                              : 'Send Invoice Email'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF212529),
+                            backgroundColor: Colors.blue,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
@@ -498,10 +465,72 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
+                        // Show email status message if available
+                        if (_emailStatus != null)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              color: _emailStatus!.startsWith('✅')
+                                  ? Colors.green[50]
+                                  : Colors.red[50],
+                              border: Border.all(
+                                color: _emailStatus!.startsWith('✅')
+                                    ? Colors.green[300]!
+                                    : Colors.red[300]!,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _emailStatus!.startsWith('✅')
+                                      ? Icons.check_circle
+                                      : Icons.error,
+                                  color: _emailStatus!.startsWith('✅')
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _emailStatus!,
+                                    style: TextStyle(
+                                      color: _emailStatus!.startsWith('✅')
+                                          ? Colors.green[700]
+                                          : Colors.red[700],
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () {
+                                    setState(() {
+                                      _emailStatus = null;
+                                    });
+                                  },
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                              ],
+                            ),
+                          ),
                         ElevatedButton.icon(
                           onPressed: _isSendingEmail ? null : _sendInvoiceEmail,
-                          icon: const Icon(Icons.email),
-                          label: const Text('Send Invoice Email'),
+                          icon: _isSendingEmail
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Icon(Icons.email),
+                          label: Text(_isSendingEmail
+                              ? 'Sending...'
+                              : 'Send Invoice Email'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             foregroundColor: Colors.white,

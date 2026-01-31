@@ -168,38 +168,68 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> regenerateInvoice(int orderId) async {
+  Future<String?> regenerateInvoice(int orderId) async {
     try {
-      _error = null;
-      notifyListeners();
+      // Request regeneration from backend (now waits for completion)
+      final result = await _apiService.regenerateInvoice(orderId);
+      print('[OrderProvider] Regeneration result: $result');
+      
+      // If backend returns the invoice URL directly, use it
+      if (result['invoiceUrl'] != null && result['invoiceUrl'].toString().isNotEmpty) {
+        final invoiceUrl = result['invoiceUrl'].toString();
+        print('[OrderProvider] ✅ Got invoice URL from backend: $invoiceUrl');
+        
+        // Refresh orders to update local state
+        await fetchOrders(isAutoRefresh: true);
+        
+        return invoiceUrl;
+      }
+      
+      // Fallback: Poll for the updated invoice URL if backend didn't return it
+      print('[OrderProvider] Backend did not return URL, starting polling...');
+      final previousInvoiceUrl =
+          _orders.firstWhereOrNull((o) => o.id == orderId)?.invoicePdfUrl;
 
-      await _apiService.regenerateInvoice(orderId);
+      const pollingAttempts = 10; // Reduced since backend now waits
+      const delay = Duration(seconds: 2);
 
-      // Poll for invoice URL to be generated (up to 30 seconds)
-      // Invoice generation process: puppeteer launch + PDF generation + ImageKit upload
-      for (int attempt = 0; attempt < 6; attempt++) {
-        // Wait before checking (5 seconds per attempt)
-        await Future.delayed(Duration(seconds: 5));
+      print('[OrderProvider] Starting to poll for invoice URL (${pollingAttempts * 2}s max)');
 
-        // Fetch orders to check if invoice URL is now available
-        await fetchOrders();
+      for (int attempt = 0; attempt < pollingAttempts; attempt++) {
+        await Future.delayed(delay);
 
-        // Check if invoice URL exists for this order
+        print('[OrderProvider] Polling attempt ${attempt + 1}/$pollingAttempts');
+        await fetchOrders(isAutoRefresh: true);
+
         final order = _orders.firstWhereOrNull((o) => o.id == orderId);
-        if (order != null &&
-            order.invoicePdfUrl != null &&
-            order.invoicePdfUrl!.isNotEmpty) {
-          // Invoice is ready!
-          return;
+        final currentUrl = order?.invoicePdfUrl;
+
+        print('[OrderProvider] Current invoice URL: $currentUrl');
+
+        // Check if we got a new URL different from the previous one
+        if (currentUrl?.isNotEmpty == true && currentUrl != previousInvoiceUrl) {
+          print('[OrderProvider] ✅ New invoice URL detected: $currentUrl');
+          return currentUrl;
+        }
+
+        // If there was no previous URL and now we have one, return it
+        if (currentUrl?.isNotEmpty == true && previousInvoiceUrl == null) {
+          print('[OrderProvider] ✅ Invoice URL now available: $currentUrl');
+          return currentUrl;
         }
       }
 
-      // If we get here, invoice wasn't generated in time
-      _error = 'Invoice generation timeout after 30 seconds';
-      notifyListeners();
+      // If polling timed out but we have the old URL, return it as fallback
+      if (previousInvoiceUrl?.isNotEmpty == true) {
+        print('[OrderProvider] ⚠️ Timeout - returning previous URL: $previousInvoiceUrl');
+        return previousInvoiceUrl;
+      }
+
+      print('[OrderProvider] ❌ Invoice generation timeout');
+      throw Exception('Invoice generation timeout after ${pollingAttempts * 2} seconds');
     } catch (e) {
-      _error = e.toString();
-      notifyListeners();
+      print('[OrderProvider] Regeneration request failed: $e');
+      rethrow;
     }
   }
 }

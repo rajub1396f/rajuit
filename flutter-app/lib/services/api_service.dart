@@ -9,6 +9,7 @@ import '../services/storage_service.dart';
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   late Dio _dio;
+  bool _hasLoggedJwtRequest = false;
 
   factory ApiService() {
     return _instance;
@@ -38,8 +39,10 @@ class ApiService {
           final token = await StorageService.getToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
-            if (kDebugMode) {
-              print('[JWT] Token added to request: ${token.substring(0, 20)}...');
+            if (kDebugMode && !_hasLoggedJwtRequest) {
+              _hasLoggedJwtRequest = true;
+              print(
+                  '[JWT] Token added to request: ${token.substring(0, 20)}...');
             }
           }
           return handler.next(options);
@@ -57,7 +60,7 @@ class ApiService {
               return handler.resolve(await _retry(error.requestOptions));
             }
           }
-          
+
           if (kDebugMode) {
             print('[API Error] ${error.message}');
             print('[Error Response] ${error.response?.data}');
@@ -67,15 +70,8 @@ class ApiService {
       ),
     );
 
-    if (kDebugMode) {
-      _dio.interceptors.add(
-        LogInterceptor(
-          responseBody: true,
-          requestBody: true,
-          requestHeader: true,
-        ),
-      );
-    }
+    // LogInterceptor removed - using minimal JWT logs only
+    // to reduce console spam
   }
 
   // ==================== AUTHENTICATION ====================
@@ -171,14 +167,30 @@ class ApiService {
   }
 
   // ==================== PRODUCTS ====================
-
-  Future<List<ProductModel>> getProducts() async {
+  Future<List<ProductModel>> getProducts({
+    String? category,
+    String? subcategory,
+  }) async {
     try {
-      final response = await _dio.get('/api/products');
+      final queryParameters = <String, dynamic>{};
+      if (category?.isNotEmpty == true) {
+        queryParameters['category'] = category;
+      }
+      if (subcategory?.isNotEmpty == true) {
+        queryParameters['subcategory'] = subcategory;
+      }
+
+      final response = await _dio.get(
+        '/api/products',
+        queryParameters: queryParameters.isEmpty ? null : queryParameters,
+      );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((p) => ProductModel.fromJson(p)).toList();
+        final rawList = _extractProductList(response.data);
+        return rawList
+            .map((product) =>
+                ProductModel.fromJson(product as Map<String, dynamic>))
+            .toList();
       }
       throw DioException(
         requestOptions: response.requestOptions,
@@ -188,41 +200,32 @@ class ApiService {
     } on DioException catch (e) {
       throw _handleError(e);
     }
+  }
+
+  List<dynamic> _extractProductList(dynamic data) {
+    if (data is List) return data;
+    if (data is Map<String, dynamic>) {
+      if (data['products'] is List) {
+        return data['products'] as List<dynamic>;
+      }
+      if (data['data'] is List) {
+        return data['data'] as List<dynamic>;
+      }
+      if (data['items'] is List) {
+        return data['items'] as List<dynamic>;
+      }
+    }
+    return [];
   }
 
   Future<ProductModel> getProduct(int productId) async {
-    try {
-      final response = await _dio.get('/api/products?id=$productId');
-
-      if (response.statusCode == 200) {
-        return ProductModel.fromJson(response.data['data']);
-      }
-      throw DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        type: DioExceptionType.badResponse,
-      );
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<List<ProductModel>> getProductsByCategory(String category) async {
-    try {
-      final response = await _dio.get('/api/products?category=$category');
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((p) => ProductModel.fromJson(p)).toList();
-      }
-      throw DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        type: DioExceptionType.badResponse,
-      );
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
+    final products = await getProducts();
+    final matchingProduct = products.firstWhere(
+      (product) => product.id == productId,
+      orElse: () =>
+          throw Exception('Product with ID $productId not found.'),
+    );
+    return matchingProduct;
   }
 
   // ==================== ORDERS ====================
@@ -335,29 +338,43 @@ class ApiService {
     }
   }
 
-  // ==================== ERROR HANDLING ====================
+  // ==================== INVOICE REGENERATION ====================
 
-  Future<void> regenerateInvoice(int orderId) async {
+  Future<Map<String, dynamic>> regenerateInvoice(int orderId) async {
     try {
+      if (kDebugMode) {
+        print('[Invoice] Requesting regeneration for order $orderId');
+      }
+      
       final response = await _dio.get('/regenerate-invoice/$orderId');
 
-      if (response.statusCode != 200) {
-        throw DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          type: DioExceptionType.badResponse,
-        );
+      if (response.statusCode == 200) {
+        if (kDebugMode) {
+          print('[Invoice] Regeneration request accepted: ${response.data}');
+        }
+        return response.data as Map<String, dynamic>;
       }
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+      );
     } on DioException catch (e) {
+      if (kDebugMode) {
+        print('[Invoice] Regeneration failed: ${e.message}');
+      }
       throw _handleError(e);
     }
   }
+
+  // ==================== ERROR HANDLING ====================
 
   dynamic _handleError(DioException error) {
     String message = 'An error occurred';
 
     if (error.response != null) {
-      message = error.response?.data['message'] ?? error.message ?? 'Server error';
+      message =
+          error.response?.data['message'] ?? error.message ?? 'Server error';
     } else if (error.type == DioExceptionType.connectionTimeout) {
       message = 'Connection timeout. Please check your internet.';
     } else if (error.type == DioExceptionType.receiveTimeout) {
@@ -391,7 +408,7 @@ class ApiService {
       if (response.statusCode == 200 && response.data['token'] != null) {
         final newToken = response.data['token'];
         final expiry = response.data['expiresIn'] ?? 3600;
-        
+
         await StorageService.saveToken(newToken, expiryInSeconds: expiry);
         if (kDebugMode) print('[JWT] Token refreshed successfully');
         return true;
@@ -431,7 +448,8 @@ class ApiService {
       if (!await StorageService.invoiceNeedsRefresh(orderId)) {
         final cached = await StorageService.getInvoiceSync(orderId);
         if (cached != null && cached['invoiceData'] != null) {
-          if (kDebugMode) print('[Invoice] Using cached invoice for order $orderId');
+          if (kDebugMode)
+            print('[Invoice] Using cached invoice for order $orderId');
           return cached['invoiceData'] as String;
         }
       }
@@ -449,7 +467,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final invoiceData = response.data['invoice'] ?? response.data;
-        
+
         // Cache the invoice with JWT token
         await StorageService.saveInvoiceSync(
           orderId: orderId,
@@ -457,7 +475,8 @@ class ApiService {
           jwtToken: token,
         );
 
-        if (kDebugMode) print('[Invoice] Invoice fetched and cached for order $orderId');
+        if (kDebugMode)
+          print('[Invoice] Invoice fetched and cached for order $orderId');
         return invoiceData.toString();
       }
 
@@ -506,7 +525,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final invoices = response.data['invoices'] as List? ?? [];
-        
+
         for (var invoice in invoices) {
           final orderId = invoice['orderId'] ?? invoice['order_id'];
           if (orderId != null) {
@@ -532,4 +551,3 @@ class ApiService {
     }
   }
 }
-

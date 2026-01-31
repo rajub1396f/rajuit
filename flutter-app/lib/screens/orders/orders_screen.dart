@@ -17,11 +17,16 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   Timer? _refreshTimer;
   int _refreshCount = 0;
-  final dio = Dio();
+  late final Dio dio;
+  final Map<int, String> _emailStatus = {}; // Track email status per order ID
+  final Map<int, bool> _isSendingEmail = {}; // Track sending state
+  final Map<int, bool> _isRegeneratingInvoice =
+      {}; // Track regeneration progress
 
   @override
   void initState() {
     super.initState();
+    dio = Dio();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OrderProvider>().fetchOrders();
       _startAutoRefresh();
@@ -378,12 +383,80 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          // Show email status message if available
+                          if (_emailStatus.containsKey(order.id))
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: _emailStatus[order.id]!.startsWith('✅')
+                                    ? Colors.green[50]
+                                    : Colors.red[50],
+                                border: Border.all(
+                                  color: _emailStatus[order.id]!.startsWith('✅')
+                                      ? Colors.green[300]!
+                                      : Colors.red[300]!,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    _emailStatus[order.id]!.startsWith('✅')
+                                        ? Icons.check_circle
+                                        : Icons.error,
+                                    color:
+                                        _emailStatus[order.id]!.startsWith('✅')
+                                            ? Colors.green
+                                            : Colors.red,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      _emailStatus[order.id]!,
+                                      style: TextStyle(
+                                        color: _emailStatus[order.id]!
+                                                .startsWith('✅')
+                                            ? Colors.green[700]
+                                            : Colors.red[700],
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close),
+                                    onPressed: () {
+                                      setState(() {
+                                        _emailStatus.remove(order.id);
+                                      });
+                                    },
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ElevatedButton.icon(
-                            onPressed: () {
-                              _sendInvoiceEmail(order.id);
-                            },
-                            icon: const Icon(Icons.email),
-                            label: const Text('Send Invoice Email'),
+                            onPressed: (_isSendingEmail[order.id] ?? false)
+                                ? null
+                                : () {
+                                    _sendInvoiceEmail(order.id);
+                                  },
+                            icon: (_isSendingEmail[order.id] ?? false)
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    ),
+                                  )
+                                : const Icon(Icons.email),
+                            label: Text(
+                              (_isSendingEmail[order.id] ?? false)
+                                  ? 'Sending...'
+                                  : 'Send Invoice Email',
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
@@ -425,14 +498,88 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           ),
                           const SizedBox(height: 12),
                           ElevatedButton.icon(
-                            onPressed: () async {
-                              // Call regenerate invoice on backend
-                              await context
-                                  .read<OrderProvider>()
-                                  .regenerateInvoice(order.id);
-                            },
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Check Again'),
+                            onPressed: (_isRegeneratingInvoice[order.id] ??
+                                    false)
+                                ? null
+                                : () async {
+                                    setState(() {
+                                      _isRegeneratingInvoice[order.id] = true;
+                                    });
+
+                                    final messenger = ScaffoldMessenger.of(context);
+
+                                    try {
+                                      print('[OrdersScreen] Starting invoice regeneration for order ${order.id}');
+                                      final previousInvoiceUrl = order.invoicePdfUrl;
+                                      print('[OrdersScreen] Previous invoice URL: $previousInvoiceUrl');
+                                      
+                                      final invoiceUrl = await context
+                                          .read<OrderProvider>()
+                                          .regenerateInvoice(order.id);
+                                      
+                                      print('[OrdersScreen] Received invoice URL: $invoiceUrl');
+                                      if (!mounted) return;
+
+                                      if (invoiceUrl != null) {
+                                        final message = invoiceUrl != previousInvoiceUrl
+                                            ? 'Invoice regenerated successfully. Opening PDF…'
+                                            : 'Invoice already available. Opening PDF…';
+
+                                        print('[OrdersScreen] $message');
+                                        messenger.showSnackBar(
+                                          SnackBar(
+                                            content: Text(message),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                        _viewInvoice(invoiceUrl);
+                                      } else {
+                                        print('[OrdersScreen] Invoice URL is null');
+                                        messenger.showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Invoice is being regenerated. Please try again in a moment.',
+                                            ),
+                                            backgroundColor: Colors.orange,
+                                          ),
+                                        );
+                                      }
+                                    } catch (error) {
+                                      print('[OrdersScreen] Error regenerating invoice: $error');
+                                      if (mounted) {
+                                        messenger.showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                'Failed to regenerate invoice: $error'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() {
+                                          _isRegeneratingInvoice
+                                              .remove(order.id);
+                                        });
+                                      }
+                                    }
+                                  },
+                            icon: (_isRegeneratingInvoice[order.id] ?? false)
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    ),
+                                  )
+                                : const Icon(Icons.refresh),
+                            label: Text(
+                              (_isRegeneratingInvoice[order.id] ?? false)
+                                  ? 'Regenerating...'
+                                  : 'Regenerate Invoice',
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF212529),
                               foregroundColor: Colors.white,
@@ -495,6 +642,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Future<void> _sendInvoiceEmail(int orderId) async {
     try {
+      // Set sending state
+      if (mounted) {
+        setState(() {
+          _isSendingEmail[orderId] = true;
+          _emailStatus.remove(orderId); // Clear previous status
+        });
+      }
+
       const String baseUrl = 'https://rajuit.online';
       final token = await StorageService.getToken();
 
@@ -510,34 +665,40 @@ class _OrdersScreenState extends State<OrdersScreen> {
             'Content-Type': 'application/json',
           },
         ),
+        data: {},
       );
 
       if (mounted) {
+        setState(() {
+          _isSendingEmail[orderId] = false;
+        });
+
         if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Invoice sent successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          setState(() {
+            _emailStatus[orderId] =
+                '✅ Invoice sent successfully! Check your email.'; // Show on page
+          });
+          // Auto-dismiss after 5 seconds
+          Future.delayed(const Duration(seconds: 5), () {
+            if (mounted && _emailStatus.containsKey(orderId)) {
+              setState(() {
+                _emailStatus.remove(orderId);
+              });
+            }
+          });
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  Text(response.data['message'] ?? 'Failed to send invoice'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          setState(() {
+            _emailStatus[orderId] =
+                '❌ ${response.data['message'] ?? 'Failed to send invoice'}';
+          });
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error sending invoice: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        setState(() {
+          _isSendingEmail[orderId] = false;
+          _emailStatus[orderId] = '❌ Error: $e';
+        });
       }
     }
   }
