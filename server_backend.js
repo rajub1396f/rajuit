@@ -2632,21 +2632,34 @@ app.get("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
     `;
     const items = itemsResult || [];
 
-    // Generate invoice in background
-    (async () => {
-      try {
-        const invoiceHtml = generateInvoiceHtml(order, items);
-        const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-        await sql`UPDATE orders SET invoice_pdf_url = ${pdfUrl} WHERE id = ${orderId}`;
-        console.log(`âœ… Invoice generated for order ${orderId}: ${pdfUrl}`);
-      } catch (error) {
-        console.error(`âŒ Invoice generation failed for order ${orderId}:`, error.message);
-      }
-    })();
-
-    res.json({ success: true, message: "Invoice generation started" });
+    // Generate invoice synchronously and wait for completion
+    try {
+      console.log(`📄 Generating invoice HTML for order ${orderId}...`);
+      const invoiceHtml = generateInvoiceHtml(order, items);
+      
+      console.log(`☁️ Uploading PDF to ImageKit for order ${orderId}...`);
+      const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
+      
+      console.log(`💾 Updating database with PDF URL for order ${orderId}...`);
+      await sql`UPDATE orders SET invoice_pdf_url = ${pdfUrl} WHERE id = ${orderId}`;
+      
+      console.log(`✅ Invoice regenerated successfully for order ${orderId}: ${pdfUrl}`);
+      
+      res.json({ 
+        success: true, 
+        message: "Invoice regenerated successfully",
+        invoiceUrl: pdfUrl
+      });
+    } catch (error) {
+      console.error(`❌ Invoice generation failed for order ${orderId}:`, error.message);
+      console.error('Stack trace:', error.stack);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to regenerate invoice: " + error.message 
+      });
+    }
   } catch (err) {
-    console.error("âŒ Error:", err.message);
+    console.error("❌ Error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 });

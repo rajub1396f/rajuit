@@ -412,7 +412,48 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
     
     // Check if puppeteer is available
     console.log(`🔍 Checking Puppeteer availability...`);
-    console.log(`🔍 Puppeteer executable path: ${puppeteer.executablePath()}`);
+    console.log(`🔍 Puppeteer default executable path: ${puppeteer.executablePath()}`);
+    
+    // Find Chrome executable on Render (handle wildcard in path)
+    let chromePath = process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath();
+    
+    // If the path contains a wildcard, try to resolve it
+    if (chromePath.includes('*')) {
+      console.log(`🔍 Chrome path contains wildcard, attempting to resolve...`);
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const glob = require('glob');
+        
+        // Use glob to find the actual path
+        const matches = glob.sync(chromePath);
+        if (matches && matches.length > 0) {
+          chromePath = matches[0];
+          console.log(`✅ Resolved Chrome path: ${chromePath}`);
+        } else {
+          console.log(`⚠️ Could not resolve wildcard path, trying alternative...`);
+          // Try common Render paths
+          const possiblePaths = [
+            '/opt/render/.cache/puppeteer/chrome/linux-131.0.6778.204/chrome-linux64/chrome',
+            '/opt/render/.cache/puppeteer/chrome/linux-130.0.6723.116/chrome-linux64/chrome',
+            puppeteer.executablePath()
+          ];
+          
+          for (const testPath of possiblePaths) {
+            if (fs.existsSync(testPath)) {
+              chromePath = testPath;
+              console.log(`✅ Found Chrome at: ${chromePath}`);
+              break;
+            }
+          }
+        }
+      } catch (err) {
+        console.log(`⚠️ Error resolving Chrome path: ${err.message}`);
+        chromePath = puppeteer.executablePath();
+      }
+    }
+    
+    console.log(`🔍 Final Chrome path: ${chromePath}`);
     
     // Launch puppeteer browser with Render-compatible settings
     console.log(`🔍 Launching Puppeteer browser...`);
@@ -426,7 +467,7 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
         '--disable-gpu',
         '--window-size=1920x1080'
       ],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
+      executablePath: chromePath
     });
     console.log(`✅ Puppeteer browser launched successfully`);
     
