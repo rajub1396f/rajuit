@@ -98,16 +98,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profile'),
         elevation: 0,
         actions: [
-          if (!_isEditing)
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                setState(() {
-                  _isEditing = true;
-                });
-              },
-              tooltip: 'Edit Profile',
-            ),
           Consumer<AuthProvider>(
             builder: (context, authProvider, _) {
               return IconButton(
@@ -228,7 +218,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
 
                 // User Information
-                _buildSectionTitle('User Information'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildSectionTitle('User Information'),
+                    if (!_isEditing)
+                      TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _isEditing = true;
+                          });
+                        },
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: const Text(
+                          'Edit',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.blue.shade700,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                      ),
+                  ],
+                ),
                 const SizedBox(height: 12),
                 
                 // Name Field - Editable
