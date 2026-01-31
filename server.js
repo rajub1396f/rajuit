@@ -667,6 +667,112 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   });
 }
 
+// Google Authentication for Mobile (POST)
+app.post("/auth/google", async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ message: "ID token is required" });
+    }
+
+    // Verify Google ID token
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    
+    const ticket = await client.verifyIdToken({
+      idToken: idToken,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+    
+    const payload = ticket.getPayload();
+    const { email, name, picture, email_verified } = payload;
+
+    if (!email_verified) {
+      return res.status(400).json({ message: "Google email not verified" });
+    }
+
+    // Check if user already exists
+    let userRows = await sql`SELECT * FROM users WHERE email = ${email} LIMIT 1`;
+    let user;
+
+    if (userRows.length === 0) {
+      // Create new user
+      try {
+        const insertResult = await sql`
+          INSERT INTO users (email, name, profile_picture, is_verified, created_at, google_id)
+          VALUES (${email}, ${name}, ${picture}, true, NOW(), ${payload.sub})
+          RETURNING *
+        `;
+        user = insertResult[0];
+      } catch (error) {
+        // If google_id column doesn't exist, create user without it first
+        if (error.message.includes('google_id')) {
+          console.log("Creating user without google_id column...");
+          const insertResult = await sql`
+            INSERT INTO users (email, name, profile_picture, is_verified, created_at)
+            VALUES (${email}, ${name}, ${picture}, true, NOW())
+            RETURNING *
+          `;
+          user = insertResult[0];
+        } else {
+          throw error;
+        }
+      }
+    } else {
+      // Update existing user with Google info if not already set
+      user = userRows[0];
+      try {
+        if (!user.google_id) {
+          await sql`
+            UPDATE users 
+            SET google_id = ${payload.sub}, profile_picture = ${picture}, is_verified = true
+            WHERE id = ${user.id}
+          `;
+        }
+      } catch (error) {
+        // If google_id column doesn't exist, just update other fields
+        if (error.message.includes('google_id')) {
+          console.log("Updating user without google_id column...");
+          await sql`
+            UPDATE users 
+            SET profile_picture = ${picture}, is_verified = true
+            WHERE id = ${user.id}
+          `;
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET || "SECRET_KEY",
+      { expiresIn: "30d" }
+    );
+
+    res.json({
+      message: "Google authentication successful",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name || name,
+        profilePicture: picture,
+        isVerified: true
+      }
+    });
+
+  } catch (error) {
+    console.error("Google auth error:", error);
+    res.status(500).json({ 
+      message: "Authentication failed",
+      error: error.message 
+    });
+  }
+});
+
 // Login Route
 app.post("/login", async (req, res) => {
   try {
