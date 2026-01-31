@@ -5,7 +5,7 @@ import '../../providers/auth_provider.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -15,6 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
+  late TextEditingController _addressController;
   late TextEditingController _passwordController;
   late TextEditingController _confirmPasswordController;
   bool _obscurePassword = true;
@@ -27,6 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController = TextEditingController();
     _emailController = TextEditingController();
     _phoneController = TextEditingController();
+    _addressController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
   }
@@ -36,6 +38,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _addressController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -55,7 +58,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _nameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
+        _confirmPasswordController.text,
         _phoneController.text.trim(),
+        _addressController.text.trim(),
       );
 
       if (!mounted) return;
@@ -151,6 +156,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value?.isEmpty ?? true) {
                       return 'Phone number is required';
                     }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Address Field
+                TextFormField(
+                  controller: _addressController,
+                  keyboardType: TextInputType.streetAddress,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    hintText: 'Address (Optional)',
+                    prefixIcon: Icon(Icons.location_on_outlined),
+                    alignLabelWithHint: true,
+                  ),
+                  validator: (value) {
+                    // Address is optional, so no validation needed
                     return null;
                   },
                 ),

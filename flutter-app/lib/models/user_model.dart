@@ -3,6 +3,7 @@ class UserModel {
   final String name;
   final String email;
   final String phone;
+  final String? address;
   final bool isVerified;
   final String? role;
   final String? createdAt;
@@ -12,6 +13,7 @@ class UserModel {
     required this.name,
     required this.email,
     required this.phone,
+    this.address,
     required this.isVerified,
     this.role = 'user',
     this.createdAt,
@@ -23,7 +25,8 @@ class UserModel {
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'] ?? '',
-      isVerified: json['is_verified'] ?? false,
+      address: json['address'],
+      isVerified: json['isVerified'] ?? json['is_verified'] ?? false,
       role: json['role'] ?? 'user',
       createdAt: json['created_at'],
     );
@@ -35,6 +38,7 @@ class UserModel {
       'name': name,
       'email': email,
       'phone': phone,
+      'address': address,
       'is_verified': isVerified,
       'role': role,
       'created_at': createdAt,
@@ -46,6 +50,7 @@ class UserModel {
     String? name,
     String? email,
     String? phone,
+    String? address,
     bool? isVerified,
     String? role,
     String? createdAt,
@@ -55,6 +60,7 @@ class UserModel {
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
+      address: address ?? this.address,
       isVerified: isVerified ?? this.isVerified,
       role: role ?? this.role,
       createdAt: createdAt ?? this.createdAt,
@@ -83,13 +89,17 @@ class RegisterRequest {
   final String name;
   final String email;
   final String password;
+  final String confirmPassword;
   final String phone;
+  final String? address;
 
   RegisterRequest({
     required this.name,
     required this.email,
     required this.password,
+    required this.confirmPassword,
     required this.phone,
+    this.address,
   });
 
   Map<String, dynamic> toJson() {
@@ -97,7 +107,9 @@ class RegisterRequest {
       'name': name,
       'email': email,
       'password': password,
+      'confirmpassword': confirmPassword,
       'phone': phone,
+      'address': address,
     };
   }
 }

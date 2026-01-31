@@ -100,7 +100,9 @@ class ApiService {
     String name,
     String email,
     String password,
+    String confirmPassword,
     String phone,
+    String? address,
   ) async {
     try {
       final response = await _dio.post(
@@ -109,7 +111,9 @@ class ApiService {
           name: name,
           email: email,
           password: password,
+          confirmPassword: confirmPassword,
           phone: phone,
+          address: address,
         ).toJson(),
       );
 
@@ -222,8 +226,7 @@ class ApiService {
     final products = await getProducts();
     final matchingProduct = products.firstWhere(
       (product) => product.id == productId,
-      orElse: () =>
-          throw Exception('Product with ID $productId not found.'),
+      orElse: () => throw Exception('Product with ID $productId not found.'),
     );
     return matchingProduct;
   }
@@ -338,6 +341,31 @@ class ApiService {
     }
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/change-password',
+        data: {
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== SEND INVOICE EMAIL ====================
 
   Future<Map<String, dynamic>> sendInvoiceEmail(int orderId) async {
@@ -345,7 +373,7 @@ class ApiService {
       if (kDebugMode) {
         print('[Invoice] Requesting to send invoice email for order $orderId');
       }
-      
+
       final response = await _dio.post('/send-invoice-email/$orderId');
 
       if (response.statusCode == 200) {

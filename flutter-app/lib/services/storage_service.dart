@@ -12,6 +12,7 @@ class StorageService {
   static const _userEmailKey = 'user_email';
   static const _userNameKey = 'user_name';
   static const _userPhoneKey = 'user_phone';
+  static const _userAddressKey = 'user_address';
   static const _isVerifiedKey = 'user_is_verified';
   static const _invoiceSyncKey = 'invoice_sync_data';
   static const _lastInvoiceSyncKey = 'last_invoice_sync';
@@ -80,6 +81,7 @@ class StorageService {
     required String email,
     required String name,
     required String phone,
+    String? address,
     required bool isVerified,
   }) async {
     await Future.wait([
@@ -87,6 +89,7 @@ class StorageService {
       _secureStorage.write(key: _userEmailKey, value: email),
       _secureStorage.write(key: _userNameKey, value: name),
       _secureStorage.write(key: _userPhoneKey, value: phone),
+      _secureStorage.write(key: _userAddressKey, value: address ?? ''),
       _secureStorage.write(
         key: _isVerifiedKey,
         value: isVerified.toString(),
@@ -109,6 +112,10 @@ class StorageService {
 
   static Future<String?> getUserPhone() async {
     return await _secureStorage.read(key: _userPhoneKey);
+  }
+
+  static Future<String?> getUserAddress() async {
+    return await _secureStorage.read(key: _userAddressKey);
   }
 
   static Future<bool> isUserVerified() async {
@@ -197,6 +204,7 @@ class StorageService {
       'email': await getUserEmail(),
       'name': await getUserName(),
       'phone': await getUserPhone(),
+      'address': await getUserAddress(),
     };
   }
 }

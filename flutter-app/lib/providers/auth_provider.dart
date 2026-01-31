@@ -33,6 +33,7 @@ class AuthProvider extends ChangeNotifier {
         final email = await StorageService.getUserEmail();
         final name = await StorageService.getUserName();
         final phone = await StorageService.getUserPhone();
+        final address = await StorageService.getUserAddress();
         final isVerified = await StorageService.isUserVerified();
 
         if (userId != null && email != null && name != null) {
@@ -41,6 +42,7 @@ class AuthProvider extends ChangeNotifier {
             name: name,
             email: email,
             phone: phone ?? '',
+            address: address,
             isVerified: isVerified,
           );
         }
@@ -72,6 +74,7 @@ class AuthProvider extends ChangeNotifier {
           email: response.user!.email,
           name: response.user!.name,
           phone: response.user!.phone,
+          address: response.user!.address,
           isVerified: response.user!.isVerified,
         );
 
@@ -96,14 +99,17 @@ class AuthProvider extends ChangeNotifier {
     String name,
     String email,
     String password,
+    String confirmPassword,
     String phone,
+    String? address,
   ) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
 
-      final response = await _apiService.register(name, email, password, phone);
+      final response = await _apiService.register(
+          name, email, password, confirmPassword, phone, address);
 
       if (response.success) {
         _error = null;
@@ -204,7 +210,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> updateUser(UserModel updatedUser) async {
     try {
       _user = updatedUser;
-      
+
       // Update storage
       await StorageService.saveUserInfo(
         userId: updatedUser.id,
@@ -213,7 +219,7 @@ class AuthProvider extends ChangeNotifier {
         phone: updatedUser.phone,
         isVerified: updatedUser.isVerified,
       );
-      
+
       notifyListeners();
     } catch (e) {
       _error = e.toString();
