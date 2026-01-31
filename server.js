@@ -242,6 +242,27 @@ console.log("✅ Brevo email service initialized");
       console.log("Note: is_admin column might already exist:", alterErr.message);
     }
     
+    // Add Google authentication columns
+    try {
+      await sql`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) UNIQUE
+      `;
+      console.log("✅ google_id column added/verified");
+    } catch (alterErr) {
+      console.log("Note: google_id column might already exist:", alterErr.message);
+    }
+    
+    try {
+      await sql`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS profile_picture VARCHAR(500)
+      `;
+      console.log("✅ profile_picture column added/verified");
+    } catch (alterErr) {
+      console.log("Note: profile_picture column might already exist:", alterErr.message);
+    }
+    
     // Create products table
     try {
       await sql`
