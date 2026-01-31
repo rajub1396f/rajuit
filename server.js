@@ -3531,13 +3531,39 @@ app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
     const order = orderResult[0];
     console.log(`✅ Order found for user: ${order.email}`);
     
-    // Check if invoice PDF exists
-    if (!order.invoice_pdf_url) {
-      console.log(`❌ No invoice PDF found for order #${orderId}`);
-      return res.status(404).json({ 
-        success: false,
-        message: "Invoice not found. Please contact support." 
-      });
+    let invoicePdfUrl = order.invoice_pdf_url;
+    
+    // If invoice PDF doesn't exist, generate it first
+    if (!invoicePdfUrl) {
+      console.log(`📝 No invoice PDF found for order #${orderId}, generating now...`);
+      
+      // Get order items
+      const itemsResult = await sql`
+        SELECT product_name as name, product_image as image, quantity, price
+        FROM order_items WHERE order_id = ${orderId}
+      `;
+      const items = itemsResult || [];
+      console.log(`✅ Found ${items.length} items for order #${orderId}`);
+      
+      // Generate invoice
+      try {
+        const invoiceHtml = generateInvoiceHtml(order, items);
+        console.log(`✅ Invoice HTML generated (${invoiceHtml.length} chars)`);
+        
+        console.log(`🖨️ Starting PDF generation for order ${orderId}...`);
+        invoicePdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
+        console.log(`✅ PDF URL generated: ${invoicePdfUrl}`);
+        
+        // Save to database
+        await sql`UPDATE orders SET invoice_pdf_url = ${invoicePdfUrl} WHERE id = ${orderId}`;
+        console.log(`✅ Invoice saved to database`);
+      } catch (genError) {
+        console.error(`❌ Failed to generate invoice:`, genError.message);
+        return res.status(500).json({ 
+          success: false,
+          message: "Failed to generate invoice: " + genError.message
+        });
+      }
     }
 
     // Send invoice via email
@@ -3559,7 +3585,7 @@ app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${order.invoice_pdf_url}" 
+            <a href="${invoicePdfUrl}" 
                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                       color: white; 
                       padding: 15px 40px; 
