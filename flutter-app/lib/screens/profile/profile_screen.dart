@@ -155,77 +155,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
             key: _formKey,
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(Constants.defaultPadding),
-            child: Column(
-              children: [
-                // Profile Header
-                Container(
-                  padding: const EdgeInsets.all(Constants.defaultPadding),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF212529),
-                    borderRadius:
-                        BorderRadius.circular(Constants.defaultRadius),
-                  ),
-                  child: Column(
-                    children: [
-                      // Avatar
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
+              child: Column(
+                children: [
+                  // Profile Header
+                  Container(
+                    padding: const EdgeInsets.all(Constants.defaultPadding),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF212529),
+                      borderRadius:
+                          BorderRadius.circular(Constants.defaultRadius),
+                    ),
+                    child: Column(
+                      children: [
+                        // Avatar
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.person,
+                            size: 40,
+                            color: Color(0xFF212529),
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.person,
-                          size: 40,
-                          color: Color(0xFF212529),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Name
-                      Text(
-                        user.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      // Email
-                      Text(
-                        user.email,
-                        style: const TextStyle(
-                          color: Color(0xFFFFC800),
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      // Verification Status
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: user.isVerified
-                              ? Colors.green[400]
-                              : Colors.orange[400],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          user.isVerified ? 'Verified' : 'Not Verified',
+                        const SizedBox(height: 16),
+                        // Name
+                        Text(
+                          user.name,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        // Email
+                        Text(
+                          user.email,
+                          style: const TextStyle(
+                            color: Color(0xFFFFC800),
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Verification Status
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: user.isVerified
+                                ? Colors.green[400]
+                                : Colors.orange[400],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            user.isVerified ? 'Verified' : 'Not Verified',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
                 // User Information
                 _buildSectionTitle('User Information'),
@@ -274,20 +274,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 // Save/Cancel buttons when editing
                 if (_isEditing) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
+                        child: OutlinedButton.icon(
                           onPressed: _isSaving ? null : () => _cancelEdit(authProvider),
-                          child: const Text('Cancel'),
+                          icon: const Icon(Icons.close, size: 20),
+                          label: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: BorderSide(color: Colors.grey.shade400, width: 1.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
                           onPressed: _isSaving ? null : _saveProfile,
-                          child: _isSaving
+                          icon: _isSaving
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
@@ -296,10 +310,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                   ),
                                 )
-                              : const Text('Save Changes'),
+                              : const Icon(Icons.check, size: 20),
+                          label: Text(
+                            _isSaving ? 'Saving...' : 'Save Changes',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade600,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, size: 18, color: Colors.blue.shade700),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Your changes will be updated on both the app and website.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
                 
@@ -350,8 +404,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-            ),
-          );
+        );
         },
       ),
     );
@@ -366,28 +419,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: enabled && !readOnly ? Colors.blue.shade200 : Colors.grey.shade300,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
-              ),
+            Row(
+              children: [
+                Icon(
+                  _getIconForField(label),
+                  size: 18,
+                  color: readOnly ? Colors.grey.shade400 : Colors.blue.shade600,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                if (readOnly)
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.orange.shade300, width: 1),
+                    ),
+                    child: Text(
+                      'Read Only',
+                      style: TextStyle(
+                        color: Colors.orange.shade700,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             if (readOnly)
               Text(
                 initialValue ?? '',
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   fontSize: 16,
+                  color: Colors.black87,
                 ),
               )
             else
@@ -399,27 +497,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 keyboardType: keyboardType,
                 validator: validator,
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   fontSize: 16,
-                  color: enabled ? Colors.black : Colors.grey,
+                  color: enabled ? Colors.black87 : Colors.grey.shade600,
                 ),
                 decoration: InputDecoration(
                   isDense: true,
-                  contentPadding: EdgeInsets.zero,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
                   border: InputBorder.none,
-                  enabledBorder: enabled
-                      ? const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blue),
-                        )
-                      : InputBorder.none,
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue, width: 2),
-                  ),
-                  errorBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.red),
-                  ),
-                  focusedErrorBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.red, width: 2),
+                  hintText: 'Enter $label',
+                  hintStyle: TextStyle(
+                    color: Colors.grey.shade400,
+                    fontWeight: FontWeight.normal,
                   ),
                 ),
               ),
@@ -427,6 +516,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  IconData _getIconForField(String label) {
+    switch (label.toLowerCase()) {
+      case 'name':
+        return Icons.person_outline;
+      case 'email':
+        return Icons.email_outlined;
+      case 'phone':
+        return Icons.phone_outlined;
+      default:
+        return Icons.info_outline;
+    }
   }
 
   Widget _buildSectionTitle(String title) {

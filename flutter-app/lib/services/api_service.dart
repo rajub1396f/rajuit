@@ -323,10 +323,10 @@ class ApiService {
 
   Future<UserModel> updateUserProfile(Map<String, String> data) async {
     try {
-      final response = await _dio.put('/user/profile', data: data);
+      final response = await _dio.post('/update-profile', data: data);
 
       if (response.statusCode == 200) {
-        return UserModel.fromJson(response.data['data']);
+        return UserModel.fromJson(response.data['user']);
       }
       throw DioException(
         requestOptions: response.requestOptions,
