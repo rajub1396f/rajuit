@@ -168,43 +168,13 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> regenerateInvoice(int orderId) async {
+  Future<Map<String, dynamic>> sendInvoiceEmail(int orderId) async {
     try {
-      // Request regeneration from backend (now waits for completion)
-      final result = await _apiService.regenerateInvoice(orderId);
-      print('[OrderProvider] Regeneration result: $result');
+      // Request to send invoice via email
+      final result = await _apiService.sendInvoiceEmail(orderId);
+      print('[OrderProvider] Send invoice email result: $result');
       
-      // If backend returns the invoice URL directly, use it
-      if (result['invoiceUrl'] != null && result['invoiceUrl'].toString().isNotEmpty) {
-        final invoiceUrl = result['invoiceUrl'].toString();
-        print('[OrderProvider] ✅ Got invoice URL from backend: $invoiceUrl');
-        
-        // Refresh orders to update local state
-        await fetchOrders(isAutoRefresh: true);
-        
-        return invoiceUrl;
-      }
-      
-      // Fallback: Poll for the updated invoice URL if backend didn't return it
-      print('[OrderProvider] Backend did not return URL, starting polling...');
-      final previousInvoiceUrl =
-          _orders.firstWhereOrNull((o) => o.id == orderId)?.invoicePdfUrl;
-
-      const pollingAttempts = 10; // Reduced since backend now waits
-      const delay = Duration(seconds: 2);
-
-      print('[OrderProvider] Starting to poll for invoice URL (${pollingAttempts * 2}s max)');
-
-      for (int attempt = 0; attempt < pollingAttempts; attempt++) {
-        await Future.delayed(delay);
-
-        print('[OrderProvider] Polling attempt ${attempt + 1}/$pollingAttempts');
-        await fetchOrders(isAutoRefresh: true);
-
-        final order = _orders.firstWhereOrNull((o) => o.id == orderId);
-        final currentUrl = order?.invoicePdfUrl;
-
-        print('[OrderProvider] Current invoice URL: $currentUrl');
+      return result;
 
         // Check if we got a new URL different from the previous one
         if (currentUrl?.isNotEmpty == true && currentUrl != previousInvoiceUrl) {
@@ -229,6 +199,21 @@ class OrderProvider extends ChangeNotifier {
       throw Exception('Invoice generation timeout after ${pollingAttempts * 2} seconds');
     } catch (e) {
       print('[OrderProvider] Regeneration request failed: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> sendInvoiceEmail(int orderId) async {
+    try {
+      // Request to send invoice via email
+      final result = await _apiService.sendInvoiceEmail(orderId);
+      print('[OrderProvider] Send invoice email result: $result');
+      
+      return result;
+    } catch (e) {
+      print('[OrderProvider] ❌ Error sending invoice email: $e');
+      _error = e.toString();
+      notifyListeners();
       rethrow;
     }
   }

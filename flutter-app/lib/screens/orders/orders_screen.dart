@@ -509,48 +509,37 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                     final messenger = ScaffoldMessenger.of(context);
 
                                     try {
-                                      print('[OrdersScreen] Starting invoice regeneration for order ${order.id}');
-                                      final previousInvoiceUrl = order.invoicePdfUrl;
-                                      print('[OrdersScreen] Previous invoice URL: $previousInvoiceUrl');
+                                      print('[OrdersScreen] Sending invoice via email for order ${order.id}');
                                       
-                                      final invoiceUrl = await context
+                                      final result = await context
                                           .read<OrderProvider>()
-                                          .regenerateInvoice(order.id);
+                                          .sendInvoiceEmail(order.id);
                                       
-                                      print('[OrdersScreen] Received invoice URL: $invoiceUrl');
+                                      print('[OrdersScreen] Email result: $result');
                                       if (!mounted) return;
 
-                                      if (invoiceUrl != null) {
-                                        final message = invoiceUrl != previousInvoiceUrl
-                                            ? 'Invoice regenerated successfully. Opening PDF…'
-                                            : 'Invoice already available. Opening PDF…';
-
-                                        print('[OrdersScreen] $message');
+                                      if (result['success'] == true) {
                                         messenger.showSnackBar(
                                           SnackBar(
-                                            content: Text(message),
+                                            content: Text(result['message'] ?? 'Invoice sent to your email successfully!'),
                                             backgroundColor: Colors.green,
                                           ),
                                         );
-                                        _viewInvoice(invoiceUrl);
                                       } else {
-                                        print('[OrdersScreen] Invoice URL is null');
                                         messenger.showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Invoice is being regenerated. Please try again in a moment.',
-                                            ),
+                                          SnackBar(
+                                            content: Text(result['message'] ?? 'Failed to send invoice email'),
                                             backgroundColor: Colors.orange,
                                           ),
                                         );
                                       }
                                     } catch (error) {
-                                      print('[OrdersScreen] Error regenerating invoice: $error');
+                                      print('[OrdersScreen] Error sending invoice email: $error');
                                       if (mounted) {
                                         messenger.showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                                'Failed to regenerate invoice: $error'),
+                                                'Failed to send invoice: $error'),
                                             backgroundColor: Colors.red,
                                           ),
                                         );
@@ -574,11 +563,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                           Colors.white),
                                     ),
                                   )
-                                : const Icon(Icons.refresh),
+                                : const Icon(Icons.email),
                             label: Text(
                               (_isRegeneratingInvoice[order.id] ?? false)
-                                  ? 'Regenerating...'
-                                  : 'Regenerate Invoice',
+                                  ? 'Sending...'
+                                  : 'Send Invoice Email',
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF212529),

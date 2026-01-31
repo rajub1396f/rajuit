@@ -338,19 +338,19 @@ class ApiService {
     }
   }
 
-  // ==================== INVOICE REGENERATION ====================
+  // ==================== SEND INVOICE EMAIL ====================
 
-  Future<Map<String, dynamic>> regenerateInvoice(int orderId) async {
+  Future<Map<String, dynamic>> sendInvoiceEmail(int orderId) async {
     try {
       if (kDebugMode) {
-        print('[Invoice] Requesting regeneration for order $orderId');
+        print('[Invoice] Requesting to send invoice email for order $orderId');
       }
       
-      final response = await _dio.get('/regenerate-invoice/$orderId');
+      final response = await _dio.post('/send-invoice-email/$orderId');
 
       if (response.statusCode == 200) {
         if (kDebugMode) {
-          print('[Invoice] Regeneration request accepted: ${response.data}');
+          print('[Invoice] Email sent successfully: ${response.data}');
         }
         return response.data as Map<String, dynamic>;
       }
@@ -361,7 +361,36 @@ class ApiService {
       );
     } on DioException catch (e) {
       if (kDebugMode) {
-        print('[Invoice] Regeneration failed: ${e.message}');
+        print('[Invoice] Send email failed: ${e.message}');
+      }
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== SEND INVOICE EMAIL ====================
+
+  Future<Map<String, dynamic>> sendInvoiceEmail(int orderId) async {
+    try {
+      if (kDebugMode) {
+        print('[Invoice] Requesting to send invoice email for order $orderId');
+      }
+      
+      final response = await _dio.post('/send-invoice-email/$orderId');
+
+      if (response.statusCode == 200) {
+        if (kDebugMode) {
+          print('[Invoice] Email sent successfully: ${response.data}');
+        }
+        return response.data as Map<String, dynamic>;
+      }
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+      );
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        print('[Invoice] Send email failed: ${e.message}');
       }
       throw _handleError(e);
     }
