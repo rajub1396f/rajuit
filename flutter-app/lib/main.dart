@@ -8,6 +8,8 @@ import 'providers/cart_provider.dart';
 import 'providers/order_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/orders/orders_screen.dart';
+import 'screens/checkout/order_confirmation_screen.dart';
 
 void main() async {
   await GetStorage.init();
@@ -15,7 +17,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +76,13 @@ class MyApp extends StatelessWidget {
                 : const LoginScreen();
           },
         ),
+        routes: {
+          '/orders': (context) => const OrdersScreen(),
+          '/order-confirmation': (context) {
+            final orderId = ModalRoute.of(context)?.settings.arguments as int?;
+            return OrderConfirmationScreen(orderId: orderId ?? 0);
+          },
+        },
       ),
     );
   }

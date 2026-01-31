@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
+import 'package:dio/dio.dart';
 import '../../config/constants.dart';
 import '../../providers/order_provider.dart';
+import '../../services/storage_service.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -15,6 +17,7 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   Timer? _refreshTimer;
   int _refreshCount = 0;
+  final dio = Dio();
 
   @override
   void initState() {
@@ -123,8 +126,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       children: [
                         // Order ID and Status
                         Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               'Order #${order.id.toString().padLeft(6, '0')}',
@@ -143,8 +145,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                Constants
-                                    .orderStatusLabels[order.status] ??
+                                Constants.orderStatusLabels[order.status] ??
                                     order.status,
                                 style: const TextStyle(
                                   color: Colors.white,
@@ -178,8 +179,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         const SizedBox(height: 12),
                         // Total Amount
                         Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
                               'Total:',
@@ -281,8 +281,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           children: [
                             Expanded(
                               child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(item.productName),
                                   Text(
@@ -348,7 +347,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 12),
-                    if (order.invoicePdfUrl != null && order.invoicePdfUrl!.isNotEmpty)
+                    if (order.invoicePdfUrl != null &&
+                        order.invoicePdfUrl!.isNotEmpty)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -373,6 +373,19 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             label: const Text('Download Invoice'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF212529),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              _sendInvoiceEmail(order.id);
+                            },
+                            icon: const Icon(Icons.email),
+                            label: const Text('Send Invoice Email'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
@@ -414,7 +427,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           ElevatedButton.icon(
                             onPressed: () async {
                               // Call regenerate invoice on backend
-                              await context.read<OrderProvider>().regenerateInvoice(order.id);
+                              await context
+                                  .read<OrderProvider>()
+                                  .regenerateInvoice(order.id);
                             },
                             icon: const Icon(Icons.refresh),
                             label: const Text('Check Again'),
@@ -439,7 +454,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Future<void> _viewInvoice(String invoiceUrl) async {
     try {
       if (await canLaunchUrl(Uri.parse(invoiceUrl))) {
-        await launchUrl(Uri.parse(invoiceUrl), mode: LaunchMode.externalApplication);
+        await launchUrl(Uri.parse(invoiceUrl),
+            mode: LaunchMode.externalApplication);
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -459,7 +475,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Future<void> _downloadInvoice(String invoiceUrl) async {
     try {
       if (await canLaunchUrl(Uri.parse(invoiceUrl))) {
-        await launchUrl(Uri.parse(invoiceUrl), mode: LaunchMode.externalApplication);
+        await launchUrl(Uri.parse(invoiceUrl),
+            mode: LaunchMode.externalApplication);
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -471,6 +488,55 @@ class _OrdersScreenState extends State<OrdersScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error downloading invoice')),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendInvoiceEmail(int orderId) async {
+    try {
+      const String baseUrl = 'https://rajuit.online';
+      final token = await StorageService.getToken();
+
+      if (token == null) {
+        throw Exception('Not authenticated');
+      }
+
+      final response = await dio.post(
+        '$baseUrl/send-invoice-email/$orderId',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      if (mounted) {
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Invoice sent successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text(response.data['message'] ?? 'Failed to send invoice'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error sending invoice: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

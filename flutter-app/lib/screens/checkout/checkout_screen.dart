@@ -10,10 +10,10 @@ class CheckoutScreen extends StatefulWidget {
   final double totalAmount;
 
   const CheckoutScreen({
-    Key? key,
+    super.key,
     required this.cartItems,
     required this.totalAmount,
-  }) : super(key: key);
+  });
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -57,10 +57,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       if (success) {
         cartProvider.clearCart();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Order created successfully!')),
-        );
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        
+        // Navigate to order confirmation screen with the newly created order
+        if (orderProvider.orders.isNotEmpty) {
+          final newOrder = orderProvider.orders.first;
+          Navigator.of(context).pushReplacementNamed(
+            '/order-confirmation',
+            arguments: newOrder.id,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Order created successfully!')),
+          );
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -109,7 +119,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         );
                       }),
-                      Divider(),
+                      const Divider(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

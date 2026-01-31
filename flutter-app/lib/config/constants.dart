@@ -1,6 +1,12 @@
 class Constants {
   // API Configuration
+  // Using rajuit.online domain (Render backend)
   static const String baseUrl = 'https://rajuit.online';
+  
+  // Fallback URLs for testing
+  static const String productionUrl = 'https://rajuit.online';
+  static const String renderUrl = 'https://rajuit-fashion-store.onrender.com';
+  static const String developmentUrl = 'http://localhost:3000';
 
   // App Metadata
   static const String appName = 'Raju IT Fashion Store';

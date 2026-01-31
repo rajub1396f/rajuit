@@ -31,20 +31,36 @@ class ApiService {
       ),
     );
 
-    // Add interceptor for token
+    // Add JWT token interceptor with automatic refresh
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await StorageService.getToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
+            if (kDebugMode) {
+              print('[JWT] Token added to request: ${token.substring(0, 20)}...');
+            }
           }
           return handler.next(options);
         },
-        onError: (error, handler) {
+        onError: (error, handler) async {
+          // Handle 401 Unauthorized - token expired
+          if (error.response?.statusCode == 401) {
+            if (kDebugMode) {
+              print('[JWT] Token expired (401), attempting refresh...');
+            }
+            // Attempt to refresh token
+            final refreshed = await _refreshToken();
+            if (refreshed) {
+              // Retry original request with new token
+              return handler.resolve(await _retry(error.requestOptions));
+            }
+          }
+          
           if (kDebugMode) {
-            print('API Error: ${error.message}');
-            print('Error Response: ${error.response?.data}');
+            print('[API Error] ${error.message}');
+            print('[Error Response] ${error.response?.data}');
           }
           return handler.next(error);
         },
@@ -352,4 +368,168 @@ class ApiService {
 
     return Exception(message);
   }
+
+  // ==================== JWT TOKEN MANAGEMENT ====================
+
+  /// Attempt to refresh JWT token
+  Future<bool> _refreshToken() async {
+    try {
+      final refreshToken = await StorageService.getRefreshToken();
+      if (refreshToken == null) {
+        if (kDebugMode) print('[JWT] No refresh token available');
+        return false;
+      }
+
+      final response = await _dio.post(
+        '/refresh-token',
+        data: {'refreshToken': refreshToken},
+        options: Options(
+          headers: {'Authorization': 'Bearer $refreshToken'},
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data['token'] != null) {
+        final newToken = response.data['token'];
+        final expiry = response.data['expiresIn'] ?? 3600;
+        
+        await StorageService.saveToken(newToken, expiryInSeconds: expiry);
+        if (kDebugMode) print('[JWT] Token refreshed successfully');
+        return true;
+      }
+    } catch (e) {
+      if (kDebugMode) print('[JWT] Token refresh failed: $e');
+      // Clear tokens if refresh fails
+      await StorageService.deleteToken();
+      await StorageService.deleteRefreshToken();
+    }
+    return false;
+  }
+
+  /// Retry a failed request
+  Future<Response<dynamic>> _retry(RequestOptions requestOptions) async {
+    final options = Options(
+      method: requestOptions.method,
+      headers: requestOptions.headers,
+    );
+    return _dio.request<dynamic>(
+      requestOptions.path,
+      data: requestOptions.data,
+      queryParameters: requestOptions.queryParameters,
+      options: options,
+    );
+  }
+
+  // ==================== SECURE INVOICE SYNC ====================
+
+  /// Get and cache invoice with JWT authentication
+  Future<String> getInvoiceSecure(int orderId) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) throw Exception('Unauthorized: No valid token');
+
+      // Check if we have cached invoice and if it needs refresh
+      if (!await StorageService.invoiceNeedsRefresh(orderId)) {
+        final cached = await StorageService.getInvoiceSync(orderId);
+        if (cached != null && cached['invoiceData'] != null) {
+          if (kDebugMode) print('[Invoice] Using cached invoice for order $orderId');
+          return cached['invoiceData'] as String;
+        }
+      }
+
+      // Fetch fresh invoice from server
+      final response = await _dio.get(
+        '/get-invoice/$orderId',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'X-Invoice-Request': 'secure',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final invoiceData = response.data['invoice'] ?? response.data;
+        
+        // Cache the invoice with JWT token
+        await StorageService.saveInvoiceSync(
+          orderId: orderId,
+          invoiceData: invoiceData.toString(),
+          jwtToken: token,
+        );
+
+        if (kDebugMode) print('[Invoice] Invoice fetched and cached for order $orderId');
+        return invoiceData.toString();
+      }
+
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Verify invoice authenticity using JWT
+  Future<bool> verifyInvoiceAuthority(int orderId) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) return false;
+
+      final response = await _dio.post(
+        '/verify-invoice/$orderId',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      return response.statusCode == 200 && response.data['verified'] == true;
+    } catch (e) {
+      if (kDebugMode) print('[Invoice] Verification failed: $e');
+      return false;
+    }
+  }
+
+  /// Sync all invoices for user with JWT
+  Future<List<Map<String, dynamic>>> syncAllInvoices() async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) throw Exception('Unauthorized: No valid token');
+
+      final response = await _dio.get(
+        '/invoices/sync',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final invoices = response.data['invoices'] as List? ?? [];
+        
+        for (var invoice in invoices) {
+          final orderId = invoice['orderId'] ?? invoice['order_id'];
+          if (orderId != null) {
+            await StorageService.saveInvoiceSync(
+              orderId: orderId,
+              invoiceData: invoice.toString(),
+              jwtToken: token,
+            );
+          }
+        }
+
+        if (kDebugMode) print('[Invoice] Synced ${invoices.length} invoices');
+        return invoices.cast<Map<String, dynamic>>();
+      }
+
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
 }
+

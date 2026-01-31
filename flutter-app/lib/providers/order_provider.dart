@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 import '../models/order_model.dart';
 import '../services/api_service.dart';
 
+extension FirstWhereOrNull<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T) test) {
+    for (var element in this) {
+      if (test(element)) return element;
+    }
+    return null;
+  }
+}
+
 class OrderProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
 
@@ -163,15 +172,31 @@ class OrderProvider extends ChangeNotifier {
     try {
       _error = null;
       notifyListeners();
-      
+
       await _apiService.regenerateInvoice(orderId);
-      
-      // Wait 5 seconds for the server to generate the PDF in background
-      // (includes puppeteer launch, PDF generation, and ImageKit upload)
-      await Future.delayed(const Duration(seconds: 5));
-      
-      // Fetch orders again to get the updated invoice URL
-      await fetchOrders();
+
+      // Poll for invoice URL to be generated (up to 30 seconds)
+      // Invoice generation process: puppeteer launch + PDF generation + ImageKit upload
+      for (int attempt = 0; attempt < 6; attempt++) {
+        // Wait before checking (5 seconds per attempt)
+        await Future.delayed(Duration(seconds: 5));
+
+        // Fetch orders to check if invoice URL is now available
+        await fetchOrders();
+
+        // Check if invoice URL exists for this order
+        final order = _orders.firstWhereOrNull((o) => o.id == orderId);
+        if (order != null &&
+            order.invoicePdfUrl != null &&
+            order.invoicePdfUrl!.isNotEmpty) {
+          // Invoice is ready!
+          return;
+        }
+      }
+
+      // If we get here, invoice wasn't generated in time
+      _error = 'Invoice generation timeout after 30 seconds';
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
       notifyListeners();
