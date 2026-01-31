@@ -346,44 +346,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Invoice Buttons
+                    // Invoice Section
                     Text(
                       'Invoice',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 12),
-                    if (order.invoicePdfUrl != null &&
-                        order.invoicePdfUrl!.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _viewInvoice(order.invoicePdfUrl!);
-                            },
-                            icon: const Icon(Icons.visibility),
-                            label: const Text('View Invoice'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFC800),
-                              foregroundColor: const Color(0xFF212529),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _downloadInvoice(order.invoicePdfUrl!);
-                            },
-                            icon: const Icon(Icons.download),
-                            label: const Text('Download Invoice'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF212529),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          // Show email status message if available
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Show email status message if available
                           if (_emailStatus.containsKey(order.id))
                             Container(
                               padding: const EdgeInsets.all(12),
@@ -520,9 +492,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
                                       if (result['success'] == true) {
                                         messenger.showSnackBar(
-                                          SnackBar(
-                                            content: Text(result['message'] ?? 'Invoice sent to your email successfully!'),
+                                          const SnackBar(
+                                            content: Text('Invoice sent successfully! Please check your email to view or download the invoice.'),
                                             backgroundColor: Colors.green,
+                                            duration: Duration(seconds: 5),
                                           ),
                                         );
                                       } else {
