@@ -423,32 +423,38 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
       try {
         const fs = require('fs');
         const path = require('path');
-        const glob = require('glob');
+        const { globSync } = require('glob');
         
         // Use glob to find the actual path
-        const matches = glob.sync(chromePath);
+        const matches = globSync(chromePath);
         if (matches && matches.length > 0) {
           chromePath = matches[0];
-          console.log(`✅ Resolved Chrome path: ${chromePath}`);
+          console.log(`✅ Resolved Chrome path via glob: ${chromePath}`);
         } else {
-          console.log(`⚠️ Could not resolve wildcard path, trying alternative...`);
+          console.log(`⚠️ Glob returned no matches, trying fallback paths...`);
           // Try common Render paths
           const possiblePaths = [
             '/opt/render/.cache/puppeteer/chrome/linux-131.0.6778.204/chrome-linux64/chrome',
             '/opt/render/.cache/puppeteer/chrome/linux-130.0.6723.116/chrome-linux64/chrome',
+            '/opt/render/.cache/puppeteer/chrome/linux-129.0.6668.100/chrome-linux64/chrome',
             puppeteer.executablePath()
           ];
           
           for (const testPath of possiblePaths) {
-            if (fs.existsSync(testPath)) {
-              chromePath = testPath;
-              console.log(`✅ Found Chrome at: ${chromePath}`);
-              break;
+            try {
+              if (fs.existsSync(testPath)) {
+                chromePath = testPath;
+                console.log(`✅ Found Chrome at fallback path: ${chromePath}`);
+                break;
+              }
+            } catch (e) {
+              console.log(`⚠️ Could not check path ${testPath}: ${e.message}`);
             }
           }
         }
       } catch (err) {
         console.log(`⚠️ Error resolving Chrome path: ${err.message}`);
+        console.log(`⚠️ Using default puppeteer path as fallback`);
         chromePath = puppeteer.executablePath();
       }
     }
