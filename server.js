@@ -3500,6 +3500,42 @@ app.delete("/admin/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
+// ==================== VIEW INVOICE (HTML PAGE) ====================
+app.get("/invoice/:orderId", async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    console.log(`\n📄 Viewing invoice for order #${orderId}`);
+
+    // Get order details
+    const orderResult = await sql`
+      SELECT o.id, o.user_id, o.total_amount, o.status, o.shipping_address, o.created_at,
+             u.name, u.email
+      FROM orders o JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId}
+    `;
+
+    if (!orderResult || !orderResult[0]) {
+      return res.status(404).send('<h1>Invoice not found</h1>');
+    }
+
+    const order = orderResult[0];
+    
+    // Get order items
+    const itemsResult = await sql`
+      SELECT product_name as name, product_image as image, quantity, price
+      FROM order_items WHERE order_id = ${orderId}
+    `;
+    const items = itemsResult || [];
+
+    // Generate and send invoice HTML page
+    const invoiceHtml = generateInvoiceHtml(order, items);
+    res.send(invoiceHtml);
+  } catch (err) {
+    console.error("❌ Error viewing invoice:", err.message);
+    res.status(500).send('<h1>Error loading invoice</h1>');
+  }
+});
+
 // ==================== SEND INVOICE EMAIL ====================
 app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
   try {
@@ -3529,39 +3565,14 @@ app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
     const order = orderResult[0];
     console.log(`✅ Order found for user: ${order.email}`);
     
-    let invoicePdfUrl = order.invoice_pdf_url;
+    // Create invoice URL (HTML page, not PDF)
+    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.onrender.com'}/invoice/${orderId}`;
+    console.log(`📄 Invoice URL: ${invoiceUrl}`);
     
-    // If invoice PDF doesn't exist, generate it first
-    if (!invoicePdfUrl) {
-      console.log(`📝 No invoice PDF found for order #${orderId}, generating now...`);
-      
-      // Get order items
-      const itemsResult = await sql`
-        SELECT product_name as name, product_image as image, quantity, price
-        FROM order_items WHERE order_id = ${orderId}
-      `;
-      const items = itemsResult || [];
-      console.log(`✅ Found ${items.length} items for order #${orderId}`);
-      
-      // Generate invoice
-      try {
-        const invoiceHtml = generateInvoiceHtml(order, items);
-        console.log(`✅ Invoice HTML generated (${invoiceHtml.length} chars)`);
-        
-        console.log(`🖨️ Starting PDF generation for order ${orderId}...`);
-        invoicePdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-        console.log(`✅ PDF URL generated: ${invoicePdfUrl}`);
-        
-        // Save to database
-        await sql`UPDATE orders SET invoice_pdf_url = ${invoicePdfUrl} WHERE id = ${orderId}`;
-        console.log(`✅ Invoice saved to database`);
-      } catch (genError) {
-        console.error(`❌ Failed to generate invoice:`, genError.message);
-        return res.status(500).json({ 
-          success: false,
-          message: "Failed to generate invoice: " + genError.message
-        });
-      }
+    // Save invoice URL to database if not exists
+    if (!order.invoice_pdf_url) {
+      await sql`UPDATE orders SET invoice_pdf_url = ${invoiceUrl} WHERE id = ${orderId}`;
+      console.log(`✅ Invoice URL saved to database`);
     }
 
     // Send invoice via email
@@ -3608,16 +3619,16 @@ app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
       to: order.email,
       subject: `Your Invoice for Order #${orderId} - Raju IT`,
       htmlContent: emailHtml
-    });
-
-    console.log(`✅ Invoice email sent successfully to ${order.email}`);
-    return res.json({ 
-      success: true, 
-      message: `Invoice sent to ${order.email} successfully!`
-    });
-  } catch (err) {
-    console.error("❌ Error in /send-invoice-email:", err.message);
-    res.status(500).json({ 
+    });Url}" 
+               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                      color: white; 
+                      padding: 15px 40px; 
+                      text-decoration: none; 
+                      border-radius: 25px; 
+                      display: inline-block;
+                      font-weight: bold;
+                      font-size: 16px;">
+              📄 View Invoice Onlin
       success: false,
       message: "Failed to send invoice email: " + err.message 
     });
