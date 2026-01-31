@@ -36,6 +36,46 @@
         <link href="css/login.css" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
         
+        <!-- Custom CSS for App Download Section -->
+        <style>
+            .app-download-section a:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+            
+            @media (max-width: 768px) {
+                .app-download-section {
+                    padding: 20px 15px !important;
+                }
+                .app-download-section h3 {
+                    font-size: 1.2rem !important;
+                    margin-bottom: 10px !important;
+                }
+                .app-download-section p {
+                    font-size: 0.9rem !important;
+                    margin-bottom: 15px !important;
+                }
+                .app-download-section .col-md-4 {
+                    margin-top: 15px;
+                }
+            }
+            
+            .app-download-section {
+                animation: fadeInUp 0.8s ease-out;
+            }
+            
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+        
         <!-- Structured Data (JSON-LD) -->
         <script type="application/ld+json">
         {
@@ -238,6 +278,30 @@
                 <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; margin-bottom: 25px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
                     Experience seamless shopping with our mobile app. Discover exclusive deals, track your orders, and enjoy personalized recommendations—all at your fingertips.
                 </p>
+                
+                <!-- Mobile App Download Section -->
+                <div class="app-download-section mb-4" style="background: rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 20px; max-width: 650px; margin: 0 auto 30px auto; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 style="color: #fff; margin-bottom: 15px; font-size: 1.4rem; font-weight: 600;">
+                                <i class="fas fa-mobile-alt me-2" style="color: #ffc800;"></i>
+                                Download Our Mobile App
+                            </h3>
+                            <p style="color: rgba(255, 255, 255, 0.85); margin-bottom: 0; font-size: 1rem; line-height: 1.5;">
+                                Get the RajuIT Fashion Store app for Android and enjoy a premium shopping experience with exclusive app-only features, faster checkout, and instant notifications for new arrivals.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <a href="RajuIT-Fashion-Store.apk" download="RajuIT-Fashion-Store.apk" class="btn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 12px 25px; border-radius: 25px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; transition: transform 0.3s ease;">
+                                <i class="fab fa-android me-2" style="font-size: 1.2rem;"></i>
+                                Download APK
+                            </a>
+                            <small style="display: block; color: rgba(255, 255, 255, 0.7); margin-top: 5px; font-size: 0.85rem;">
+                                49.1 MB • Android 5.0+ • <a href="download-app.html" style="color: #ffc800; text-decoration: underline;">More Info</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
                 
                 <a class="btn btn-primary btn-xl text-uppercase" href="#newarrivals">Buy Products</a>
             </div>

@@ -526,7 +526,7 @@ async function generateAndUploadInvoice(htmlContent, orderId) {
 app.post("/register", async (req, res) => {
   try {
     console.log("📝 Registration request received:", req.body);
-    const { name, email, password, confirmpassword, phone } = req.body;
+    const { name, email, password, confirmpassword, phone, address } = req.body;
 
     if (!name || !email || !password) {
       console.log("❌ Missing required fields");
@@ -557,9 +557,9 @@ app.post("/register", async (req, res) => {
 
     console.log("💾 Inserting user into database...");
     const result = await sql`
-      INSERT INTO users (name, email, password, phone, is_verified, verification_token)
-      VALUES (${name}, ${email}, ${hashedPassword}, ${phone}, FALSE, ${verificationToken})
-      RETURNING id, name, email, phone;
+      INSERT INTO users (name, email, password, phone, address, is_verified, verification_token)
+      VALUES (${name}, ${email}, ${hashedPassword}, ${phone}, ${address || null}, FALSE, ${verificationToken})
+      RETURNING id, name, email, phone, address;
     `;
 
     const inserted = result[0] || null;
@@ -795,7 +795,14 @@ app.post("/login", async (req, res) => {
     return res.json({
       success: true,
       token,
-      user: { id: storedUser.id, name: storedUser.name, email: storedUser.email },
+      user: { 
+        id: storedUser.id, 
+        name: storedUser.name, 
+        email: storedUser.email,
+        phone: storedUser.phone,
+        address: storedUser.address,
+        isVerified: storedUser.is_verified
+      },
       redirect: "/dashboard.html"
     });
 
@@ -1720,7 +1727,7 @@ app.get("/dashboard", async (req, res) => {
 app.get("/api/user-data", verifyToken, async (req, res) => {
   if (req.user && req.user.id) {
     try {
-      const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit, password FROM users WHERE id = ${req.user.id} LIMIT 1`;
+      const userRows = await sql`SELECT id, name, email, phone, address, last_profile_edit, password, is_verified FROM users WHERE id = ${req.user.id} LIMIT 1`;
       const user = (userRows && userRows[0]) || req.user;
       // Add flag for Google OAuth users
       if (user.password === 'google-oauth') {
@@ -2098,7 +2105,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
     `;
 
     // Create invoice URL (HTML page, no PDF generation needed)
-    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.onrender.com'}/invoice/${orderId}`;
+    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.online'}/invoice/${orderId}`;
     console.log(`\n📝 Invoice URL created: ${invoiceUrl}`);
     
     // Update database with invoice URL  
@@ -2788,7 +2795,7 @@ app.get("/test-invoice", async (req, res) => {
 </html>
     `;
     
-    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.onrender.com'}/invoice/TEST-${Date.now()}`;
+    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.online'}/invoice/TEST-${Date.now()}`;
     
     res.json({ 
       success: true, 
@@ -3544,7 +3551,7 @@ app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
     console.log(`✅ Order found for user: ${order.email}`);
     
     // Create invoice URL (HTML page, not PDF)
-    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.onrender.com'}/invoice/${orderId}`;
+    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.online'}/invoice/${orderId}`;
     console.log(`📄 Invoice URL: ${invoiceUrl}`);
     
     // Save invoice URL to database if not exists
