@@ -18,8 +18,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Timer? _refreshTimer;
   int _refreshCount = 0;
   late final Dio dio;
-  final Map<int, String> _emailStatus = {}; // Track email status per order ID
-  final Map<int, bool> _isSendingEmail = {}; // Track sending state
   final Map<int, bool> _isRegeneratingInvoice =
       {}; // Track regeneration progress
 
@@ -403,91 +401,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Invoice Section
-                    Text(
-                      'Invoice',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 12),
-                    if (_emailStatus.containsKey(order.id))
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          color: _emailStatus[order.id]!.startsWith('✅')
-                              ? Colors.green[50]
-                              : Colors.red[50],
-                          border: Border.all(
-                            color: _emailStatus[order.id]!.startsWith('✅')
-                                ? Colors.green[300]!
-                                : Colors.red[300]!,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              _emailStatus[order.id]!.startsWith('✅')
-                                  ? Icons.check_circle
-                                  : Icons.error,
-                              color:
-                                  _emailStatus[order.id]!.startsWith('✅')
-                                      ? Colors.green
-                                      : Colors.red,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _emailStatus[order.id]!,
-                                style: TextStyle(
-                                  color: _emailStatus[order.id]!
-                                          .startsWith('✅')
-                                      ? Colors.green[700]
-                                      : Colors.red[700],
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () {
-                                setState(() {
-                                  _emailStatus.remove(order.id);
-                                });
-                              },
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ElevatedButton.icon(
-                      onPressed: (_isSendingEmail[order.id] ?? false)
-                          ? null
-                          : () {
-                              _sendInvoiceEmail(order.id);
-                            },
-                      icon: (_isSendingEmail[order.id] ?? false)
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white),
-                              ),
-                            )
-                          : const Icon(Icons.email),
-                      label: Text(
-                        (_isSendingEmail[order.id] ?? false)
-                            ? 'Sending...'
-                            : 'Send Invoice Email',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
                     if (order.invoicePdfUrl == null || order.invoicePdfUrl!.isEmpty)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -649,69 +562,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error downloading invoice')),
         );
-      }
-    }
-  }
-
-  Future<void> _sendInvoiceEmail(int orderId) async {
-    try {
-      // Set sending state
-      if (mounted) {
-        setState(() {
-          _isSendingEmail[orderId] = true;
-          _emailStatus.remove(orderId); // Clear previous status
-        });
-      }
-
-      const String baseUrl = 'https://rajuit.online';
-      final token = await StorageService.getToken();
-
-      if (token == null) {
-        throw Exception('Not authenticated');
-      }
-
-      final response = await dio.post(
-        '$baseUrl/send-invoice-email/$orderId',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-        ),
-        data: {},
-      );
-
-      if (mounted) {
-        setState(() {
-          _isSendingEmail[orderId] = false;
-        });
-
-        if (response.statusCode == 200) {
-          setState(() {
-            _emailStatus[orderId] =
-                '✅ Invoice sent successfully! Check your email.'; // Show on page
-          });
-          // Auto-dismiss after 5 seconds
-          Future.delayed(const Duration(seconds: 5), () {
-            if (mounted && _emailStatus.containsKey(orderId)) {
-              setState(() {
-                _emailStatus.remove(orderId);
-              });
-            }
-          });
-        } else {
-          setState(() {
-            _emailStatus[orderId] =
-                '❌ ${response.data['message'] ?? 'Failed to send invoice'}';
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSendingEmail[orderId] = false;
-          _emailStatus[orderId] = '❌ Error: $e';
-        });
       }
     }
   }
