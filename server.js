@@ -3572,7 +3572,7 @@ app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${invoicePdfUrl}" 
+            <a href="${invoiceUrl}" 
                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                       color: white; 
                       padding: 15px 40px; 
@@ -3581,7 +3581,7 @@ app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
                       display: inline-block;
                       font-weight: bold;
                       font-size: 16px;">
-              📥 Download Invoice
+              📄 View Invoice Online
             </a>
           </div>
           
@@ -3597,16 +3597,16 @@ app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
       to: order.email,
       subject: `Your Invoice for Order #${orderId} - Raju IT`,
       htmlContent: emailHtml
-    });Url}" 
-               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                      color: white; 
-                      padding: 15px 40px; 
-                      text-decoration: none; 
-                      border-radius: 25px; 
-                      display: inline-block;
-                      font-weight: bold;
-                      font-size: 16px;">
-              📄 View Invoice Onlin
+    });
+
+    console.log(`✅ Invoice email sent successfully to ${order.email}`);
+    return res.json({ 
+      success: true, 
+      message: `Invoice sent to ${order.email} successfully!`
+    });
+  } catch (err) {
+    console.error("❌ Error in /send-invoice-email:", err.message);
+    res.status(500).json({ 
       success: false,
       message: "Failed to send invoice email: " + err.message 
     });
