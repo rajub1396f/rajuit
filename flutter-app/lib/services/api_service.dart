@@ -367,35 +367,6 @@ class ApiService {
     }
   }
 
-  // ==================== SEND INVOICE EMAIL ====================
-
-  Future<Map<String, dynamic>> sendInvoiceEmail(int orderId) async {
-    try {
-      if (kDebugMode) {
-        print('[Invoice] Requesting to send invoice email for order $orderId');
-      }
-      
-      final response = await _dio.post('/send-invoice-email/$orderId');
-
-      if (response.statusCode == 200) {
-        if (kDebugMode) {
-          print('[Invoice] Email sent successfully: ${response.data}');
-        }
-        return response.data as Map<String, dynamic>;
-      }
-      throw DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        type: DioExceptionType.badResponse,
-      );
-    } on DioException catch (e) {
-      if (kDebugMode) {
-        print('[Invoice] Send email failed: ${e.message}');
-      }
-      throw _handleError(e);
-    }
-  }
-
   // ==================== ERROR HANDLING ====================
 
   dynamic _handleError(DioException error) {

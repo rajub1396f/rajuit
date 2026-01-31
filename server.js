@@ -3502,12 +3502,12 @@ app.delete("/admin/users/:id", verifyAdmin, async (req, res) => {
   }
 });
 
-// ==================== REGENERATE INVOICE ====================
-app.get("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
+// ==================== SEND INVOICE EMAIL ====================
+app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
   try {
     const userId = req.user?.id;
     const orderId = req.params.orderId;
-    console.log(`\n🚀 [${new Date().toISOString()}] GET /regenerate-invoice/${orderId} - User: ${userId}`);
+    console.log(`\n📧 [${new Date().toISOString()}] POST /send-invoice-email/${orderId} - User: ${userId}`);
 
     if (!userId) {
       console.log("❌ User not authenticated");
@@ -3517,7 +3517,7 @@ app.get("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
     // Get order details
     console.log(`🔍 Fetching order #${orderId} from database...`);
     const orderResult = await sql`
-      SELECT o.id, o.user_id, o.total_amount, o.status, o.shipping_address, o.created_at,
+      SELECT o.id, o.user_id, o.total_amount, o.status, o.shipping_address, o.created_at, o.invoice_pdf_url,
              u.name, u.email
       FROM orders o JOIN users u ON o.user_id = u.id
       WHERE o.id = ${orderId} AND o.user_id = ${userId}
@@ -3529,60 +3529,74 @@ app.get("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
     }
 
     const order = orderResult[0];
-    console.log(`✅ Order found: ${JSON.stringify(order)}`);
+    console.log(`✅ Order found for user: ${order.email}`);
     
-    console.log(`🔍 Fetching order items for order #${orderId}...`);
-    const itemsResult = await sql`
-      SELECT product_name as name, product_image as image, quantity, price
-      FROM order_items WHERE order_id = ${orderId}
-    `;
-    const items = itemsResult || [];
-    console.log(`✅ Found ${items.length} items for order #${orderId}`);
-
-    // Generate invoice synchronously and wait for completion
-    let retries = 3;
-    let pdfUrl = null;
-    
-    while (retries > 0) {
-      try {
-        console.log(`📝 [Retry ${4-retries}/3] Generating invoice HTML for order ${orderId}...`);
-        const invoiceHtml = generateInvoiceHtml(order, items);
-        console.log(`✅ Invoice HTML generated (${invoiceHtml.length} chars)`);
-        
-        console.log(`🖨️ [Retry ${4-retries}/3] Starting PDF generation for order ${orderId}...`);
-        pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-        console.log(`✅ PDF URL received: ${pdfUrl}`);
-        
-        console.log(`💾 Updating database with PDF URL for order ${orderId}...`);
-        await sql`UPDATE orders SET invoice_pdf_url = ${pdfUrl} WHERE id = ${orderId}`;
-        console.log(`✅ Invoice generation COMPLETE for order ${orderId}: ${pdfUrl}`);
-        
-        // Success - return the invoice URL to the client
-        return res.json({ 
-          success: true, 
-          message: "Invoice regenerated successfully",
-          invoiceUrl: pdfUrl
-        });
-      } catch (error) {
-        retries--;
-        console.error(`❌ [Retry ${4-retries}/3] Invoice generation failed for order ${orderId}:`, error.message);
-        console.error(`❌ Error stack:`, error.stack);
-        
-        if (retries > 0) {
-          console.log(`⏳ Retrying in 2 seconds...`);
-          await new Promise(r => setTimeout(r, 2000));
-        } else {
-          console.error(`❌ All retry attempts failed for order ${orderId}`);
-          return res.status(500).json({ 
-            success: false,
-            message: "Failed to regenerate invoice after 3 attempts: " + error.message 
-          });
-        }
-      }
+    // Check if invoice PDF exists
+    if (!order.invoice_pdf_url) {
+      console.log(`❌ No invoice PDF found for order #${orderId}`);
+      return res.status(404).json({ 
+        success: false,
+        message: "Invoice not found. Please contact support." 
+      });
     }
+
+    // Send invoice via email
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">📄 Invoice for Order #${orderId}</h1>
+        </div>
+        
+        <div style="background-color: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+          <p style="font-size: 16px; color: #333; margin-bottom: 20px;">Dear ${order.name},</p>
+          
+          <p style="font-size: 14px; color: #666; line-height: 1.6;">Thank you for your order! Your invoice is ready.</p>
+          
+          <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+            <p style="margin: 5px 0; color: #333;"><strong>Order ID:</strong> #${orderId}</p>
+            <p style="margin: 5px 0; color: #333;"><strong>Total Amount:</strong> ₹${order.total_amount}</p>
+            <p style="margin: 5px 0; color: #333;"><strong>Status:</strong> ${order.status}</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${order.invoice_pdf_url}" 
+               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                      color: white; 
+                      padding: 15px 40px; 
+                      text-decoration: none; 
+                      border-radius: 25px; 
+                      display: inline-block;
+                      font-weight: bold;
+                      font-size: 16px;">
+              📥 Download Invoice
+            </a>
+          </div>
+          
+          <p style="font-size: 12px; color: #999; margin-top: 30px; text-align: center;">
+            If you have any questions, please contact us at support@rajuit.com
+          </p>
+        </div>
+      </div>
+    `;
+
+    console.log(`📤 Sending invoice email to: ${order.email}`);
+    await sendBrevoEmail({
+      to: order.email,
+      subject: `Your Invoice for Order #${orderId} - Raju IT`,
+      htmlContent: emailHtml
+    });
+
+    console.log(`✅ Invoice email sent successfully to ${order.email}`);
+    return res.json({ 
+      success: true, 
+      message: `Invoice sent to ${order.email} successfully!`
+    });
   } catch (err) {
-    console.error("❌ Error in /regenerate-invoice:", err.message);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Error in /send-invoice-email:", err.message);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to send invoice email: " + err.message 
+    });
   }
 });
 
