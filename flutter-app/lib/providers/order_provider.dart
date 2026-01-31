@@ -175,41 +175,6 @@ class OrderProvider extends ChangeNotifier {
       print('[OrderProvider] Send invoice email result: $result');
       
       return result;
-
-        // Check if we got a new URL different from the previous one
-        if (currentUrl?.isNotEmpty == true && currentUrl != previousInvoiceUrl) {
-          print('[OrderProvider] ✅ New invoice URL detected: $currentUrl');
-          return currentUrl;
-        }
-
-        // If there was no previous URL and now we have one, return it
-        if (currentUrl?.isNotEmpty == true && previousInvoiceUrl == null) {
-          print('[OrderProvider] ✅ Invoice URL now available: $currentUrl');
-          return currentUrl;
-        }
-      }
-
-      // If polling timed out but we have the old URL, return it as fallback
-      if (previousInvoiceUrl?.isNotEmpty == true) {
-        print('[OrderProvider] ⚠️ Timeout - returning previous URL: $previousInvoiceUrl');
-        return previousInvoiceUrl;
-      }
-
-      print('[OrderProvider] ❌ Invoice generation timeout');
-      throw Exception('Invoice generation timeout after ${pollingAttempts * 2} seconds');
-    } catch (e) {
-      print('[OrderProvider] Regeneration request failed: $e');
-      rethrow;
-    }
-  }
-
-  Future<Map<String, dynamic>> sendInvoiceEmail(int orderId) async {
-    try {
-      // Request to send invoice via email
-      final result = await _apiService.sendInvoiceEmail(orderId);
-      print('[OrderProvider] Send invoice email result: $result');
-      
-      return result;
     } catch (e) {
       print('[OrderProvider] ❌ Error sending invoice email: $e');
       _error = e.toString();
