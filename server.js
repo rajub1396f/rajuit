@@ -3498,39 +3498,47 @@ app.get("/regenerate-invoice/:orderId", verifyToken, async (req, res) => {
     const items = itemsResult || [];
     console.log(`✅ Found ${items.length} items for order #${orderId}`);
 
-    // Generate invoice in background with retry logic
-    console.log(`📝 Starting background invoice generation for order #${orderId}...`);
-    (async () => {
-      let retries = 3;
-      while (retries > 0) {
-        try {
-          console.log(`📝 [Retry ${4-retries}/3] Generating invoice HTML for order ${orderId}...`);
-          const invoiceHtml = generateInvoiceHtml(order, items);
-          console.log(`✅ Invoice HTML generated (${invoiceHtml.length} chars)`);
-          
-          console.log(`🖨️ [Retry ${4-retries}/3] Starting PDF generation for order ${orderId}...`);
-          const pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
-          console.log(`✅ PDF URL received: ${pdfUrl}`);
-          
-          console.log(`💾 Updating database with PDF URL for order ${orderId}...`);
-          const updateResult = await sql`UPDATE orders SET invoice_pdf_url = ${pdfUrl} WHERE id = ${orderId} RETURNING id`;
-          console.log(`✅ Invoice generation COMPLETE for order ${orderId}: ${pdfUrl}`);
-          break;
-        } catch (error) {
-          retries--;
-          console.error(`❌ [Retry ${4-retries}/3] Invoice generation failed for order ${orderId}:`, error.message);
-          console.error(`❌ Error details:`, error);
-          if (retries > 0) {
-            console.log(`⏳ Retrying in 2 seconds...`);
-            await new Promise(r => setTimeout(r, 2000));
-          } else {
-            console.error(`❌ All retry attempts failed for order ${orderId}`);
-          }
+    // Generate invoice synchronously and wait for completion
+    let retries = 3;
+    let pdfUrl = null;
+    
+    while (retries > 0) {
+      try {
+        console.log(`📝 [Retry ${4-retries}/3] Generating invoice HTML for order ${orderId}...`);
+        const invoiceHtml = generateInvoiceHtml(order, items);
+        console.log(`✅ Invoice HTML generated (${invoiceHtml.length} chars)`);
+        
+        console.log(`🖨️ [Retry ${4-retries}/3] Starting PDF generation for order ${orderId}...`);
+        pdfUrl = await generateAndUploadInvoice(invoiceHtml, orderId);
+        console.log(`✅ PDF URL received: ${pdfUrl}`);
+        
+        console.log(`💾 Updating database with PDF URL for order ${orderId}...`);
+        await sql`UPDATE orders SET invoice_pdf_url = ${pdfUrl} WHERE id = ${orderId}`;
+        console.log(`✅ Invoice generation COMPLETE for order ${orderId}: ${pdfUrl}`);
+        
+        // Success - return the invoice URL to the client
+        return res.json({ 
+          success: true, 
+          message: "Invoice regenerated successfully",
+          invoiceUrl: pdfUrl
+        });
+      } catch (error) {
+        retries--;
+        console.error(`❌ [Retry ${4-retries}/3] Invoice generation failed for order ${orderId}:`, error.message);
+        console.error(`❌ Error stack:`, error.stack);
+        
+        if (retries > 0) {
+          console.log(`⏳ Retrying in 2 seconds...`);
+          await new Promise(r => setTimeout(r, 2000));
+        } else {
+          console.error(`❌ All retry attempts failed for order ${orderId}`);
+          return res.status(500).json({ 
+            success: false,
+            message: "Failed to regenerate invoice after 3 attempts: " + error.message 
+          });
         }
       }
-    })();
-
-    res.json({ success: true, message: "Invoice generation started" });
+    }
   } catch (err) {
     console.error("❌ Error in /regenerate-invoice:", err.message);
     res.status(500).json({ message: "Server error" });
