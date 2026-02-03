@@ -39,10 +39,12 @@ class ApiService {
           final token = await StorageService.getToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
-            if (kDebugMode && !_hasLoggedJwtRequest) {
-              _hasLoggedJwtRequest = true;
-              print(
-                  '[JWT] Token added to request: ${token.substring(0, 20)}...');
+            if (kDebugMode) {
+              print('[JWT] Token added to request: ${token.substring(0, 20)}... for ${options.path}');
+            }
+          } else {
+            if (kDebugMode) {
+              print('[JWT] ⚠️ No token available for request to ${options.path}');
             }
           }
           return handler.next(options);
@@ -51,13 +53,21 @@ class ApiService {
           // Handle 401 Unauthorized - token expired
           if (error.response?.statusCode == 401) {
             if (kDebugMode) {
-              print('[JWT] Token expired (401), attempting refresh...');
+              print('[JWT] 401 error for ${error.requestOptions.path}');
+              print('[JWT] Response: ${error.response?.data}');
             }
-            // Attempt to refresh token
+            
+            // Don't immediately clear tokens on first 401 - might be a specific endpoint issue
+            // Only attempt refresh, but don't clear everything if refresh fails
             final refreshed = await _refreshToken();
             if (refreshed) {
               // Retry original request with new token
               return handler.resolve(await _retry(error.requestOptions));
+            } else {
+              // Just log the issue but don't clear tokens yet
+              if (kDebugMode) {
+                print('[JWT] Token refresh failed for ${error.requestOptions.path} - but preserving token for other requests');
+              }
             }
           }
 
@@ -187,6 +197,50 @@ class ApiService {
       );
     } on DioException catch (e) {
       throw _handleError(e);
+    }
+  }
+
+  Future<AuthResponse> googleAuth(String googleToken, String email, String name) async {
+    try {
+      if (kDebugMode) {
+        print('[API] Attempting Google Auth to: ${Constants.baseUrl}/auth/google');
+        print('[API] Email: $email');
+      }
+
+      final response = await _dio.post(
+        '/auth/google',
+        data: {
+          'idToken': googleToken,
+          'email': email,
+          'name': name,
+        },
+      );
+
+      if (kDebugMode) {
+        print('[API] Google Auth response status: ${response.statusCode}');
+        print('[API] Google Auth response data: ${response.data}');
+      }
+
+      if (response.statusCode == 200) {
+        return AuthResponse.fromJson(response.data);
+      }
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+      );
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        print('[API] DioException in Google Auth: ${e.message}');
+        print('[API] Response data: ${e.response?.data}');
+        print('[API] Response status: ${e.response?.statusCode}');
+      }
+      throw _handleError(e);
+    } catch (e) {
+      if (kDebugMode) {
+        print('[API] General exception in Google Auth: $e');
+      }
+      throw Exception('Google Authentication failed: ${e.toString()}');
     }
   }
 
@@ -465,7 +519,7 @@ class ApiService {
     try {
       final refreshToken = await StorageService.getRefreshToken();
       if (refreshToken == null) {
-        if (kDebugMode) print('[JWT] No refresh token available');
+        if (kDebugMode) print('[JWT] No refresh token available - keeping current token for now');
         return false;
       }
 
@@ -486,12 +540,22 @@ class ApiService {
         return true;
       }
     } catch (e) {
-      if (kDebugMode) print('[JWT] Token refresh failed: $e');
-      // Clear tokens if refresh fails
-      await StorageService.deleteToken();
-      await StorageService.deleteRefreshToken();
+      if (kDebugMode) print('[JWT] Token refresh failed: $e - but keeping current token');
+      // Don't clear tokens on refresh failure - might be network issue
     }
     return false;
+  }
+
+  /// Handle token expiry by clearing tokens and notifying auth state
+  Future<void> _handleTokenExpiry() async {
+    if (kDebugMode) print('[JWT] Handling token expiry - attempting graceful recovery');
+    
+    // Don't immediately clear all tokens on first 401 error
+    // Instead, just remove the current token but preserve user info
+    await StorageService.deleteToken();
+    
+    // Give the user a chance to re-authenticate before clearing everything
+    if (kDebugMode) print('[JWT] Token cleared - user may need to re-authenticate');
   }
 
   /// Retry a failed request
@@ -520,8 +584,9 @@ class ApiService {
       if (!await StorageService.invoiceNeedsRefresh(orderId)) {
         final cached = await StorageService.getInvoiceSync(orderId);
         if (cached != null && cached['invoiceData'] != null) {
-          if (kDebugMode)
+          if (kDebugMode) {
             print('[Invoice] Using cached invoice for order $orderId');
+          }
           return cached['invoiceData'] as String;
         }
       }
@@ -547,8 +612,9 @@ class ApiService {
           jwtToken: token,
         );
 
-        if (kDebugMode)
+        if (kDebugMode) {
           print('[Invoice] Invoice fetched and cached for order $orderId');
+        }
         return invoiceData.toString();
       }
 

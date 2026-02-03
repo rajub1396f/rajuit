@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class Constants {
   // API Configuration
   // Using rajuit.online domain (Render backend)
@@ -75,4 +77,11 @@ class Constants {
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
   static const String phonePattern = r'^[0-9]{10,}$';
   static const int minPasswordLength = 6;
+
+  // Google OAuth Configuration  
+  // Development client ID for localhost testing
+  static const String googleClientId = kDebugMode 
+      ? '1027670106522-cvfn6td1finicio4bv1kk73vip6si300.apps.googleusercontent.com' // Web client ID for localhost
+      : '1027670106522-ph7e3mvsdnce6fn899a6g45jdie3982c.apps.googleusercontent.com'; // Android client ID for mobile
+  static const String googleClientSecret = 'your-client-secret-here'; // This should be in backend env only
 }

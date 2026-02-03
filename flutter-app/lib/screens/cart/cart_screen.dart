@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../config/constants.dart';
 import '../../providers/cart_provider.dart';
 import '../checkout/checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
-  const CartScreen({Key? key}) : super(key: key);
+  const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -65,11 +66,21 @@ class CartScreen extends StatelessWidget {
                                 color: Colors.grey[200],
                               ),
                               child: item.image != null
-                                  ? Image.network(
-                                      item.image!,
-                                      fit: BoxFit.cover,
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: CachedNetworkImage(
+                                        imageUrl: item.image!,
+                                        fit: BoxFit.contain, // Changed to contain for better display
+                                        placeholder: (context, url) => const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                        errorWidget: (context, url, error) => const Icon(
+                                          Icons.image_not_supported,
+                                          size: 30,
+                                        ),
+                                      ),
                                     )
-                                  : const Icon(Icons.shopping_bag),
+                                  : const Icon(Icons.shopping_bag, size: 30),
                             ),
                             const SizedBox(width: 12),
                             // Product Details

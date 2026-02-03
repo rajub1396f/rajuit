@@ -10,6 +10,7 @@ import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/orders/orders_screen.dart';
 import 'screens/checkout/order_confirmation_screen.dart';
+import 'widgets/global_help_button.dart';
 
 void main() async {
   await GetStorage.init();
@@ -69,6 +70,14 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
+        builder: (context, child) {
+          return Stack(
+            children: [
+              child ?? const SizedBox.shrink(),
+              const GlobalHelpButton(),
+            ],
+          );
+        },
         home: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
             return authProvider.isLoggedIn

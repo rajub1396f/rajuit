@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/constants.dart';
 import '../../models/order_model.dart';
@@ -11,7 +13,7 @@ import '../orders/orders_screen.dart';
 import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -322,16 +324,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: double.infinity,
                               color: Colors.grey[200],
                               child: product.image != null
-                                  ? Image.network(
-                                      product.image!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) {
-                                        return const Icon(
-                                          Icons.image_not_supported,
-                                        );
-                                      },
+                                  ? CachedNetworkImage(
+                                      imageUrl: product.image!,
+                                      fit: BoxFit.contain, // Changed to contain for full image
+                                      placeholder: (context, url) => const Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                      errorWidget: (context, url, error) => const Icon(
+                                        Icons.image_not_supported,
+                                        size: 50,
+                                      ),
                                     )
-                                  : const Icon(Icons.shopping_bag),
+                                  : const Icon(Icons.shopping_bag, size: 50),
                             ),
                           ),
                           // Product Info
@@ -406,6 +410,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                     );
                                   },
                                 ),
+                                // Instagram Video Button
+                                if (product.instagramVideoUrl != null && product.instagramVideoUrl!.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      child: OutlinedButton.icon(
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 6),
+                                          side: const BorderSide(color: Color(0xFFE4405F)),
+                                          foregroundColor: const Color(0xFFE4405F),
+                                        ),
+                                        onPressed: () => _openInstagramVideo(product.instagramVideoUrl!),
+                                        icon: const Icon(Icons.play_circle_outline, size: 16),
+                                        label: const Text(
+                                          'Watch Video',
+                                          style: TextStyle(fontSize: 10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
                               ],
                             ),
                           ),
@@ -421,4 +447,115 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  // Open Instagram function
+  Future<void> _openInstagram() async {
+    try {
+      const String instagramUrl = 'https://www.instagram.com/rajuit1396/?igsh=MWZlOHk4bWxrY3hwMg%3D%3D&fbclid=IwY2xjawOXwtFleHRuA2FlbQIxMABicklkETFXaXJyMnR5aWF3eHB2SVl4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmKxgCF0yvOPwVkc5ovEt0JNh-K_DZ4egj27cYWVsba8m6bRIbTOszGrRkTA_aem_wyHdzWPSdl7DxeJ2So-lUw&brid=JbRWKsUzQoW71PD4MGNTnw';
+      final Uri uri = Uri.parse(instagramUrl);
+      
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open Instagram. Please check if the Instagram app is installed.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening Instagram: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Open Instagram Video function
+  Future<void> _openInstagramVideo(String videoUrl) async {
+    try {
+      if (videoUrl.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Instagram video URL is empty'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      final Uri uri = Uri.parse(videoUrl);
+      print('Attempting to open Instagram video: $videoUrl');
+      
+      // Try different launch modes
+      bool launched = false;
+      
+      // First try: External application (Instagram app)
+      try {
+        if (await canLaunchUrl(uri)) {
+          launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+          print('External app launch result: $launched');
+        }
+      } catch (e) {
+        print('External app launch failed: $e');
+      }
+      
+      // Second try: Platform default (system chooser)
+      if (!launched) {
+        try {
+          launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+          print('Platform default launch result: $launched');
+        } catch (e) {
+          print('Platform default launch failed: $e');
+        }
+      }
+      
+      // Third try: In-app web view as fallback
+      if (!launched) {
+        try {
+          launched = await launchUrl(uri, mode: LaunchMode.inAppWebView);
+          print('In-app web view launch result: $launched');
+        } catch (e) {
+          print('In-app web view launch failed: $e');
+        }
+      }
+      
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Could not open Instagram video. Try copying this link and opening it manually in Instagram app.'),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Copy Link',
+              onPressed: () {
+                // Copy URL to clipboard (you'll need to add clipboard package if needed)
+                print('URL to copy: $videoUrl');
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error in _openInstagramVideo: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening Instagram video: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+
 }

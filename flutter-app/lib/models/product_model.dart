@@ -9,6 +9,7 @@ class ProductModel {
   final double rating;
   final int reviews;
   final String? createdAt;
+  final String? instagramVideoUrl;
 
   ProductModel({
     required this.id,
@@ -21,6 +22,7 @@ class ProductModel {
     this.rating = 0.0,
     this.reviews = 0,
     this.createdAt,
+    this.instagramVideoUrl,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class ProductModel {
       rating: parseRating(json['rating']),
       reviews: json['reviews'] ?? 0,
       createdAt: json['created_at'],
+      instagramVideoUrl: json['instagram_video_url'],
     );
   }
 
@@ -68,6 +71,7 @@ class ProductModel {
       'rating': rating,
       'reviews': reviews,
       'created_at': createdAt,
+      'instagram_video_url': instagramVideoUrl,
     };
   }
 
@@ -82,6 +86,7 @@ class ProductModel {
     double? rating,
     int? reviews,
     String? createdAt,
+    String? instagramVideoUrl,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -94,6 +99,7 @@ class ProductModel {
       rating: rating ?? this.rating,
       reviews: reviews ?? this.reviews,
       createdAt: createdAt ?? this.createdAt,
+      instagramVideoUrl: instagramVideoUrl ?? this.instagramVideoUrl,
     );
   }
 }

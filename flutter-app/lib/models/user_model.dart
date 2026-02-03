@@ -128,8 +128,12 @@ class AuthResponse {
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    // If backend returns token and user, consider it successful
+    // This handles cases where backend doesn't explicitly send 'success' field
+    bool isSuccessful = json['success'] ?? (json['token'] != null && json['user'] != null);
+    
     return AuthResponse(
-      success: json['success'] ?? false,
+      success: isSuccessful,
       message: json['message'] ?? '',
       token: json['token'],
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
