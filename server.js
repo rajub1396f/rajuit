@@ -1579,7 +1579,7 @@ app.post("/reset-password", async (req, res) => {
 app.post("/change-password", verifyToken, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const userId = req.user?.id; // From verifyToken middleware
+    const userId = req.user?.userId || req.user?.id; // Support both field names
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: "Current password and new password are required" });
@@ -1674,7 +1674,7 @@ app.post("/change-password", verifyToken, async (req, res) => {
 // Check Password Reset Status endpoint
 app.get("/check-password-reset-status", verifyToken, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.id; // Support both field names
 
     const userRows = await sql`SELECT last_password_reset FROM users WHERE id = ${userId} LIMIT 1`;
     if (!userRows || userRows.length === 0) {
@@ -1876,11 +1876,11 @@ app.post("/update-profile", verifyToken, async (req, res) => {
     console.log("Request body:", req.body);
     console.log("User from token:", req.user);
     
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.id; // Support both field names
     const { name, phone, address } = req.body;
 
     if (!userId) {
-      console.log("❌ No user ID found");
+      console.log("❌ No user ID found in token");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
@@ -1934,7 +1934,7 @@ app.post("/update-profile", verifyToken, async (req, res) => {
 // Get Shipping Address
 app.get("/get-shipping", verifyToken, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.id; // Support both field names
     if (!userId) {
       return res.status(401).json({ message: "User not authenticated" });
     }
@@ -1957,7 +1957,7 @@ app.get("/get-shipping", verifyToken, async (req, res) => {
 // Update Shipping Address
 app.post("/update-shipping", verifyToken, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.id; // Support both field names
     const { shippingName, shippingPhone, shippingAddress1, shippingAddress2, 
             shippingCity, shippingState, shippingPostal, shippingCountry } = req.body;
 
@@ -1989,11 +1989,12 @@ app.post("/update-shipping", verifyToken, async (req, res) => {
 // Get Orders
 app.get("/get-orders", verifyToken, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.id; // Support both field names
     console.log(`📋 Fetching orders for user ID: ${userId}`);
+    console.log(`📋 Token payload:`, req.user);
     
     if (!userId) {
-      console.log("❌ User not authenticated");
+      console.log("❌ User not authenticated - no userId found in token");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
@@ -2072,14 +2073,14 @@ app.get("/get-orders", verifyToken, async (req, res) => {
 // Create Order (for future purchase functionality)
 app.post("/create-order", verifyToken, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.id; // Support both field names
     const { items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
     console.log(`🛒 Create order request from user ID: ${userId}`);
     console.log(`📦 Items count: ${items?.length}, Total: ৳${totalAmount}`);
 
     if (!userId) {
-      console.log("❌ User not authenticated");
+      console.log("❌ User not authenticated - no userId found in token");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
@@ -2340,13 +2341,13 @@ app.post("/create-order", verifyToken, async (req, res) => {
 // Get invoice for a specific order - returns HTML invoice directly
 app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.id; // Support both field names
     const orderId = req.params.orderId;
 
     console.log(`📄 Fetching invoice for order #${orderId}, user: ${userId}`);
 
     if (!userId) {
-      console.log("❌ User not authenticated");
+      console.log("❌ User not authenticated - no userId found in token");
       return res.status(401).json({ message: "User not authenticated" });
     }
 
@@ -2834,7 +2835,7 @@ app.get("/migrate-email-verification", async (req, res) => {
 app.get("/debug-order/:orderId", verifyToken, async (req, res) => {
   try {
     const orderId = req.params.orderId;
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.id; // Support both field names
     
     const orderResult = await sql`
       SELECT * FROM orders 
@@ -2863,7 +2864,7 @@ app.get("/debug-order/:orderId", verifyToken, async (req, res) => {
 // Debug endpoint to check all orders for current user
 app.get("/debug-all-orders", verifyToken, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.id; // Support both field names
     
     console.log(`🔍 Debug: Checking all orders for user ${userId}`);
     
@@ -3651,12 +3652,12 @@ app.get("/invoice/:orderId", async (req, res) => {
 // ==================== SEND INVOICE EMAIL ====================
 app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.id; // Support both field names
     const orderId = req.params.orderId;
     console.log(`\n📧 [${new Date().toISOString()}] POST /send-invoice-email/${orderId} - User: ${userId}`);
 
     if (!userId) {
-      console.log("❌ User not authenticated");
+      console.log("❌ User not authenticated - no userId found in token");
       return res.status(401).json({ message: "Not authenticated" });
     }
 
