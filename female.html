@@ -114,6 +114,195 @@
             </div>
         </footer>
 
+        <!-- WhatsApp Chat Widget -->
+        <div class="whatsapp-widget">
+            <div class="whatsapp-chat-box" id="whatsappChatBox" style="display: none;">
+                <div class="whatsapp-header">
+                    <img src="https://ui-avatars.com/api/?name=Raju+IT&background=25d366&color=fff" alt="Support" class="whatsapp-avatar">
+                    <div class="whatsapp-header-text">
+                        <strong>Raju IT Support</strong>
+                        <small>Typically replies instantly</small>
+                    </div>
+                    <button class="whatsapp-close" onclick="toggleWhatsAppChat()">×</button>
+                </div>
+                <div class="whatsapp-body">
+                    <div class="whatsapp-message">
+                        <p>Hi there! 👋<br>Need help with women's fashion? How can we assist you?</p>
+                    </div>
+                </div>
+                <div class="whatsapp-footer">
+                    <input type="text" id="whatsappInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendWhatsAppMessage()">
+                    <button onclick="sendWhatsAppMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                    <button onclick="openWhatsAppDirect()" title="Open WhatsApp directly" style="background: #25d366; margin-left: 5px; border: none; color: white; padding: 8px; border-radius: 5px;">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>
+                </div>
+            </div>
+            <button class="whatsapp-float" onclick="toggleWhatsAppChat()" ondblclick="openWhatsAppDirect()" title="Single click to chat, double click for direct WhatsApp">
+                <i class="fab fa-whatsapp whatsapp-icon"></i>
+            </button>
+        </div>
+
+        <style>
+            .whatsapp-widget {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+            }
+
+            .whatsapp-float {
+                width: 60px;
+                height: 60px;
+                background-color: #25d366;
+                color: #FFF;
+                border-radius: 50%;
+                border: none;
+                font-size: 30px;
+                box-shadow: 0 4px 20px rgba(37, 211, 102, 0.5);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                animation: pulse 2s infinite;
+            }
+            
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            
+            .whatsapp-float:hover {
+                background-color: #128c7e;
+                transform: scale(1.1);
+            }
+            
+            .whatsapp-chat-box {
+                position: absolute;
+                bottom: 70px;
+                right: 0;
+                width: 300px;
+                height: 400px;
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+                overflow: hidden;
+            }
+            
+            .whatsapp-header {
+                background: #075e54;
+                color: white;
+                padding: 15px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .whatsapp-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-right: 10px;
+            }
+            
+            .whatsapp-header-text {
+                flex: 1;
+            }
+            
+            .whatsapp-close {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 20px;
+                cursor: pointer;
+            }
+            
+            .whatsapp-body {
+                padding: 20px;
+                height: 250px;
+                overflow-y: auto;
+            }
+            
+            .whatsapp-message {
+                background: #dcf8c6;
+                padding: 10px;
+                border-radius: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .whatsapp-footer {
+                padding: 15px;
+                background: #f0f0f0;
+                display: flex;
+                gap: 5px;
+            }
+            
+            .whatsapp-footer input {
+                flex: 1;
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 20px;
+                outline: none;
+            }
+            
+            .whatsapp-footer button {
+                width: 35px;
+                height: 35px;
+                background: #25d366;
+                border: none;
+                border-radius: 50%;
+                color: white;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        </style>
+
+        <script>
+            // WhatsApp Chat Functions
+            function toggleWhatsAppChat() {
+                const chatBox = document.getElementById('whatsappChatBox');
+                if (chatBox.style.display === 'none' || chatBox.style.display === '') {
+                    chatBox.style.display = 'block';
+                } else {
+                    chatBox.style.display = 'none';
+                }
+            }
+
+            // Direct WhatsApp opening function
+            function openWhatsAppDirect() {
+                const defaultMessage = "Hi! I'm interested in women's fashion from Raju IT. Can you help me?";
+                const encodedMessage = encodeURIComponent(defaultMessage);
+                const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+            }
+
+            function sendWhatsAppMessage() {
+                const input = document.getElementById('whatsappInput');
+                const message = input.value.trim();
+                
+                if (message) {
+                    const encodedMessage = encodeURIComponent(message);
+                    const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
+                    window.open(whatsappUrl, '_blank');
+                    input.value = '';
+                    
+                    // Close chat box after sending
+                    setTimeout(() => {
+                        document.getElementById('whatsappChatBox').style.display = 'none';
+                    }, 500);
+                } else {
+                    // If no message, open with default message
+                    openWhatsAppDirect();
+                }
+            }
+        </script>
+
 
 
     </body>

@@ -1075,26 +1075,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          Wrap(
+                            alignment: WrapAlignment.spaceEvenly,
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
                               _buildSocialMediaButton(
                                 icon: Icons.camera_alt,
                                 label: 'Instagram',
                                 color: const Color(0xFFE4405F),
-                                url: 'https://www.instagram.com/rajuit1396/?igsh=MWZlOHk4bWxrY3hwMg%3D%3D&fbclid=IwY2xjawOXwtFleHRuA2FlbQIxMABicmlkETFXaXJyMnR5aWF3eHB2SVl4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmKxgCF0yvOPwVkc5ovEt0JNh-K_DZ4egj27cYWVsba8m6bRIbTOszGrRkTA_aem_wyHdzWPSdl7DxeJ2So-lUw&brid=JbRWKsUzQoW71PD4MGNTnw',
+                                url: 'https://www.instagram.com/rajuit1396/',
                               ),
                               _buildSocialMediaButton(
                                 icon: Icons.facebook,
                                 label: 'Facebook',
                                 color: const Color(0xFF4267B2),
-                                url: 'https://facebook.com/rajuit1396',
+                                url: 'https://www.facebook.com/profile.php?id=61584622701133',
                               ),
                               _buildSocialMediaButton(
-                                icon: Icons.phone,
-                                label: 'WhatsApp',
-                                color: const Color(0xFF25D366),
-                                url: 'https://wa.me/8801726466000?text=${Uri.encodeQueryComponent('Hi! I need help with my order or have a question about your products.')}',
+                                icon: Icons.language,
+                                label: 'Website',
+                                color: const Color(0xFF2196F3),
+                                url: 'https://rajuit.online',
                               ),
                             ],
                           ),

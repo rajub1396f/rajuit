@@ -120,13 +120,22 @@
                 overflow: hidden;
                 background: #f8f9fa;
                 cursor: zoom-in;
+                height: 280px;
+            }
+            
+            .product-card .product-image-wrapper img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s ease;
             }
             
             .product-card .card-img-top {
                 height: 280px;
-                object-fit: contain;
+                object-fit: cover;
                 background: #f8f9fa;
                 transition: transform 0.3s ease;
+                width: 100%;
             }
             
             .product-card:hover .card-img-top {
@@ -231,6 +240,7 @@
             /* Instagram Video Link */
             .product-video-link {
                 text-align: center;
+                margin: 12px 0 16px 0;
             }
             
             .instagram-video-btn {
@@ -242,10 +252,12 @@
                 color: white;
                 text-decoration: none;
                 border-radius: 8px;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 600;
                 transition: all 0.3s ease;
                 box-shadow: 0 2px 8px rgba(225, 48, 108, 0.3);
+                max-width: 100%;
+                text-align: center;
             }
             
             .instagram-video-btn:hover {
@@ -255,7 +267,19 @@
             }
             
             .instagram-video-btn i {
-                font-size: 16px;
+                font-size: 14px;
+            }
+            
+            /* Ensure proper card body spacing */
+            .product-card .card-body {
+                display: flex;
+                flex-direction: column;
+                height: auto;
+                min-height: 200px;
+            }
+            
+            .product-card .product-price-section {
+                margin-top: auto;
             }
             
             @media (max-width: 768px) {
@@ -446,6 +470,16 @@
             @media (max-width: 768px) {
                 .product-card .card-img-top {
                     height: 250px;
+                    object-fit: cover;
+                }
+                
+                .product-card .product-image-wrapper {
+                    height: 250px;
+                }
+                
+                .instagram-video-btn {
+                    font-size: 11px;
+                    padding: 6px 12px;
                 }
                 
                 .product-card .card-body {
@@ -1432,9 +1466,12 @@
                     <button onclick="sendWhatsAppMessage()">
                         <i class="fas fa-paper-plane"></i>
                     </button>
+                    <button onclick="openWhatsAppDirect()" title="Open WhatsApp directly" style="background: #25d366; margin-left: 5px; border: none; color: white; padding: 8px; border-radius: 5px;">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>
                 </div>
             </div>
-            <button class="whatsapp-float" onclick="toggleWhatsAppChat()">
+            <button class="whatsapp-float" onclick="toggleWhatsAppChat()" ondblclick="openWhatsAppDirect()" title="Single click to chat, double click for direct WhatsApp">
                 <i class="fab fa-whatsapp whatsapp-icon"></i>
             </button>
         </div>
@@ -2368,6 +2405,14 @@
                 }
             }
 
+            // Direct WhatsApp opening function
+            window.openWhatsAppDirect = function() {
+                const defaultMessage = "Hi! I need help with Raju IT Fashion Store products. Can you please assist me?";
+                const encodedMessage = encodeURIComponent(defaultMessage);
+                const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+            }
+
             window.sendWhatsAppMessage = function() {
                 const input = document.getElementById('whatsappInput');
                 const message = input.value.trim();
@@ -2382,6 +2427,9 @@
                     setTimeout(() => {
                         document.getElementById('whatsappChatBox').style.display = 'none';
                     }, 500);
+                } else {
+                    // If no message, open with default message
+                    openWhatsAppDirect();
                 }
             }
         </script>

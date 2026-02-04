@@ -586,9 +586,12 @@
             <button onclick="sendWhatsAppMessage()">
                 <i class="fas fa-paper-plane"></i>
             </button>
+            <button onclick="openWhatsAppDirect()" title="Open WhatsApp directly" style="background: #25d366; margin-left: 5px; border: none; color: white; padding: 8px; border-radius: 5px;">
+                <i class="fab fa-whatsapp"></i>
+            </button>
         </div>
     </div>
-    <button class="whatsapp-float" onclick="toggleWhatsAppChat()">
+    <button class="whatsapp-float" onclick="toggleWhatsAppChat()" ondblclick="openWhatsAppDirect()" title="Single click to chat, double click for direct WhatsApp">
         <i class="fab fa-whatsapp whatsapp-icon"></i>
     </button>
 </div>
@@ -635,7 +638,7 @@
             }
             
             .whatsapp-float::after {
-                content: 'Need Help?';
+                content: 'Need Help? Double-click for instant WhatsApp';
                 position: absolute;
                 top: 50%;
                 right: 75px;
@@ -644,10 +647,18 @@
                 color: white;
                 padding: 8px 15px;
                 border-radius: 20px;
-                font-size: 14px;
+                font-size: 12px;
                 font-weight: 600;
                 white-space: nowrap;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: none;
+            }
+            
+            .whatsapp-float:hover::after {
+                opacity: 1;
+            }
                 animation: slideLabel 3s infinite;
             }
 
@@ -824,6 +835,14 @@
     }
   }
 
+  // Direct WhatsApp opening function
+  function openWhatsAppDirect() {
+    const defaultMessage = "Hi! I need help with Raju IT Fashion Store. Can you please assist me?";
+    const encodedMessage = encodeURIComponent(defaultMessage);
+    const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+  }
+
   function sendWhatsAppMessage() {
     const input = document.getElementById('whatsappInput');
     const message = input.value.trim();
@@ -838,6 +857,10 @@
       setTimeout(() => {
         document.getElementById('whatsappChatBox').style.display = 'none';
       }, 500);
+    } else {
+      // If no message, open with default message
+      openWhatsAppDirect();
+    }
     }
   }
 </script>
