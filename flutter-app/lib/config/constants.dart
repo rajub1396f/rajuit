@@ -79,9 +79,9 @@ class Constants {
   static const int minPasswordLength = 6;
 
   // Google OAuth Configuration  
-  // Development client ID for localhost testing
-  static const String googleClientId = kDebugMode 
-      ? '1027670106522-cvfn6td1finicio4bv1kk73vip6si300.apps.googleusercontent.com' // Web client ID for localhost
-      : '1027670106522-ph7e3mvsdnce6fn899a6g45jdie3982c.apps.googleusercontent.com'; // Android client ID for mobile
-  static const String googleClientSecret = 'your-client-secret-here'; // This should be in backend env only
+  // Web client ID for web version (localhost and production)
+  static const String googleClientId = '1027670106522-cvfn6td1finicio4bv1kk73vip6si300.apps.googleusercontent.com';
+  
+  // If you created a new Android client ID, replace the above with the new client ID
+  // For Android, the client ID is automatically read from google-services.json
 }

@@ -1,7 +1,5 @@
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import '../config/constants.dart';
 
 class GoogleSignInService {
   static final GoogleSignInService _instance = GoogleSignInService._internal();
@@ -21,14 +19,13 @@ class GoogleSignInService {
         'email',
         'profile',
       ],
-      // Only use clientId for web, serverClientId is not supported on web
-      clientId: kIsWeb ? Constants.googleClientId : null,
-      serverClientId: kIsWeb ? null : Constants.googleClientId,
+      // Use the web client ID for all platforms to avoid google-services.json dependency
+      clientId: '1027670106522-cvfn6td1finicio4bv1kk73vip6si300.apps.googleusercontent.com',
     );
     
     if (kDebugMode) {
-      print('[GoogleAuth] Initialized GoogleSignIn for ${kIsWeb ? 'web' : 'mobile'} platform');
-      print('[GoogleAuth] Client ID: ${kIsWeb ? Constants.googleClientId : 'serverClientId'}');
+      print('[GoogleAuth] Initialized GoogleSignIn with web client ID');
+      print('[GoogleAuth] This bypasses google-services.json requirements');
     }
   }
 
