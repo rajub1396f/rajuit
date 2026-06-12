@@ -3721,7 +3721,7 @@ app.get("/admin/users/:id", verifyAdmin, async (req, res) => {
 app.put("/admin/users/:id", verifyAdmin, async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
-    const { name, email, phone, address, is_verified, is_admin } = req.body;
+    const { name, email, phone, address, is_verified, is_admin, password } = req.body;
     
     // Check if user exists
     const userCheck = await sql`
@@ -3769,6 +3769,15 @@ app.put("/admin/users/:id", verifyAdmin, async (req, res) => {
     }
     if (is_admin !== undefined) {
       updates.push(`is_admin = ${is_admin === true || is_admin === 'true'}`);
+    }
+    if (password !== undefined && password !== '') {
+      if (String(password).length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      }
+
+      const hashedPassword = await bcrypt.hash(String(password), 10);
+      updates.push(`password = '${hashedPassword.replace(/'/g, "''")}'`);
+      updates.push(`last_password_reset = NOW()`);
     }
     
     if (updates.length === 0) {
