@@ -320,6 +320,7 @@ console.log("✅ Brevo email service initialized");
           price DECIMAL(10, 2) NOT NULL,
           category VARCHAR(100) NOT NULL,
           subcategory VARCHAR(100),
+          type VARCHAR(100),
           image_url TEXT,
           stock_quantity INTEGER DEFAULT 0,
           is_active BOOLEAN DEFAULT TRUE,
@@ -338,6 +339,12 @@ console.log("✅ Brevo email service initialized");
   
   // Add instagram_video_url column if it doesn't exist
   try {
+    await sql`
+      ALTER TABLE products
+      ADD COLUMN IF NOT EXISTS type VARCHAR(100)
+    `;
+    console.log("✅ Product type column added/verified");
+
     await sql`
       ALTER TABLE products 
       ADD COLUMN IF NOT EXISTS instagram_video_url TEXT
@@ -3333,19 +3340,37 @@ app.delete("/admin/orders/:id", verifyAdmin, async (req, res) => {
 // Public API: Get all active products
 app.get("/api/products", async (req, res) => {
   try {
-    const { category, subcategory } = req.query;
+    const { category, subcategory, type } = req.query;
     
     let query;
-    if (category && subcategory) {
+    if (category && subcategory && type) {
+      query = sql`
+        SELECT * FROM products
+        WHERE is_active = true AND category = ${category} AND subcategory = ${subcategory} AND type = ${type}
+        ORDER BY created_at DESC
+      `;
+    } else if (category && subcategory) {
       query = sql`
         SELECT * FROM products 
         WHERE is_active = true AND category = ${category} AND subcategory = ${subcategory}
+        ORDER BY created_at DESC
+      `;
+    } else if (category && type) {
+      query = sql`
+        SELECT * FROM products
+        WHERE is_active = true AND category = ${category} AND type = ${type}
         ORDER BY created_at DESC
       `;
     } else if (category) {
       query = sql`
         SELECT * FROM products 
         WHERE is_active = true AND category = ${category}
+        ORDER BY created_at DESC
+      `;
+    } else if (type) {
+      query = sql`
+        SELECT * FROM products
+        WHERE is_active = true AND type = ${type}
         ORDER BY created_at DESC
       `;
     } else {
@@ -3399,17 +3424,17 @@ app.get("/admin/products/:id", verifyAdmin, async (req, res) => {
 // Create new product
 app.post("/admin/products", verifyAdmin, async (req, res) => {
   try {
-    const { name, description, price, category, subcategory, image_url, stock_quantity, instagram_video_url } = req.body;
+    const { name, description, price, category, subcategory, type, image_url, stock_quantity, instagram_video_url } = req.body;
     
-    console.log('Creating product with data:', { name, price, category, instagram_video_url });
+    console.log('Creating product with data:', { name, price, category, subcategory, type, instagram_video_url });
     
     if (!name || !price || !category) {
       return res.status(400).json({ message: "Name, price, and category are required" });
     }
     
     const result = await sql`
-      INSERT INTO products (name, description, price, category, subcategory, image_url, stock_quantity, instagram_video_url, is_active)
-      VALUES (${name}, ${description || ''}, ${price}, ${category}, ${subcategory || ''}, ${image_url || ''}, ${stock_quantity || 0}, ${instagram_video_url || null}, true)
+      INSERT INTO products (name, description, price, category, subcategory, type, image_url, stock_quantity, instagram_video_url, is_active)
+      VALUES (${name}, ${description || ''}, ${price}, ${category}, ${subcategory || ''}, ${type || ''}, ${image_url || ''}, ${stock_quantity || 0}, ${instagram_video_url || null}, true)
       RETURNING *
     `;
     
@@ -3429,7 +3454,7 @@ app.post("/admin/products", verifyAdmin, async (req, res) => {
 app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
   try {
     const productId = parseInt(req.params.id);
-    const { name, description, price, category, subcategory, image_url, stock_quantity, is_active, instagram_video_url } = req.body;
+    const { name, description, price, category, subcategory, type, image_url, stock_quantity, is_active, instagram_video_url } = req.body;
     
     console.log('Updating product:', productId, 'with instagram_video_url:', instagram_video_url);
     
@@ -3448,6 +3473,7 @@ app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
         price = ${price !== undefined ? price : existingProduct[0].price},
         category = ${category || existingProduct[0].category},
         subcategory = ${subcategory !== undefined ? subcategory : existingProduct[0].subcategory},
+        type = ${type !== undefined ? type : existingProduct[0].type},
         image_url = ${image_url !== undefined ? image_url : existingProduct[0].image_url},
         stock_quantity = ${stock_quantity !== undefined ? stock_quantity : existingProduct[0].stock_quantity},
         is_active = ${is_active !== undefined ? is_active : existingProduct[0].is_active},
