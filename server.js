@@ -3340,7 +3340,8 @@ app.delete("/admin/orders/:id", verifyAdmin, async (req, res) => {
 // Public API: Get all active products
 app.get("/api/products", async (req, res) => {
   try {
-    const { category, subcategory, type } = req.query;
+    const { category, subcategory } = req.query;
+    const type = req.query.item || req.query.type;
     
     let query;
     if (category && subcategory && type) {

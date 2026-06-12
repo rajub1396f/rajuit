@@ -282,15 +282,10 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Type</label>
-                                <select class="form-select" id="productType">
-                                    <option value="">Select Type</option>
-                                    <option value="regular">Regular</option>
-                                    <option value="new-arrival">New Arrival</option>
-                                    <option value="featured">Featured</option>
-                                    <option value="best-seller">Best Seller</option>
-                                    <option value="sale">Sale</option>
-                                </select>
+                                <label class="form-label">Items</label>
+                                <input type="text" class="form-control" id="productType" list="productItemOptions" placeholder="Select or create item">
+                                <datalist id="productItemOptions"></datalist>
+                                <small class="text-muted">Choose a suggested item or type a new one.</small>
                             </div>
                         </div>
                         
@@ -378,13 +373,25 @@
             'textile': 'Home Textiles'
         };
 
-        const typeLabels = {
-            'regular': 'Regular',
-            'new-arrival': 'New Arrival',
-            'featured': 'Featured',
-            'best-seller': 'Best Seller',
-            'sale': 'Sale'
+        const itemSuggestions = {
+            'clothing': ['Dress', 'Abaya', 'T-Shirt', 'Jacket', 'Thobe', 'Pants', 'Shirt'],
+            'accessories': ['Bag', 'Watch', 'Sunglasses', 'Belt', 'Wallet'],
+            'footwear': ['Shoes', 'Heels', 'Sandals', 'Sneakers'],
+            'jewelry': ['Necklace', 'Earrings', 'Bracelet', 'Ring'],
+            'toys': ['Toy Set', 'Learning Toy', 'Plush Toy'],
+            'care': ['Baby Lotion', 'Baby Oil', 'Baby Shampoo'],
+            'decor': ['Wall Decor', 'Vase', 'Table Decor'],
+            'kitchen': ['Cookware', 'Dinnerware', 'Kitchen Tool'],
+            'storage': ['Organizer', 'Storage Box', 'Basket'],
+            'lighting': ['Lamp', 'LED Light', 'Decor Light'],
+            'textile': ['Curtain', 'Bedsheet', 'Cushion Cover']
         };
+
+        function formatItemLabel(item) {
+            return (item || '')
+                .replace(/[-_]+/g, ' ')
+                .replace(/\b\w/g, char => char.toUpperCase());
+        }
         
         // Helper function to get category icon
         function getCategoryIcon(category) {
@@ -423,7 +430,21 @@
                     subcategorySelect.appendChild(option);
                 });
             }
+
+            updateItemSuggestions();
         });
+
+        document.getElementById('productSubcategory').addEventListener('change', updateItemSuggestions);
+
+        function updateItemSuggestions() {
+            const subcategory = document.getElementById('productSubcategory').value;
+            const itemOptions = document.getElementById('productItemOptions');
+            const suggestions = itemSuggestions[subcategory] || [];
+
+            itemOptions.innerHTML = suggestions
+                .map(item => `<option value="${item}"></option>`)
+                .join('');
+        }
         
         // Show image preview
         document.getElementById('productImage').addEventListener('input', function() {
@@ -489,7 +510,7 @@
                         <div class="product-name">${product.name}</div>
                         <div class="product-category">
                             <i class="fas ${getCategoryIcon(product.category)} me-1"></i>${getCategoryLabel(product.category)} ${product.subcategory ? '• ' + (subcategoryLabels[product.subcategory] || product.subcategory) : ''}
-                            ${product.type ? `<br><i class="fas fa-layer-group me-1"></i>${typeLabels[product.type] || product.type}` : ''}
+                            ${product.type ? `<br><i class="fas fa-box-open me-1"></i>Items: ${formatItemLabel(product.type)}` : ''}
                         </div>
                         <div class="product-price">৳${parseFloat(product.price).toFixed(2)}</div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -549,6 +570,7 @@
                 document.getElementById('productCategory').dispatchEvent(new Event('change'));
                 setTimeout(() => {
                     document.getElementById('productSubcategory').value = product.subcategory || '';
+                    updateItemSuggestions();
                 }, 100);
                 
                 document.getElementById('productDescription').value = product.description || '';
