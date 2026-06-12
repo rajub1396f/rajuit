@@ -15,6 +15,7 @@ dist/
 build/
 coverage/
 *.apk
+!assets/rajuit_fashion_store_v1.0.0_20260204.apk
 flutter-app/keystore_input.txt
 
 # Local editor/OS files

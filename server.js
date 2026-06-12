@@ -2985,7 +2985,18 @@ app.get("/", (req, res) => {
 });
 
 app.get("/download-apk", (req, res) => {
-    const apkPath = path.join(__dirname, "rajuit-fashion-store.apk");
+    const fs = require("fs");
+    const apkCandidates = [
+        path.join(__dirname, "assets", "rajuit_fashion_store_v1.0.0_20260204.apk"),
+        path.join(__dirname, "rajuit-fashion-store.apk"),
+    ];
+    const apkPath = apkCandidates.find((candidatePath) => fs.existsSync(candidatePath));
+
+    if (!apkPath) {
+        console.error("APK download error: no APK file found in expected locations");
+        return res.status(404).send("APK file not found");
+    }
+
     res.download(apkPath, "RajuitFashionStore.apk", (err) => {
         if (err) {
             console.error("APK download error:", err.message);
