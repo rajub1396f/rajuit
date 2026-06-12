@@ -226,24 +226,24 @@
 
 <script>
     // WhatsApp Chat Functions
-    function toggleWhatsAppChat() {
+    window.toggleWhatsAppChat = function() {
         const chatBox = document.getElementById('whatsappChatBox');
         if (chatBox.style.display === 'none' || chatBox.style.display === '') {
             chatBox.style.display = 'block';
         } else {
             chatBox.style.display = 'none';
         }
-    }
+    };
 
     // Direct WhatsApp opening function
-    function openWhatsAppDirect() {
+    window.openWhatsAppDirect = function() {
         const defaultMessage = "Hi! I'm interested in men's fashion from Raju IT. Can you help me?";
         const encodedMessage = encodeURIComponent(defaultMessage);
         const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
         window.open(whatsappUrl, '_blank');
-    }
+    };
 
-    function sendWhatsAppMessage() {
+    window.sendWhatsAppMessage = function() {
         const input = document.getElementById('whatsappInput');
         const message = input.value.trim();
         
@@ -261,7 +261,7 @@
             // If no message, open with default message
             openWhatsAppDirect();
         }
-    }
+    };
 </script>
 
 </body>
