@@ -784,6 +784,62 @@
                 color: white;
                 border-color: #0d6efd;
             }
+
+            .items-nav {
+                display: none;
+                margin: -10px auto 28px;
+                padding: 14px 16px;
+                max-width: 980px;
+                background: #ffffff;
+                border: 1px solid rgba(13, 110, 253, 0.12);
+                border-radius: 8px;
+                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+            }
+
+            .items-nav.show {
+                display: block;
+            }
+
+            .items-nav-label {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                margin-bottom: 10px;
+                color: #495057;
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0;
+            }
+
+            .items-filter-list {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .item-filter-btn {
+                border: 1px solid #d6e4ff;
+                background: #f8fbff;
+                color: #21456f;
+                border-radius: 999px;
+                padding: 7px 14px;
+                font-size: 13px;
+                font-weight: 600;
+                line-height: 1.2;
+                transition: all 0.2s ease;
+            }
+
+            .item-filter-btn:hover,
+            .item-filter-btn.active {
+                background: #0d6efd;
+                border-color: #0d6efd;
+                color: #ffffff;
+                box-shadow: 0 6px 16px rgba(13, 110, 253, 0.22);
+                transform: translateY(-1px);
+            }
             
             .product-item {
                 transition: all 0.3s ease;
@@ -994,6 +1050,7 @@
                         </button>
                     </div>
                 </div>
+                <div class="items-nav" id="femaleItemsNav"></div>
                 <div class="row g-4" id="femaleProductsGrid">
                     <div class="col-md-4 product-item" data-category="clothing">
                         <div class="card product-card shadow">
@@ -1122,6 +1179,7 @@
                         </button>
                     </div>
                 </div>
+                <div class="items-nav" id="maleItemsNav"></div>
                 
                 <div class="row g-4" id="maleProductsGrid">
                     <div class="col-md-4 product-item" data-category="clothing">
@@ -1254,6 +1312,7 @@
                         </button>
                     </div>
                 </div>
+                <div class="items-nav" id="babyItemsNav"></div>
                 
                 <div class="row g-4" id="babyProductsGrid">
                     <!-- Baby products will be loaded dynamically -->
@@ -1289,6 +1348,7 @@
                         </button>
                     </div>
                 </div>
+                <div class="items-nav" id="homeItemsNav"></div>
                 
                 <div class="row g-4" id="homeProductsGrid">
                     <!-- Home accessories will be loaded dynamically -->
@@ -2019,35 +2079,118 @@
                 });
             });
 
+            const productGridMapping = {
+                female: 'femaleProductsGrid',
+                male: 'maleProductsGrid',
+                baby: 'babyProductsGrid',
+                home: 'homeProductsGrid'
+            };
+
+            const collectionState = {
+                female: { category: 'all', item: 'all', products: [] },
+                male: { category: 'all', item: 'all', products: [] },
+                baby: { category: 'all', item: 'all', products: [] },
+                home: { category: 'all', item: 'all', products: [] }
+            };
+
+            function formatItemLabel(item) {
+                return (item || '')
+                    .replace(/[-_]+/g, ' ')
+                    .replace(/\b\w/g, char => char.toUpperCase());
+            }
+
+            function getCollectionFromGrid(gridId) {
+                return Object.keys(productGridMapping).find(key => productGridMapping[key] === gridId);
+            }
+
             function filterCategory(collection, category) {
-                // Map collection to grid ID
-                const gridMapping = {
-                    'female': 'femaleProductsGrid',
-                    'male': 'maleProductsGrid',
-                    'baby': 'babyProductsGrid',
-                    'home': 'homeProductsGrid'
-                };
-                
-                const gridId = gridMapping[collection];
-                if (!gridId) return;
-                
+                const gridId = productGridMapping[collection];
+                if (!gridId || !collectionState[collection]) return;
+
                 const grid = document.getElementById(gridId);
                 if (!grid) return;
-                
-                const items = grid.querySelectorAll('.product-item');
+
                 const buttons = grid.closest('.container').querySelectorAll('.category-btn');
-                
-                // Update active button
                 buttons.forEach(btn => btn.classList.remove('active'));
-                event.target.closest('.category-btn').classList.add('active');
-                
-                // Show/hide products based on category
-                items.forEach(item => {
-                    if (category === 'all' || item.getAttribute('data-category') === category) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
+                if (window.event?.target) {
+                    window.event.target.closest('.category-btn')?.classList.add('active');
+                }
+
+                collectionState[collection].category = category;
+                collectionState[collection].item = 'all';
+                renderItemFilters(collection);
+                applyProductFilters(collection);
+            }
+
+            function filterItem(collection, item) {
+                if (!collectionState[collection]) return;
+
+                collectionState[collection].item = item;
+                renderItemFilters(collection);
+                applyProductFilters(collection);
+            }
+
+            function getVisibleItemsForCollection(collection) {
+                const state = collectionState[collection];
+                if (!state) return [];
+
+                const itemSet = new Set();
+                state.products.forEach(product => {
+                    const productCategory = product.subcategory || 'all';
+                    if ((state.category === 'all' || productCategory === state.category) && product.type) {
+                        itemSet.add(product.type);
                     }
+                });
+
+                return Array.from(itemSet).sort((a, b) => formatItemLabel(a).localeCompare(formatItemLabel(b)));
+            }
+
+            function renderItemFilters(collection) {
+                const state = collectionState[collection];
+                const nav = document.getElementById(`${collection}ItemsNav`);
+                if (!state || !nav) return;
+
+                const items = getVisibleItemsForCollection(collection);
+                if (items.length === 0) {
+                    nav.classList.remove('show');
+                    nav.innerHTML = '';
+                    return;
+                }
+
+                const activeItem = items.includes(state.item) ? state.item : 'all';
+                state.item = activeItem;
+
+                nav.classList.add('show');
+                nav.innerHTML = `
+                    <div class="items-nav-label">
+                        <i class="fas fa-box-open"></i>
+                        <span>Items under ${state.category === 'all' ? 'all subcategories' : formatItemLabel(state.category)}</span>
+                    </div>
+                    <div class="items-filter-list">
+                        <button class="item-filter-btn ${activeItem === 'all' ? 'active' : ''}" onclick="filterItem('${collection}', 'all')">
+                            All Items
+                        </button>
+                        ${items.map(item => `
+                            <button class="item-filter-btn ${activeItem === item ? 'active' : ''}" onclick="filterItem('${collection}', '${String(item).replace(/'/g, "\\'")}')">
+                                ${formatItemLabel(item)}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            function applyProductFilters(collection) {
+                const state = collectionState[collection];
+                const gridId = productGridMapping[collection];
+                if (!state || !gridId) return;
+
+                const grid = document.getElementById(gridId);
+                if (!grid) return;
+
+                grid.querySelectorAll('.product-item').forEach(item => {
+                    const matchesCategory = state.category === 'all' || item.dataset.category === state.category;
+                    const matchesItem = state.item === 'all' || item.dataset.item === state.item;
+                    item.style.display = matchesCategory && matchesItem ? 'block' : 'none';
                 });
             }
 
@@ -2111,14 +2254,20 @@
             function displayProducts(gridId, products) {
                 const grid = document.getElementById(gridId);
                 if (!grid) return;
-
-                function formatItemLabel(item) {
-                    return (item || '')
-                        .replace(/[-_]+/g, ' ')
-                        .replace(/\b\w/g, char => char.toUpperCase());
+                const collection = getCollectionFromGrid(gridId);
+                if (collection && collectionState[collection]) {
+                    collectionState[collection].products = products || [];
                 }
                 
                 if (products.length === 0) {
+                    if (collection) {
+                        const nav = document.getElementById(`${collection}ItemsNav`);
+                        if (nav) {
+                            nav.classList.remove('show');
+                            nav.innerHTML = '';
+                        }
+                    }
+
                     grid.innerHTML = `
                         <div class="col-12">
                             <div class="alert alert-info text-center py-5" style="border-radius: 16px; border: none; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);">
@@ -2136,9 +2285,10 @@
                     const isInStock = product.stock_quantity > 0;
                     const categoryDisplay = product.subcategory || product.category || 'Product';
                     const itemDisplay = product.type ? formatItemLabel(product.type) : '';
+                    const itemValue = (product.type || '').replace(/"/g, '&quot;');
                     
                     return `
-                    <div class="col-lg-4 col-md-6 mb-4 product-item" data-category="${product.subcategory || 'all'}">
+                    <div class="col-lg-4 col-md-6 mb-4 product-item" data-category="${product.subcategory || 'all'}" data-item="${itemValue}">
                         <div class="card product-card">
                             <div class="product-image-wrapper" onclick="openImageZoom('${(product.image_url || '/assets/img/products/aaa777.jpg').replace(/'/g, "\\'")}', '${productName}')">
                                 <img src="${product.image_url || '/assets/img/products/aaa777.jpg'}" 
@@ -2182,6 +2332,11 @@
                     </div>
                     `;
                 }).join('');
+
+                if (collection) {
+                    renderItemFilters(collection);
+                    applyProductFilters(collection);
+                }
             }
 
             // Load cart/wishlist counts on page load and check URL parameters
