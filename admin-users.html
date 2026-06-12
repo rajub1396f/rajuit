@@ -530,6 +530,7 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Phone</th>
+                                <th>Password</th>
                                 <th>Status</th>
                                 <th>Orders</th>
                                 <th>Registered</th>
@@ -540,8 +541,10 @@
             `;
             
             users.forEach(user => {
-                // Since created_at doesn't exist in database, show user ID instead
-                const regDate = `ID: ${user.id}`;
+                const regDate = user.created_at
+                    ? new Date(user.created_at).toLocaleDateString()
+                    : `ID: ${user.id}`;
+                const passwordBadge = getPasswordBadge(user.password_status);
                 
                 html += `
                     <tr>
@@ -549,6 +552,7 @@
                         <td>${user.name}</td>
                         <td>${user.email}</td>
                         <td>${user.phone || 'N/A'}</td>
+                        <td>${passwordBadge}</td>
                         <td>
                             ${user.is_verified ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-warning">Unverified</span>'}
                             ${user.is_admin ? '<span class="badge bg-primary ms-1">Admin</span>' : ''}
@@ -577,6 +581,18 @@
             `;
             
             container.innerHTML = html;
+        }
+
+        function getPasswordBadge(status) {
+            if (status === 'Google OAuth') {
+                return '<span class="badge bg-info"><i class="fab fa-google me-1"></i>Google OAuth</span>';
+            }
+
+            if (status === 'Not set') {
+                return '<span class="badge bg-secondary">Not set</span>';
+            }
+
+            return '<span class="badge bg-dark"><i class="fas fa-key me-1"></i>Password set</span>';
         }
         
         async function viewUser(userId) {
@@ -667,6 +683,7 @@
                             <p><strong>Name:</strong> ${user.name}</p>
                             <p><strong>Email:</strong> ${user.email}</p>
                             <p><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+                            <p><strong>Password:</strong> ${getPasswordBadge(user.password_status)}</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Address:</strong> ${user.address || 'Not provided'}</p>
@@ -674,7 +691,7 @@
                                 ${user.is_verified ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-warning">Unverified</span>'}
                                 ${user.is_admin ? '<span class="badge bg-primary ms-1">Admin</span>' : ''}
                             </p>
-                            <p><strong>User ID:</strong> ${user.id}</p>
+                            <p><strong>Registered:</strong> ${user.created_at ? new Date(user.created_at).toLocaleString() : 'Not available'}</p>
                             <p><strong>Total Orders:</strong> ${user.orders?.length || 0}</p>
                         </div>
                     </div>

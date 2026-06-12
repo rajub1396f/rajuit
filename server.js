@@ -277,6 +277,17 @@ console.log("✅ Brevo email service initialized");
     } catch (alterErr) {
       console.log("Note: last_reset_request_time column might already exist:", alterErr.message);
     }
+
+    // Add created_at column so admin stats can count new users
+    try {
+      await sql`
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      `;
+      console.log("✅ users.created_at column added/verified");
+    } catch (alterErr) {
+      console.log("Note: users.created_at column might already exist:", alterErr.message);
+    }
     
     // Add is_admin column to users table
     try {
@@ -3571,7 +3582,13 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
         phone,
         address,
         is_verified,
-        is_admin
+        is_admin,
+        created_at,
+        CASE
+          WHEN password = 'google-oauth' THEN 'Google OAuth'
+          WHEN password IS NULL OR password = '' THEN 'Not set'
+          ELSE 'Password set'
+        END as password_status
       FROM users
       ORDER BY id DESC
     `;
@@ -3607,6 +3624,8 @@ app.get("/admin/users", verifyAdmin, async (req, res) => {
       address: user.address,
       is_verified: user.is_verified,
       is_admin: user.is_admin,
+      created_at: user.created_at,
+      password_status: user.password_status,
       total_orders: orderCountMap[user.id] || 0
     }));
     
@@ -3631,22 +3650,17 @@ app.get("/admin/users/stats/summary", verifyAdmin, async (req, res) => {
     console.log("📊 Fetching user statistics...");
     
     const stats = await sql`
-      SELECT 
+      SELECT
         COUNT(*) as total_users,
         COUNT(CASE WHEN is_verified = true THEN 1 END) as verified_users,
-        COUNT(CASE WHEN is_admin = true THEN 1 END) as admin_users
+        COUNT(CASE WHEN is_admin = true THEN 1 END) as admin_users,
+        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN 1 END) as new_users_30d,
+        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as new_users_7d
       FROM users
     `;
-    
-    // Add default values for date-based stats (since created_at doesn't exist)
-    const statsWithDefaults = {
-      ...stats[0],
-      new_users_30d: 0,
-      new_users_7d: 0
-    };
-    
-    console.log("✅ Stats fetched successfully:", statsWithDefaults);
-    res.json(statsWithDefaults);
+
+    console.log("? Stats fetched successfully:", stats[0]);
+    res.json(stats[0]);
   } catch (error) {
     console.error("❌ Error fetching user statistics:", error);
     console.error("Error details:", error.message);
@@ -3663,7 +3677,20 @@ app.get("/admin/users/:id", verifyAdmin, async (req, res) => {
     const userId = parseInt(req.params.id);
     
     const userResult = await sql`
-      SELECT id, name, email, phone, address, is_verified, is_admin
+      SELECT
+        id,
+        name,
+        email,
+        phone,
+        address,
+        is_verified,
+        is_admin,
+        created_at,
+        CASE
+          WHEN password = 'google-oauth' THEN 'Google OAuth'
+          WHEN password IS NULL OR password = '' THEN 'Not set'
+          ELSE 'Password set'
+        END as password_status
       FROM users 
       WHERE id = ${userId}
     `;
