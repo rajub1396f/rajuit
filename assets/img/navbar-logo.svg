@@ -1,0 +1,22 @@
+<svg width="250" height="100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Define the golden linear gradient -->
+    <linearGradient id="goldenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:rgb(212,175,55);stop-opacity:1" />
+      <stop offset="50%" style="stop-color:rgb(255,215,0);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgb(212,175,55);stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Create the text with the golden gradient fill and italic style -->
+  <text 
+    x="50%" y="60%" 
+    font-family="Helvetica, Arial, sans-serif" 
+    font-size="70" 
+    font-weight="bold" 
+    font-style="italic"
+    fill="url(#goldenGradient)" 
+    text-anchor="middle">
+    Raju IT
+  </text>
+</svg>

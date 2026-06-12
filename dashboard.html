@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>My Dashboard - Raju IT | Manage Orders & Profile</title>
+  <meta name="description" content="Manage your Raju IT account. View orders, track shipments, update profile information, and manage your shopping preferences." />
+  <meta name="keywords" content="dashboard, my account, order history, profile, Raju IT account" />
+  <meta name="author" content="Raju IT" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="https://rajuit.online/dashboard" />
+  
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PRR4JTPJK9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-PRR4JTPJK9');
+  </script>
+  
+  <link href="css/styles.css" rel="stylesheet" />
+  <link href="css/login.css" rel="stylesheet" />
+  <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <style>
+    #loadingScreen { 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-size: 18px;
+      background: #f8f9fa;
+    }
+    #loadingScreen.hidden { display: none !important; }
+    
+    #mainNav { 
+      opacity: 0; 
+      transition: opacity 0.3s;
+      background-color: #212529 !important;
+    }
+    #mainNav.show { opacity: 1; }
+    
+    #mainNav .navbar-nav .nav-item .nav-link {
+      color: #fff !important;
+    }
+    
+    #mainNav .navbar-nav .nav-item .nav-link:hover {
+      color: #ffc800 !important;
+    }
+    
+    /* Dropdown styling */
+    .dropdown-menu {
+      background-color: #212529;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      min-width: 10rem;
+    }
+    
+    .dropdown-item {
+      color: #fff;
+      padding: 0.5rem 1rem;
+      transition: all 0.3s;
+    }
+    
+    .dropdown-item:hover {
+      background-color: #ffc800;
+      color: #212529;
+    }
+    
+    .dashboard-content { opacity: 0; transition: opacity 0.3s; }
+    .dashboard-content.show { opacity: 1; }
+    
+    /* Orders styling */
+    .order-card {
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      transition: box-shadow 0.3s;
+    }
+    
+    .order-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .order-id {
+      font-weight: bold;
+      color: #495057;
+    }
+    
+    .order-status {
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
+    .status-processing {
+      background-color: #cfe2ff;
+      color: #084298;
+    }
+    
+    .status-shipped {
+      background-color: #d1e7dd;
+      color: #0f5132;
+    }
+    
+    .status-delivered {
+      background-color: #d1e7dd;
+      color: #0a3622;
+    }
+    
+    .status-cancelled {
+      background-color: #f8d7da;
+      color: #842029;
+    }
+    
+    .order-details {
+      color: #6c757d;
+      font-size: 14px;
+    }
+    
+    .order-items {
+      margin-top: 10px;
+    }
+    
+    .order-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f1f1;
+    }
+    
+    .order-item:last-child {
+      border-bottom: none;
+    }
+    
+    .order-item-image {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-right: 15px;
+    }
+    
+    .order-item-details {
+      flex: 1;
+    }
+    
+    .order-item-name {
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+    
+    .order-item-quantity {
+      color: #6c757d;
+      font-size: 13px;
+    }
+    
+    .order-total {
+      font-weight: bold;
+      font-size: 16px;
+      color: #212529;
+      margin-top: 10px;
+    }
+    
+    .order-actions {
+      display: flex;
+      gap: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #dee2e6;
+    }
+    
+    .order-actions .btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    
+    /* Cart and Wishlist Dropdown Styling */
+    .cart-dropdown, .wishlist-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        width: 350px;
+        max-height: 400px;
+        overflow-y: auto;
+        z-index: 9999;
+        display: none;
+        margin-top: 10px;
+    }
+    
+    .cart-dropdown.show, .wishlist-dropdown.show {
+        display: block;
+    }
+    
+    .dropdown-header {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        font-weight: bold;
+        background: #f8f9fa;
+        border-radius: 8px 8px 0 0;
+        color: #333;
+    }
+    
+    .dropdown-items {
+        max-height: 250px;
+        overflow-y: auto;
+    }
+    
+    .dropdown-item-card {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f1f1f1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: background 0.2s;
+    }
+    
+    .dropdown-item-card:hover {
+        background: #f8f9fa;
+    }
+    
+    .dropdown-item-card:last-child {
+        border-bottom: none;
+    }
+    
+    .item-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .item-details {
+        flex: 1;
+    }
+    
+    .item-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+        font-size: 14px;
+    }
+    
+    .item-price {
+        color: #666;
+        font-size: 13px;
+    }
+    
+    .item-quantity {
+        color: #999;
+        font-size: 12px;
+    }
+    
+    .item-remove {
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 5px;
+    }
+    
+    .item-remove:hover {
+        color: #a71d2a;
+    }
+    
+    .dropdown-footer {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        background: #f8f9fa;
+        border-radius: 0 0 8px 8px;
+    }
+    
+    .empty-message {
+        padding: 30px 15px;
+        text-align: center;
+        color: #999;
+    }
+    
+    .empty-message i {
+        font-size: 48px;
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+    
+    /* Position dropdown containers */
+    .nav-item {
+        position: relative;
+    }
+  </style>
+</head>
+<body id="page-top">
+
+<div id="loadingScreen">
+  <p>Loading your dashboard...</p>
+</div>
+
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="/"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      Menu
+      <i class="fas fa-bars ms-1"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="products.html">Products</a></li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="wishlistBtn" title="Wishlist">
+            <i class="fas fa-heart"></i>
+            <span class="badge bg-danger" id="wishlistCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
+          </a>
+          <div class="wishlist-dropdown" id="wishlistDropdown"></div>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="cartBtn" title="Cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="badge bg-primary" id="cartCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
+          </a>
+          <div class="cart-dropdown" id="cartDropdown"></div>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navUserLink" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-transform: none;">
+            Hello, <span id="navUserName">User</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navUserLink">
+            <li><a class="dropdown-item" href="#" id="logoutBtn">Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<section class="dashboard-content">
+  <div class="container" style="margin-top: 100px;">
+    <h2 class="mb-4">Welcome to Your Dashboard</h2>
+    
+    <!-- Account Details and Change Password Row -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="card p-4 h-100 shadow-sm">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="fas fa-user-circle me-2 text-primary"></i>Account Details</h5>
+            <button class="btn btn-sm btn-primary" id="editBtn" onclick="enableEdit()">Edit</button>
+          </div>
+          
+          <div id="viewMode">
+            <p><strong>Name:</strong> <span id="name"></span></p>
+            <p><strong>Email:</strong> <span id="email"></span></p>
+            <p><strong>Phone:</strong> <span id="phone"></span></p>
+            <p><strong>Address:</strong> <span id="address"></span></p>
+            <p id="lastEditInfo" class="text-muted small mt-3"></p>
+          </div>
+          
+          <form id="editMode" style="display: none;">
+            <div class="mb-3">
+              <label class="form-label"><strong>Name:</strong></label>
+              <input type="text" class="form-control" id="editName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Email:</strong></label>
+              <input type="email" class="form-control" id="editEmail" readonly disabled>
+              <small class="text-muted">Email cannot be changed</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Phone:</strong></label>
+              <input type="tel" class="form-control" id="editPhone">
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Address:</strong></label>
+              <textarea class="form-control" id="editAddress" rows="3"></textarea>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success">Save Changes</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Change Password Section -->
+      <div class="col-lg-6">
+        <div class="card p-4 h-100 shadow-sm">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="fas fa-lock me-2 text-primary"></i>Change Password</h5>
+          </div>
+          
+          <!-- Rate limit alert -->
+          <div class="alert alert-info d-none" id="passwordRateLimitAlert">
+            <i class="fas fa-clock me-2"></i>
+            <span id="passwordRateLimitMessage"></span>
+          </div>
+          
+          <form id="changePasswordForm">
+            <div class="mb-3">
+              <label class="form-label"><strong>Current Password:</strong></label>
+              <input type="password" class="form-control" id="currentPassword" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>New Password:</strong></label>
+              <input type="password" class="form-control" id="newPassword" minlength="6" required>
+              <small class="text-muted">Minimum 6 characters</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><strong>Confirm New Password:</strong></label>
+              <input type="password" class="form-control" id="confirmNewPassword" minlength="6" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" id="changePasswordBtn">Change Password</button>
+          </form>
+          
+          <p id="lastPasswordChangeInfo" class="text-muted small mt-3"></p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Shipping Address Section - Full Width -->
+    <div class="row g-4 mb-4">
+      <div class="col-12">
+        <div class="card p-4 shadow-sm">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="fas fa-shipping-fast me-2 text-primary"></i>Shipping Address</h5>
+            <button class="btn btn-sm btn-primary" id="editShippingBtn" onclick="enableShippingEdit()">Edit</button>
+          </div>
+          
+          <!-- Alert for new users without shipping address -->
+          <div class="alert alert-warning d-flex align-items-center" id="shippingAddressAlert" style="display: none !important;">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>
+              <strong>Action Required!</strong> Please update your shipping address for delivery.
+            </div>
+          </div>
+          
+          <div id="shippingViewMode">
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong>Full Name:</strong> <span id="shippingName"></span></p>
+                <p><strong>Phone Number:</strong> <span id="shippingPhone"></span></p>
+                <p><strong>Address Line 1:</strong> <span id="shippingAddress1"></span></p>
+                <p><strong>Address Line 2:</strong> <span id="shippingAddress2"></span></p>
+                <p><strong>Upzilla/Thana:</strong> <span id="shippingUpzilla"></span></p>
+              </div>
+              <div class="col-md-6">
+                <p><strong>City/Zilla:</strong> <span id="shippingCity"></span></p>
+                <p><strong>Division:</strong> <span id="shippingState"></span></p>
+                <p><strong>Postal Code:</strong> <span id="shippingPostal"></span></p>
+                <p><strong>Country:</strong> <span id="shippingCountry"></span></p>
+              </div>
+            </div>
+          </div>
+          
+          <form id="shippingEditMode" style="display: none;">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label"><strong>Full Name:</strong></label>
+                  <input type="text" class="form-control" id="editShippingName" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Phone Number:</strong></label>
+                  <input type="tel" class="form-control" id="editShippingPhone" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Address Line 1:</strong></label>
+                  <input type="text" class="form-control" id="editShippingAddress1" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Address Line 2:</strong></label>
+                  <input type="text" class="form-control" id="editShippingAddress2">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Upzilla/Thana:</strong></label>
+                  <input type="text" class="form-control" id="editShippingUpzilla" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label"><strong>City/Zilla:</strong></label>
+                  <input type="text" class="form-control" id="editShippingCity" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Division:</strong></label>
+                  <input type="text" class="form-control" id="editShippingState" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Postal Code:</strong></label>
+                  <input type="text" class="form-control" id="editShippingPostal" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Country:</strong></label>
+                  <input type="text" class="form-control" id="editShippingCountry" required>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success">Save Address</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelShippingEdit()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <!-- My Orders Section -->
+    <div class="row g-4">
+      <div class="col-12">
+        <div class="card p-4 shadow-sm">
+          <h5 class="mb-3"><i class="fas fa-shopping-bag me-2 text-primary"></i>My Orders</h5>
+          <div id="ordersContainer">
+            <p class="text-muted text-center" id="noOrdersMessage">No orders yet. Start shopping to see your orders here!</p>
+            <div id="ordersList" style="display: none;">
+              <!-- Orders will be dynamically loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer-->
+<footer class="footer py-4" style="background-color: #212529;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-4 text-lg-start text-white">Copyright &copy; Raju It 2025</div>
+            <div class="col-lg-4 my-3 my-lg-0">
+                <a class="btn btn-dark btn-social mx-2" href="https://www.instagram.com/rajuit1396/?igsh=MWZlOHk4bWxrY3hwMg%3D%3D&fbclid=IwY2xjawOXwtFleHRuA2FlbQIxMABicmlkETFXaXRyMnR5aWF3eHB2SVl4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmKxgCF0yvOPwVkc5ovEt0JNh-K_DZ4egj27cYWVsba8m6bRIbTOszGrRkTA_aem_wyHdzWPSdl7DxeJ2So-lUw&brid=JbRWKsUzQoW71PD4MGNTnw"  aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a class="btn btn-dark btn-social mx-2" href="https://www.facebook.com/profile.php?id=61584622701133" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a class="text-decoration-none me-3 text-white" href="privacy&policy.html">Privacy Policy</a>
+                <a class="text-decoration-none text-white" href="terms&conditions.html">Terms & Conditions</a>
+                <a class="text-decoration-none text-white" href="return&refund.html">Return & Refund Policy</a>
+                <a class="text-decoration-none text-white" href="shippingpolicy.html">Shipping Policy</a>
+                <a class="text-decoration-none text-white" href="disclaimer.html">Disclaimer</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- WhatsApp Chat Widget (Always visible on dashboard) -->
+<div class="whatsapp-widget">
+    <div class="whatsapp-chat-box" id="whatsappChatBox" style="display: none;">
+        <div class="whatsapp-header">
+            <img src="https://ui-avatars.com/api/?name=Raju+IT&background=25d366&color=fff" alt="Support" class="whatsapp-avatar">
+            <div class="whatsapp-header-text">
+                <h4>Raju IT Support</h4>
+                <p>Typically replies instantly</p>
+            </div>
+            <button class="whatsapp-close" onclick="toggleWhatsAppChat()">×</button>
+        </div>
+        <div class="whatsapp-body">
+            <div class="whatsapp-message">
+                <p>Hi there! 👋<br>How can we help you?</p>
+            </div>
+        </div>
+        <div class="whatsapp-footer">
+            <input type="text" id="whatsappInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendWhatsAppMessage()">
+            <button onclick="sendWhatsAppMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+            <button onclick="openWhatsAppDirect()" title="Open WhatsApp directly" style="background: #25d366; margin-left: 5px; border: none; color: white; padding: 8px; border-radius: 5px;">
+                <i class="fab fa-whatsapp"></i>
+            </button>
+        </div>
+    </div>
+    <button class="whatsapp-float" onclick="toggleWhatsAppChat()" ondblclick="openWhatsAppDirect()" title="Single click to chat, double click for direct WhatsApp">
+        <i class="fab fa-whatsapp whatsapp-icon"></i>
+    </button>
+</div>
+
+<!-- ✅ Add Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+            .whatsapp-widget {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+            }
+
+            .whatsapp-float {
+                width: 60px;
+                height: 60px;
+                background-color: #25d366;
+                color: #FFF;
+                border-radius: 50%;
+                border: none;
+                font-size: 30px;
+                box-shadow: 0 4px 20px rgba(37, 211, 102, 0.5);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                animation: pulse 2s infinite;
+            }
+            
+            .whatsapp-float::before {
+                content: '';
+                position: absolute;
+                top: -5px;
+                left: -5px;
+                right: -5px;
+                bottom: -5px;
+                border-radius: 50%;
+                border: 2px solid #25d366;
+                animation: ripple 2s infinite;
+            }
+            
+            .whatsapp-float::after {
+                content: 'Need Help? Double-click for instant WhatsApp';
+                position: absolute;
+                top: 50%;
+                right: 75px;
+                transform: translateY(-50%);
+                background: #25d366;
+                color: white;
+                padding: 8px 15px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                white-space: nowrap;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: none;
+            }
+            
+            .whatsapp-float:hover::after {
+                opacity: 1;
+            }
+                animation: slideLabel 3s infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+            }
+            
+            @keyframes ripple {
+                0% {
+                    opacity: 1;
+                    transform: scale(0.8);
+                }
+                100% {
+                    opacity: 0;
+                    transform: scale(1.3);
+                }
+            }
+            
+            @keyframes slideLabel {
+                0%, 70% { opacity: 1; right: 75px; }
+                80%, 100% { opacity: 0; right: 85px; }
+            }
+
+            .whatsapp-float:hover {
+                background-color: #128c7e;
+                transform: scale(1.15);
+                box-shadow: 0 6px 25px rgba(37, 211, 102, 0.7);
+            }
+            
+            .whatsapp-float:hover::before {
+                animation: none;
+                opacity: 0;
+            }
+            
+            .whatsapp-float:hover::after {
+                animation: none;
+                opacity: 1;
+                right: 75px;
+            }    .whatsapp-chat-box {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 350px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        overflow: hidden;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .whatsapp-header {
+        background: #075e54;
+        color: white;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .whatsapp-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+
+    .whatsapp-header-text h4 {
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .whatsapp-header-text p {
+        margin: 0;
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+    .whatsapp-close {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+    }
+
+    .whatsapp-body {
+        padding: 20px;
+        background: #e5ddd5;
+        min-height: 200px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .whatsapp-message {
+        background: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .whatsapp-message p {
+        margin: 0;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .whatsapp-footer {
+        background: white;
+        padding: 10px;
+        display: flex;
+        gap: 10px;
+        border-top: 1px solid #ddd;
+    }
+
+    .whatsapp-footer input {
+        flex: 1;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        padding: 8px 15px;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .whatsapp-footer button {
+        background: #25d366;
+        border: none;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .whatsapp-footer button:hover {
+        background: #128c7e;
+    }
+
+    @media screen and (max-width: 767px) {
+        .whatsapp-chat-box {
+            width: calc(100vw - 40px);
+            right: 0;
+        }
+        
+        .whatsapp-float {
+            width: 50px;
+            height: 50px;
+            font-size: 25px;
+        }
+    }
+</style>
+
+<script>
+  // WhatsApp Chat Functions
+  function toggleWhatsAppChat() {
+    const chatBox = document.getElementById('whatsappChatBox');
+    if (chatBox.style.display === 'none' || chatBox.style.display === '') {
+      chatBox.style.display = 'block';
+    } else {
+      chatBox.style.display = 'none';
+    }
+  }
+
+  // Direct WhatsApp opening function
+  function openWhatsAppDirect() {
+    const defaultMessage = "Hi! I need help with Raju IT Fashion Store. Can you please assist me?";
+    const encodedMessage = encodeURIComponent(defaultMessage);
+    const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+  }
+
+  function sendWhatsAppMessage() {
+    const input = document.getElementById('whatsappInput');
+    const message = input.value.trim();
+    
+    if (message) {
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
+      window.open(whatsappUrl, '_blank');
+      input.value = '';
+      
+      // Close chat box after sending
+      setTimeout(() => {
+        document.getElementById('whatsappChatBox').style.display = 'none';
+      }, 500);
+    } else {
+      // If no message, open with default message
+      openWhatsAppDirect();
+    }
+    }
+  }
+</script>
+
+<script>
+  (async function checkAuth() {
+    const token = localStorage.getItem("token");
+    const loadingScreen = document.getElementById("loadingScreen");
+    const navbar = document.getElementById("mainNav");
+    const dashContent = document.querySelector(".dashboard-content");
+
+    console.log("🔍 Token stored:", token ? "YES" : "NO");
+    if (token) {
+      const parts = token.split('.');
+      console.log("🔍 Token parts:", parts.length, "(should be 3)");
+    }
+
+    try {
+      const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+      console.log("🔍 Fetch headers:", headers);
+      
+      const res = await fetch("/api/user-data", { 
+        headers, 
+        credentials: "include" 
+      });
+
+      console.log("🔍 Response status:", res.status);
+      const data = await res.json().catch(() => null);
+      console.log("🔍 Response data:", data);
+
+      if (!res.ok) {
+        console.error("❌ Dashboard auth failed:", res.status, data);
+        
+        // ✅ Try session fallback (stay on page, don't redirect)
+        try {
+          const sessionRes = await fetch("/check-login", { credentials: "include" });
+          const sessionData = await sessionRes.json();
+          
+          if (sessionData?.loggedIn) {
+            console.log("✅ Session valid, loading dashboard");
+            // Session is valid, just hide loading and show content
+            loadingScreen.classList.add("hidden");
+            setTimeout(() => {
+              navbar.classList.add("show");
+              dashContent.classList.add("show");
+            }, 100);
+            
+            // Fill with session data
+            const u = sessionData.user || {};
+            document.getElementById("name").textContent = u.name || "N/A";
+            document.getElementById("email").textContent = u.email || "N/A";
+            document.getElementById("navUserName").textContent = u.name || u.email || "User";
+            
+            // ✅ Check if Google OAuth user and disable password change
+            if (u.isGoogleUser) {
+              const passwordForm = document.getElementById("changePasswordForm");
+              const passwordInputs = passwordForm.querySelectorAll("input");
+              const passwordBtn = document.getElementById("changePasswordBtn");
+              
+              // Disable all inputs and button
+              passwordInputs.forEach(input => {
+                input.disabled = true;
+                input.style.backgroundColor = "#f0f0f0";
+              });
+              passwordBtn.disabled = true;
+              passwordBtn.style.opacity = "0.6";
+              
+              // Add informational message
+              const infoMsg = document.createElement("div");
+              infoMsg.className = "alert alert-info mt-3";
+              infoMsg.innerHTML = '<i class="fas fa-info-circle me-2"></i><strong>Note:</strong> Password change is not available for Google authenticated users. Your account is secured through Google.';
+              passwordForm.appendChild(infoMsg);
+            }
+            
+            return;
+          }
+        } catch (e) {
+          console.error("Session check failed:", e);
+        }
+        
+        // No session and token invalid - redirect home
+        localStorage.removeItem("token");
+        window.location.href = "/";
+        return;
+      }
+
+      const u = data?.user || {};
+
+      // ✅ Set user data
+      document.getElementById("name").textContent = u.name || "N/A";
+      document.getElementById("email").textContent = u.email || "N/A";
+      document.getElementById("phone").textContent = u.phone || "N/A";
+      document.getElementById("address").textContent = u.address || "N/A";
+      document.getElementById("navUserName").textContent = u.name || u.email || "User";
+      
+      // ✅ Check if Google OAuth user and disable password change
+      if (u.isGoogleUser) {
+        const passwordForm = document.getElementById("changePasswordForm");
+        const passwordInputs = passwordForm.querySelectorAll("input");
+        const passwordBtn = document.getElementById("changePasswordBtn");
+        
+        // Disable all inputs and button
+        passwordInputs.forEach(input => {
+          input.disabled = true;
+          input.style.backgroundColor = "#f0f0f0";
+        });
+        passwordBtn.disabled = true;
+        passwordBtn.style.opacity = "0.6";
+        
+        // Add informational message
+        const infoMsg = document.createElement("div");
+        infoMsg.className = "alert alert-info mt-3";
+        infoMsg.innerHTML = '<i class="fas fa-info-circle me-2"></i><strong>Note:</strong> Password change is not available for Google authenticated users. Your account is secured through Google.';
+        passwordForm.appendChild(infoMsg);
+      }
+      
+      // Set last edit date
+      userLastEditDate = u.last_profile_edit || null;
+      updateLastEditInfo();
+
+      // ✅ Show content
+      loadingScreen.classList.add("hidden");
+      setTimeout(() => {
+        navbar.classList.add("show");
+        dashContent.classList.add("show");
+      }, 100);
+
+    } catch (err) {
+      console.error("❌ Auth check failed:", err);
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
+  })();
+
+  window.addEventListener("pageshow", function(event) {
+    if (event.persisted) window.location.reload();
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", async (e) => {
+    e.preventDefault();
+    localStorage.removeItem("token");
+    const res = await fetch("/api/logout", { 
+      method: "POST", 
+      credentials: "include" 
+    });
+    window.location.href = "/";
+  });
+
+  // Edit Profile Functions
+  let userLastEditDate = null;
+
+  function enableEdit() {
+    const now = new Date();
+    
+    // Check if 7 days have passed since last edit
+    if (userLastEditDate) {
+      const lastEdit = new Date(userLastEditDate);
+      const daysSinceEdit = Math.floor((now - lastEdit) / (1000 * 60 * 60 * 24));
+      
+      if (daysSinceEdit < 7) {
+        const daysLeft = 7 - daysSinceEdit;
+        alert(`You can edit your profile again in ${daysLeft} day(s). Last edited on ${lastEdit.toLocaleDateString()}`);
+        return;
+      }
+    }
+    
+    // Populate edit form
+    document.getElementById('editName').value = document.getElementById('name').textContent;
+    document.getElementById('editEmail').value = document.getElementById('email').textContent;
+    document.getElementById('editPhone').value = document.getElementById('phone').textContent || '';
+    document.getElementById('editAddress').value = document.getElementById('address').textContent !== 'N/A' ? document.getElementById('address').textContent : '';
+    
+    // Toggle views
+    document.getElementById('viewMode').style.display = 'none';
+    document.getElementById('editMode').style.display = 'block';
+    document.getElementById('editBtn').style.display = 'none';
+  }
+
+  function cancelEdit() {
+    document.getElementById('viewMode').style.display = 'block';
+    document.getElementById('editMode').style.display = 'none';
+    document.getElementById('editBtn').style.display = 'block';
+  }
+
+  // Handle edit form submission
+  document.getElementById('editMode').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const token = localStorage.getItem("token");
+    const data = {
+      name: document.getElementById('editName').value,
+      phone: document.getElementById('editPhone').value,
+      address: document.getElementById('editAddress').value
+    };
+
+    try {
+      const res = await fetch('/update-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json().catch(() => ({ message: 'Invalid server response' }));
+      
+      console.log('Update response status:', res.status);
+      console.log('Update response data:', result);
+
+      if (res.ok) {
+        // Update display
+        document.getElementById('name').textContent = data.name;
+        document.getElementById('phone').textContent = data.phone || 'N/A';
+        document.getElementById('address').textContent = data.address || 'N/A';
+        document.getElementById('navUserName').textContent = data.name;
+        
+        // Update last edit date
+        userLastEditDate = result.lastEditDate || new Date().toISOString();
+        updateLastEditInfo();
+        
+        cancelEdit();
+        alert('Profile updated successfully!');
+      } else {
+        console.error('Update failed:', result);
+        alert(result.message || 'Failed to update profile. Check console for details.');
+      }
+    } catch (err) {
+      console.error('Update error:', err);
+      alert('Error updating profile: ' + err.message);
+    }
+  });
+
+  function updateLastEditInfo() {
+    const lastEditInfoEl = document.getElementById('lastEditInfo');
+    if (userLastEditDate) {
+      const lastEdit = new Date(userLastEditDate);
+      const now = new Date();
+      const daysSinceEdit = Math.floor((now - lastEdit) / (1000 * 60 * 60 * 24));
+      const daysUntilNext = Math.max(0, 7 - daysSinceEdit);
+      
+      if (daysUntilNext > 0) {
+        lastEditInfoEl.textContent = `Last edited: ${lastEdit.toLocaleDateString()}. You can edit again in ${daysUntilNext} day(s).`;
+      } else {
+        lastEditInfoEl.textContent = `Last edited: ${lastEdit.toLocaleDateString()}. You can edit your profile now.`;
+      }
+    }
+  }
+
+  // Update badge counts function
+  function updateBadgeCounts() {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    
+    const cartCount = document.getElementById('cartCount');
+    const wishlistCount = document.getElementById('wishlistCount');
+    
+    if (cartCount) {
+      cartCount.textContent = cartItems.length;
+    }
+    if (wishlistCount) {
+      wishlistCount.textContent = wishlistItems.length;
+    }
+  }
+
+  // Cart and Wishlist Dropdown Functions
+  function toggleCartDropdown() {
+    const dropdown = document.getElementById('cartDropdown');
+    const wishlistDropdown = document.getElementById('wishlistDropdown');
+    
+    // Close wishlist if open
+    if (wishlistDropdown) {
+      wishlistDropdown.classList.remove('show');
+    }
+    
+    if (dropdown) {
+      dropdown.classList.toggle('show');
+      if (dropdown.classList.contains('show')) {
+        renderCartDropdown();
+      }
+    }
+  }
+
+  function toggleWishlistDropdown() {
+    const dropdown = document.getElementById('wishlistDropdown');
+    const cartDropdown = document.getElementById('cartDropdown');
+    
+    // Close cart if open
+    if (cartDropdown) {
+      cartDropdown.classList.remove('show');
+    }
+    
+    if (dropdown) {
+      dropdown.classList.toggle('show');
+      if (dropdown.classList.contains('show')) {
+        renderWishlistDropdown();
+      }
+    }
+  }
+
+  function renderCartDropdown() {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const dropdown = document.getElementById('cartDropdown');
+    
+    if (!dropdown) return;
+    
+    if (cartItems.length === 0) {
+      dropdown.innerHTML = `
+        <div class="empty-message">
+          <i class="fas fa-shopping-cart"></i>
+          <p>Your cart is empty</p>
+        </div>
+      `;
+      return;
+    }
+    
+    const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    dropdown.innerHTML = `
+      <div class="dropdown-header">
+        Shopping Cart (${cartItems.length} items)
+      </div>
+      <div class="dropdown-items">
+        ${cartItems.map((item, index) => `
+          <div class="dropdown-item-card">
+            <img src="${item.image || '/assets/img/products/aaa777.jpg'}" alt="${item.name}" class="item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
+            <div class="item-details">
+              <div class="item-name">${item.name}</div>
+              <div class="item-price">৳${item.price}</div>
+              <div class="item-quantity">Quantity: ${item.quantity}</div>
+            </div>
+            <button class="item-remove" onclick="removeFromCart(${index})" title="Remove">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `).join('')}
+      </div>
+      <div class="dropdown-footer">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <strong style="color: #333;">Total: ৳${total.toFixed(2)}</strong>
+          <button class="btn btn-primary btn-sm" onclick="window.location.href='checkout.html'">Checkout</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderWishlistDropdown() {
+    let wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    
+    // Fix legacy data: ensure all items are strings
+    wishlistItems = wishlistItems.filter(item => typeof item === 'string');
+    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+    
+    const dropdown = document.getElementById('wishlistDropdown');
+    
+    if (!dropdown) return;
+    
+    if (wishlistItems.length === 0) {
+      dropdown.innerHTML = `
+        <div class="empty-message">
+          <i class="fas fa-heart"></i>
+          <p>Your wishlist is empty</p>
+        </div>
+      `;
+      return;
+    }
+    
+    dropdown.innerHTML = `
+      <div class="dropdown-header">
+        Wishlist (${wishlistItems.length} items)
+      </div>
+      <div class="dropdown-items">
+        ${wishlistItems.map((item, index) => {
+          const itemName = typeof item === 'object' ? item.name : item;
+          const itemImage = typeof item === 'object' ? item.image : '/assets/img/products/aaa777.jpg';
+          const itemPrice = typeof item === 'object' ? item.price : 0;
+          const itemId = typeof item === 'object' ? item.id : index;
+          
+          return `
+          <div class="dropdown-item-card">
+            <img src="${itemImage}" alt="${itemName}" class="item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
+            <div class="item-details">
+              <div class="item-name">${itemName}</div>
+              ${itemPrice > 0 ? `<div class="item-price">৳${itemPrice}</div>` : ''}
+              <button class="btn btn-sm btn-success mt-1" onclick="addToCartFromWishlist(${index})" style="font-size: 0.75rem; padding: 2px 8px;">
+                <i class="fas fa-cart-plus me-1"></i>Add to Cart
+              </button>
+            </div>
+            <button class="item-remove" onclick="removeFromWishlist(${index})" title="Remove">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `}).join('')}
+      </div>
+      <div class="dropdown-footer">
+        <button class="btn btn-outline-primary btn-sm w-100" onclick="window.location.href='products.html'">Continue Shopping</button>
+      </div>
+    `;
+  }
+  
+  function addToCartFromWishlist(wishlistIndex) {
+    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    const item = wishlistItems[wishlistIndex];
+    
+    if (!item) return;
+    
+    const itemName = typeof item === 'object' ? item.name : item;
+    const itemPrice = typeof item === 'object' ? item.price : 0;
+    const itemId = typeof item === 'object' ? item.id : wishlistIndex;
+    const itemImage = typeof item === 'object' ? item.image : '/assets/img/products/aaa777.jpg';
+    
+    // Add to cart
+    let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const existingItem = cartItems.find(cartItem => cartItem.id === itemId);
+    
+    if (existingItem) {
+      existingItem.quantity++;
+      alert(`${itemName} quantity increased in cart!`);
+    } else {
+      cartItems.push({
+        id: itemId,
+        name: itemName,
+        price: itemPrice,
+        quantity: 1,
+        image: itemImage
+      });
+      alert(`${itemName} added to cart!`);
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+    updateBadgeCounts();
+    renderCartDropdown();
+  }
+
+  function removeFromCart(index) {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    cartItems.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+    updateBadgeCounts();
+    renderCartDropdown();
+  }
+
+  function removeFromWishlist(index) {
+    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    wishlistItems.splice(index, 1);
+    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+    updateBadgeCounts();
+    renderWishlistDropdown();
+  }
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', function(e) {
+    const cartBtn = document.getElementById('cartBtn');
+    const wishlistBtn = document.getElementById('wishlistBtn');
+    const cartDropdown = document.getElementById('cartDropdown');
+    const wishlistDropdown = document.getElementById('wishlistDropdown');
+    
+    if (cartBtn && !cartBtn.contains(e.target) && cartDropdown && !cartDropdown.contains(e.target)) {
+      cartDropdown.classList.remove('show');
+    }
+    
+    if (wishlistBtn && !wishlistBtn.contains(e.target) && wishlistDropdown && !wishlistDropdown.contains(e.target)) {
+      wishlistDropdown.classList.remove('show');
+    }
+  });
+
+  // Attach click events to cart and wishlist buttons
+  window.addEventListener('DOMContentLoaded', () => {
+    const cartBtn = document.getElementById('cartBtn');
+    const wishlistBtn = document.getElementById('wishlistBtn');
+    
+    if (cartBtn) {
+      cartBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleCartDropdown();
+      });
+    }
+    
+    if (wishlistBtn) {
+      wishlistBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleWishlistDropdown();
+      });
+    }
+    
+    updateBadgeCounts();
+  });
+
+  // Shipping Address Functions
+  function enableShippingEdit() {
+    // Populate edit form
+    document.getElementById('editShippingName').value = document.getElementById('shippingName').textContent !== 'N/A' ? document.getElementById('shippingName').textContent : '';
+    document.getElementById('editShippingPhone').value = document.getElementById('shippingPhone').textContent !== 'N/A' ? document.getElementById('shippingPhone').textContent : '';
+    document.getElementById('editShippingAddress1').value = document.getElementById('shippingAddress1').textContent !== 'N/A' ? document.getElementById('shippingAddress1').textContent : '';
+    document.getElementById('editShippingAddress2').value = document.getElementById('shippingAddress2').textContent !== 'N/A' ? document.getElementById('shippingAddress2').textContent : '';
+    document.getElementById('editShippingUpzilla').value = document.getElementById('shippingUpzilla').textContent !== 'N/A' ? document.getElementById('shippingUpzilla').textContent : '';
+    document.getElementById('editShippingCity').value = document.getElementById('shippingCity').textContent !== 'N/A' ? document.getElementById('shippingCity').textContent : '';
+    document.getElementById('editShippingState').value = document.getElementById('shippingState').textContent !== 'N/A' ? document.getElementById('shippingState').textContent : '';
+    document.getElementById('editShippingPostal').value = document.getElementById('shippingPostal').textContent !== 'N/A' ? document.getElementById('shippingPostal').textContent : '';
+    document.getElementById('editShippingCountry').value = document.getElementById('shippingCountry').textContent !== 'N/A' ? document.getElementById('shippingCountry').textContent : '';
+    
+    // Toggle views
+    document.getElementById('shippingViewMode').style.display = 'none';
+    document.getElementById('shippingEditMode').style.display = 'block';
+    document.getElementById('editShippingBtn').style.display = 'none';
+  }
+
+  function cancelShippingEdit() {
+    document.getElementById('shippingViewMode').style.display = 'block';
+    document.getElementById('shippingEditMode').style.display = 'none';
+    document.getElementById('editShippingBtn').style.display = 'block';
+  }
+
+  // Handle shipping form submission
+  document.getElementById('shippingEditMode').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const token = localStorage.getItem("token");
+    const shippingData = {
+      shippingName: document.getElementById('editShippingName').value,
+      shippingPhone: document.getElementById('editShippingPhone').value,
+      shippingAddress1: document.getElementById('editShippingAddress1').value,
+      shippingAddress2: document.getElementById('editShippingAddress2').value,
+      shippingUpzilla: document.getElementById('editShippingUpzilla').value,
+      shippingCity: document.getElementById('editShippingCity').value,
+      shippingState: document.getElementById('editShippingState').value,
+      shippingPostal: document.getElementById('editShippingPostal').value,
+      shippingCountry: document.getElementById('editShippingCountry').value
+    };
+
+    try {
+      const res = await fetch('/update-shipping', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify(shippingData)
+      });
+
+      const result = await res.json().catch(() => ({ message: 'Invalid server response' }));
+      
+      if (res.ok) {
+        // Update display
+        document.getElementById('shippingName').textContent = shippingData.shippingName;
+        document.getElementById('shippingPhone').textContent = shippingData.shippingPhone;
+        document.getElementById('shippingAddress1').textContent = shippingData.shippingAddress1;
+        document.getElementById('shippingAddress2').textContent = shippingData.shippingAddress2 || 'N/A';
+        document.getElementById('shippingUpzilla').textContent = shippingData.shippingUpzilla;
+        document.getElementById('shippingCity').textContent = shippingData.shippingCity;
+        document.getElementById('shippingState').textContent = shippingData.shippingState;
+        document.getElementById('shippingPostal').textContent = shippingData.shippingPostal;
+        document.getElementById('shippingCountry').textContent = shippingData.shippingCountry;
+        
+        // Hide the alert after updating
+        const alertElement = document.getElementById('shippingAddressAlert');
+        if (alertElement) {
+          alertElement.style.display = 'none';
+        }
+        
+        cancelShippingEdit();
+        alert('Shipping address updated successfully!');
+      } else {
+        alert(result.message || 'Failed to update shipping address.');
+      }
+    } catch (err) {
+      console.error('Shipping update error:', err);
+      alert('Error updating shipping address: ' + err.message);
+    }
+  });
+
+  // Load shipping address on page load
+  (async function loadShippingAddress() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await fetch('/get-shipping', {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const s = data.shipping || {};
+        
+        // Check if shipping address is empty/not set
+        const hasShippingAddress = s.shipping_address1 && s.shipping_address1 !== 'N/A' && s.shipping_address1.trim() !== '';
+        
+        // Show alert if no shipping address
+        const alertElement = document.getElementById('shippingAddressAlert');
+        if (!hasShippingAddress && alertElement) {
+          alertElement.style.display = 'flex !important';
+          alertElement.classList.remove('d-none');
+          alertElement.style.removeProperty('display');
+        }
+        
+        document.getElementById('shippingName').textContent = s.shipping_name || 'N/A';
+        document.getElementById('shippingPhone').textContent = s.shipping_phone || 'N/A';
+        document.getElementById('shippingAddress1').textContent = s.shipping_address1 || 'N/A';
+        document.getElementById('shippingAddress2').textContent = s.shipping_address2 || 'N/A';
+        document.getElementById('shippingUpzilla').textContent = s.shipping_upzilla || 'N/A';
+        document.getElementById('shippingCity').textContent = s.shipping_city || 'N/A';
+        document.getElementById('shippingState').textContent = s.shipping_state || 'N/A';
+        document.getElementById('shippingPostal').textContent = s.shipping_postal || 'N/A';
+        document.getElementById('shippingCountry').textContent = s.shipping_country || 'N/A';
+      }
+    } catch (err) {
+      console.error('Error loading shipping address:', err);
+    }
+  })();
+
+  // Change Password Form Handler
+  document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    
+    // Validate passwords match
+    if (newPassword !== confirmNewPassword) {
+      alert('New passwords do not match!');
+      return;
+    }
+    
+    // Validate password length
+    if (newPassword.length < 6) {
+      alert('New password must be at least 6 characters long!');
+      return;
+    }
+    
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert('Please login again');
+      return;
+    }
+    
+    try {
+      changePasswordBtn.disabled = true;
+      changePasswordBtn.textContent = 'Changing...';
+      
+      const res = await fetch('/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      
+      const result = await res.json();
+      
+      if (res.ok) {
+        alert('✅ Password changed successfully! You can request another change in 24 hours.');
+        document.getElementById('changePasswordForm').reset();
+        
+        // Show rate limit info
+        const now = new Date();
+        const infoElement = document.getElementById('lastPasswordChangeInfo');
+        if (infoElement) {
+          infoElement.textContent = `Last changed: ${now.toLocaleString()}. You can change again in 24 hours.`;
+        }
+        
+        // Show rate limit alert
+        showPasswordRateLimitAlert('You have successfully changed your password. You can change it again in 24 hours.');
+      } else if (result.rateLimited) {
+        alert(`⏰ ${result.message}`);
+        if (result.hoursRemaining) {
+          showPasswordRateLimitAlert(`You can change your password again in ${result.hoursRemaining} hour(s).`);
+        }
+      } else {
+        alert(`❌ ${result.message || 'Failed to change password'}`);
+      }
+    } catch (err) {
+      console.error('Change password error:', err);
+      alert('Error changing password. Please try again.');
+    } finally {
+      changePasswordBtn.disabled = false;
+      changePasswordBtn.textContent = 'Change Password';
+    }
+  });
+  
+  // Function to show password rate limit alert
+  function showPasswordRateLimitAlert(message) {
+    const alertElement = document.getElementById('passwordRateLimitAlert');
+    const messageElement = document.getElementById('passwordRateLimitMessage');
+    if (alertElement && messageElement) {
+      messageElement.textContent = message;
+      alertElement.classList.remove('d-none');
+    }
+  }
+  
+  // Check password reset rate limit on page load
+  (async function checkPasswordResetStatus() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    
+    try {
+      const res = await fetch('/check-password-reset-status', {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.lastPasswordReset) {
+          const lastResetDate = new Date(data.lastPasswordReset);
+          const infoElement = document.getElementById('lastPasswordChangeInfo');
+          if (infoElement) {
+            infoElement.textContent = `Last changed: ${lastResetDate.toLocaleString()}`;
+          }
+          
+          // Check if still in rate limit period
+          if (data.canChange === false && data.hoursRemaining) {
+            showPasswordRateLimitAlert(`You can change your password again in ${data.hoursRemaining} hour(s).`);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error checking password reset status:', err);
+    }
+  })();
+
+  // Load orders on page load
+  (async function loadOrders() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log('No token found, user not logged in');
+      return;
+    }
+
+    try {
+      console.log('Fetching orders...');
+      const res = await fetch('/get-orders', {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
+      });
+
+      console.log('Orders response status:', res.status);
+
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Orders data received:', data);
+        const orders = data.orders || [];
+        console.log('Total orders:', orders.length);
+        
+        const ordersList = document.getElementById('ordersList');
+        const noOrdersMessage = document.getElementById('noOrdersMessage');
+        
+        if (orders.length === 0) {
+          console.log('No orders found, showing message');
+          noOrdersMessage.style.display = 'block';
+          ordersList.style.display = 'none';
+        } else {
+          console.log('Displaying orders');
+          noOrdersMessage.style.display = 'none';
+          ordersList.style.display = 'block';
+          
+          ordersList.innerHTML = orders.map(order => {
+            console.log('Rendering order:', order.id, order);
+            return `
+            <div class="order-card">
+              <div class="order-header">
+                <div>
+                  <div class="order-id">Order #${order.id}</div>
+                  <div class="order-details">
+                    ${new Date(order.created_at).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </div>
+                </div>
+                <span class="order-status status-${order.status.toLowerCase()}">
+                  ${order.status}
+                </span>
+              </div>
+              
+              <div class="order-items">
+                ${order.items ? order.items.map(item => `
+                  <div class="order-item">
+                    ${item.image ? `<img src="${item.image}" alt="${item.name}" class="order-item-image">` : ''}
+                    <div class="order-item-details">
+                      <div class="order-item-name">${item.name}</div>
+                      <div class="order-item-quantity">Quantity: ${item.quantity} × ৳${item.price}</div>
+                    </div>
+                    <div class="order-item-price">৳${(item.quantity * item.price).toFixed(2)}</div>
+                  </div>
+                `).join('') : ''}
+              </div>
+              
+              <div class="order-total">
+                Total: ৳${parseFloat(order.total_amount).toFixed(2)}
+              </div>
+              
+              ${order.shipping_address ? `
+                <div class="order-details mt-2">
+                  <strong>Shipping to:</strong> ${order.shipping_address}
+                </div>
+              ` : ''}
+              
+              <div class="order-actions mt-3">
+                <a href="invoice.html?id=${order.id}" class="btn btn-outline-primary btn-sm" target="_blank">
+                  <i class="fas fa-file-invoice"></i> View Invoice
+                </a>
+                ${order.invoice_pdf_url ? `
+                  <a href="${order.invoice_pdf_url}" class="btn btn-primary btn-sm" target="_blank" download>
+                    <i class="fas fa-download"></i> Download PDF
+                  </a>
+                ` : `
+                  <button onclick="downloadInvoice(${order.id})" class="btn btn-primary btn-sm">
+                    <i class="fas fa-download"></i> Download Invoice
+                  </button>
+                `}
+              </div>
+            </div>
+          `;
+          }).join('');
+        }
+      } else {
+        console.error('Failed to fetch orders:', res.status, res.statusText);
+        const errorData = await res.json().catch(() => ({}));
+        console.error('Error details:', errorData);
+      }
+    } catch (err) {
+      console.error('Error loading orders:', err);
+    }
+  })();
+
+  // Download Invoice Function
+  async function downloadInvoice(orderId) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert('Please log in to download invoice');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/get-invoice/${orderId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const invoiceHtml = data.invoice;
+        
+        // Open invoice in new window/tab
+        const printWindow = window.open('', '_blank');
+        
+        if (!printWindow) {
+          alert('Please allow pop-ups to view the invoice');
+          return;
+        }
+        
+        // Write the invoice HTML to the new window
+        printWindow.document.open();
+        printWindow.document.write(invoiceHtml);
+        printWindow.document.close();
+        
+        // Wait for content and images to load, then trigger print dialog
+        printWindow.onload = function() {
+          setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+          }, 500);
+        };
+        
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData.message || 'Unable to download invoice. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error downloading invoice:', err);
+      alert('Error downloading invoice. Please check your connection and try again.');
+    }
+  }
+
+  // Update badge counts on page load
+  window.addEventListener('DOMContentLoaded', () => {
+    updateBadgeCounts();
+  });
+</script>
+
+</body>
+</html>

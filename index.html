@@ -1,0 +1,2027 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <title>Raju IT - Premium Fashion for Ladies & Gents | Online Shopping Saudi Arabia</title>
+        <meta name="description" content="Shop trendy fashion for ladies and gents at Raju IT. Premium quality clothing, latest styles, and affordable prices. Fast delivery across Saudi Arabia." />
+        <meta name="keywords" content="fashion, online shopping, ladies clothing, gents clothing, Saudi Arabia, trendy outfits, Raju IT, women fashion, men fashion, clothes online" />
+        <meta name="author" content="Raju IT" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://rajuit.online/" />
+        
+        <!-- Open Graph Meta Tags -->
+        <meta property="og:title" content="Raju IT - Premium Fashion Store" />
+        <meta property="og:description" content="Shop trendy fashion for ladies and gents. Premium quality clothing at affordable prices." />
+        <meta property="og:url" content="https://rajuit.online/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://rajuit.online/assets/img/navbar-logo.svg" />
+        
+        <!-- Twitter Card Meta Tags -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Raju IT - Premium Fashion Store" />
+        <meta name="twitter:description" content="Shop trendy fashion for ladies and gents" />
+        
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PRR4JTPJK9"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-PRR4JTPJK9');
+        </script>
+        
+        <link href="css/styles.css" rel="stylesheet" />
+        <link href="css/login.css" rel="stylesheet" />
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        
+        <!-- Custom CSS for App Download Section -->
+        <style>
+            .app-download-section a:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+            
+            @media (max-width: 768px) {
+                .app-download-section {
+                    padding: 20px 15px !important;
+                }
+                .app-download-section h3 {
+                    font-size: 1.2rem !important;
+                    margin-bottom: 10px !important;
+                }
+                .app-download-section p {
+                    font-size: 0.9rem !important;
+                    margin-bottom: 15px !important;
+                }
+                .app-download-section .col-md-4 {
+                    margin-top: 15px;
+                }
+            }
+            
+            .app-download-section {
+                animation: fadeInUp 0.8s ease-out;
+            }
+            
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+        
+        <!-- Structured Data (JSON-LD) -->
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Store",
+          "name": "Raju IT",
+          "description": "Premium fashion store for ladies and gents in Saudi Arabia",
+          "url": "https://rajuit.online",
+          "logo": "https://rajuit.online/assets/img/navbar-logo.svg",
+          "image": "https://rajuit.online/assets/img/navbar-logo.svg",
+          "telephone": "+8801726466000",
+          "email": "rajuit1396@gmail.com",
+          "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "SA"
+          },
+          "sameAs": [
+            "https://www.instagram.com/rajuit1396",
+            "https://www.facebook.com/profile.php?id=61584622701133"
+          ],
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://rajuit.online/products?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }
+        </script>
+        
+        <style>
+            /* Cart and Wishlist Dropdown Styling */
+            .cart-dropdown, .wishlist-dropdown {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                width: 350px;
+                max-height: 400px;
+                overflow-y: auto;
+                z-index: 9999;
+                display: none;
+                margin-top: 10px;
+            }
+            
+            .cart-dropdown.show, .wishlist-dropdown.show {
+                display: block;
+            }
+            
+            .dropdown-header {
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+                font-weight: bold;
+                background: #f8f9fa;
+                border-radius: 8px 8px 0 0;
+            }
+            
+            .dropdown-items {
+                max-height: 250px;
+                overflow-y: auto;
+            }
+            
+            .dropdown-item-card {
+                padding: 12px 15px;
+                border-bottom: 1px solid #f1f1f1;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                transition: background 0.2s;
+            }
+            
+            .dropdown-item-card:hover {
+                background: #f8f9fa;
+            }
+            
+            .dropdown-item-card:last-child {
+                border-bottom: none;
+            }
+            
+            .item-image {
+                width: 60px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 4px;
+            }
+            
+            .item-details {
+                flex: 1;
+            }
+            
+            .item-name {
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 4px;
+                font-size: 14px;
+            }
+            
+            .item-price {
+                color: #666;
+                font-size: 13px;
+            }
+            
+            .item-quantity {
+                color: #999;
+                font-size: 12px;
+            }
+            
+            .item-remove {
+                background: none;
+                border: none;
+                color: #dc3545;
+                cursor: pointer;
+                font-size: 18px;
+                padding: 5px;
+            }
+            
+            .item-remove:hover {
+                color: #a71d2a;
+            }
+            
+            .dropdown-footer {
+                padding: 15px;
+                border-top: 1px solid #eee;
+                background: #f8f9fa;
+                border-radius: 0 0 8px 8px;
+            }
+            
+            .empty-message {
+                padding: 30px 15px;
+                text-align: center;
+                color: #999;
+            }
+            
+            .empty-message i {
+                font-size: 48px;
+                margin-bottom: 10px;
+                opacity: 0.5;
+            }
+            
+            /* Position dropdown containers */
+            .nav-item {
+                position: relative;
+            }
+        </style>
+    </head>
+    <body id="page-top">
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+            <div class="container">
+                <a class="navbar-brand" href="index.html"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars ms-1"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                  <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="products.html">Products</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact Us</a></li>
+                    <li class="nav-item">
+                      <a class="nav-link" href="download-app.html" style="color: #ffc800 !important; position: relative;">
+                        <i class="fas fa-mobile-alt me-1"></i>Get App
+                        <span style="position: absolute; top: -2px; right: -8px; background: #ff4444; color: white; font-size: 9px; padding: 2px 4px; border-radius: 8px; font-weight: bold;">NEW</span>
+                      </a>
+                    </li>
+                    <li class="nav-item" id="wishlistContainer" style="display: none;">
+                      <a class="nav-link" href="#" id="wishlistBtn" title="Wishlist">
+                        <i class="fas fa-heart"></i>
+                        <span class="badge bg-danger" id="wishlistCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
+                      </a>
+                      <div class="wishlist-dropdown" id="wishlistDropdown"></div>
+                    </li>
+                    <li class="nav-item" id="cartContainer" style="display: none;">
+                      <a class="nav-link" href="#" id="cartBtn" title="Cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="badge bg-primary" id="cartCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
+                      </a>
+                      <div class="cart-dropdown" id="cartDropdown"></div>
+                    </li>
+                    <li class="nav-item" id="authContainer">
+                      <a class="nav-link" href="#" id="navLoginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+                    </li>
+                  </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Masthead-->
+        <header class="masthead">
+            <div class="container">
+                <div class="masthead-subheading">Welcome To Our Shop!</div>
+                <div class="masthead-heading text-uppercase">It's Nice To Meet You</div>
+                
+                <!-- App Store Buttons -->
+                <div style="margin-top: 20px; margin-bottom: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">
+                        <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" style="height: 60px;">
+                    </a>
+                    <a href="https://www.apple.com/app-store/" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">
+                        <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&releaseDate=1234567890000" alt="Download on the App Store" style="height: 60px;">
+                    </a>
+                </div>
+                
+                <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; margin-bottom: 25px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+                    Experience seamless shopping with our mobile app. Discover exclusive deals, track your orders, and enjoy personalized recommendations—all at your fingertips.
+                </p>
+                
+                <!-- Mobile App Download Section -->
+                <div class="app-download-section mb-4" style="background: rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 20px; max-width: 650px; margin: 0 auto 30px auto; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 style="color: #fff; margin-bottom: 15px; font-size: 1.4rem; font-weight: 600;">
+                                <i class="fas fa-mobile-alt me-2" style="color: #ffc800;"></i>
+                                Download Our Mobile App
+                            </h3>
+                            <p style="color: rgba(255, 255, 255, 0.85); margin-bottom: 0; font-size: 1rem; line-height: 1.5;">
+                                Get the RajuIT Fashion Store app for Android and enjoy a premium shopping experience with exclusive app-only features, faster checkout, and instant notifications for new arrivals.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <a href="rajuit-fashion-store.apk" download="rajuit-fashion-store.apk" class="btn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 12px 25px; border-radius: 25px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; transition: transform 0.3s ease;">
+                                <i class="fab fa-android me-2" style="font-size: 1.2rem;"></i>
+                                Download APK
+                            </a>
+                            <small style="display: block; color: rgba(255, 255, 255, 0.7); margin-top: 5px; font-size: 0.85rem;">
+                                v1.0.0 • 50.4 MB • Updated Feb 4, 2026 • <a href="download-app.html" style="color: #ffc800; text-decoration: underline;">More Info</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <a class="btn btn-primary btn-xl text-uppercase" href="#newarrivals">Buy Products</a>
+            </div>
+        </header>
+        
+        <!-- New Arrivals Section -->
+        <section class="page-section" id="newarrivals" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 80px 0;">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="section-heading text-uppercase text-white" style="font-size: 3rem; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                        <i class="fas fa-star me-3" style="color: #ffc800;"></i>New Arrivals<i class="fas fa-star ms-3" style="color: #ffc800;"></i>
+                    </h2>
+                    <h3 class="section-subheading text-white" style="font-size: 1.3rem; opacity: 0.95;">Fresh Fashion, Hot Deals - Shop the Latest Trends!</h3>
+                </div>
+                
+                <!-- Carousel Container -->
+                <div class="new-arrivals-carousel">
+                    <button class="carousel-btn prev-btn" onclick="slideProducts(-1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    
+                    <div class="carousel-track-container">
+                        <div class="carousel-track" id="newArrivalsTrack">
+                            <!-- Products will be loaded here dynamically -->
+                            <div class="text-center w-100 p-5">
+                                <div class="spinner-border text-white" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="carousel-btn next-btn" onclick="slideProducts(1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <!-- Carousel Indicators -->
+                <div class="carousel-indicators mt-4" id="carouselIndicators"></div>
+                
+                <div class="text-center mt-4">
+                    <a href="products.html" class="btn btn-light btn-lg px-5 py-3" style="border-radius: 50px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                        <i class="fas fa-shopping-bag me-2"></i>View All Products
+                    </a>
+                </div>
+            </div>
+        </section>
+        
+        <style>
+            .new-arrivals-carousel {
+                position: relative;
+                max-width: 1200px;
+                margin: 0 auto;
+                overflow: hidden;
+            }
+            
+            .carousel-track-container {
+                overflow: hidden;
+                border-radius: 20px;
+                background: rgba(255,255,255,0.1);
+                backdrop-filter: blur(10px);
+                padding: 20px;
+            }
+            
+            .carousel-track {
+                display: flex;
+                transition: transform 0.5s ease-in-out;
+                gap: 20px;
+            }
+            
+            .arrival-card {
+                min-width: calc(33.333% - 14px);
+                background: white;
+                border-radius: 15px;
+                overflow: hidden;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                cursor: pointer;
+                position: relative;
+            }
+            
+            .arrival-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+            }
+            
+            .arrival-card .new-badge {
+                position: absolute;
+                top: 15px;
+                left: 15px;
+                background: #ffc800;
+                color: #000;
+                padding: 5px 15px;
+                border-radius: 20px;
+                font-weight: 700;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                z-index: 2;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                animation: pulse 2s infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+            }
+            
+            .arrival-card .wishlist-btn {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                background: white;
+                border: none;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 2;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
+            }
+            
+            .arrival-card .wishlist-btn:hover {
+                background: #ff4757;
+                color: white;
+                transform: scale(1.1);
+            }
+            
+            .arrival-card .wishlist-btn.active {
+                background: #ff4757;
+                color: white;
+            }
+            
+            .arrival-card img {
+                width: 100%;
+                height: 300px;
+                object-fit: cover;
+                transition: transform 0.3s ease;
+            }
+            
+            .arrival-card:hover img {
+                transform: scale(1.05);
+            }
+            
+            .arrival-card .card-body {
+                padding: 20px;
+                text-align: center;
+            }
+            
+            .arrival-card .product-name {
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin-bottom: 10px;
+                color: #333;
+                min-height: 50px;
+            }
+            
+            .arrival-card .product-price {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #667eea;
+                margin-bottom: 15px;
+            }
+            
+            .arrival-card .btn-add-cart {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                padding: 10px 30px;
+                border-radius: 25px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                width: 100%;
+            }
+            
+            .arrival-card .btn-add-cart:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+            
+            .carousel-btn {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                background: white;
+                border: none;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 10;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
+                font-size: 1.2rem;
+                color: #667eea;
+            }
+            
+            .carousel-btn:hover {
+                background: #667eea;
+                color: white;
+                transform: translateY(-50%) scale(1.1);
+            }
+            
+            .prev-btn {
+                left: -25px;
+            }
+            
+            .next-btn {
+                right: -25px;
+            }
+            
+            .carousel-indicators {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .indicator-dot {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.4);
+                border: none;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .indicator-dot.active {
+                background: white;
+                width: 30px;
+                border-radius: 6px;
+            }
+            
+            /* Responsive Design */
+            @media (max-width: 992px) {
+                .arrival-card {
+                    min-width: calc(50% - 10px);
+                }
+            }
+            
+            @media (max-width: 768px) {
+                .arrival-card {
+                    min-width: 100%;
+                }
+                
+                .carousel-btn {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1rem;
+                }
+                
+                .prev-btn {
+                    left: 10px;
+                }
+                
+                .next-btn {
+                    right: 10px;
+                }
+                
+                .arrival-card img {
+                    height: 250px;
+                }
+            }
+        </style>
+        
+        <!-- Products Grid-->
+        <section class="page-section" id="products" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 100px 0;">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="section-heading text-uppercase" style="font-size: 3rem; font-weight: 800; color: #2c3e50; position: relative; display: inline-block;">
+                        <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Products</span>
+                        <div style="position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 80px; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 2px;"></div>
+                    </h2>
+                    <h3 class="section-subheading" style="color: #5a6c7d; font-size: 1.2rem; margin-top: 25px; font-weight: 500;">Discover our latest trendy outfits for ladies and gents</h3>
+                </div>
+                <div class="container py-4">
+                <div class="row g-4 justify-content-center">
+                  <div class="col-md-6 col-lg-5">
+                    <a href="products.html?collection=female" class="text-decoration-none">
+                      <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;" onmouseover="this.style.transform='translateY(-15px) scale(1.02)'; this.style.boxShadow='0 20px 40px rgba(102,126,234,0.3)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow=''">
+                        <div style="position: relative; overflow: hidden;">
+                          <img src="/assets/img/products/aaa777.jpg" class="card-img-top" height="350" style="object-fit:cover; transition: transform 0.4s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.6) 100%);"></div>
+                          <div style="position: absolute; top: 20px; left: 20px; background: #ff6b9d; color: white; padding: 8px 20px; border-radius: 25px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(255,107,157,0.4);"><i class="fas fa-female me-2"></i>TRENDING</div>
+                        </div>
+                        <div class="card-body text-center" style="padding: 30px;">
+                          <h4 class="fw-bold" style="font-size: 1.8rem; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Female Collection</h4>
+                          <p class="text-muted" style="font-size: 1.05rem; margin: 10px 0 20px;">Explore trendy outfits</p>
+                          <div class="btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 12px 35px; border-radius: 30px; font-weight: 600; border: none;">Shop Now <i class="fas fa-arrow-right ms-2"></i></div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+
+                  <div class="col-md-6 col-lg-5">
+                    <a href="products.html?collection=male" class="text-decoration-none">
+                      <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;" onmouseover="this.style.transform='translateY(-15px) scale(1.02)'; this.style.boxShadow='0 20px 40px rgba(102,126,234,0.3)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow=''">
+                        <div style="position: relative; overflow: hidden;">
+                          <img src="/assets/img/products/aaa111.jpg" class="card-img-top" height="350" style="object-fit:cover; transition: transform 0.4s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.6) 100%);"></div>
+                          <div style="position: absolute; top: 20px; left: 20px; background: #4facfe; color: white; padding: 8px 20px; border-radius: 25px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(79,172,254,0.4);"><i class="fas fa-male me-2"></i>POPULAR</div>
+                        </div>
+                        <div class="card-body text-center" style="padding: 30px;">
+                          <h4 class="fw-bold" style="font-size: 1.8rem; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Male Collection</h4>
+                          <p class="text-muted" style="font-size: 1.05rem; margin: 10px 0 20px;">Browse latest styles</p>
+                          <div class="btn" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 12px 35px; border-radius: 30px; font-weight: 600; border: none;">Shop Now <i class="fas fa-arrow-right ms-2"></i></div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+        </section>
+        
+        <!-- About-->
+        <section class="page-section" id="about" style="background: #ffffff; padding: 100px 0; position: relative;">
+            <div style="position: absolute; top: 0; left: 0; right: 0; height: 200px; background: linear-gradient(180deg, #c3cfe2 0%, #ffffff 100%);"></div>
+            <div class="container" style="position: relative; z-index: 1;">
+                <div class="text-center mb-5">
+                    <h2 class="section-heading text-uppercase" style="font-size: 3rem; font-weight: 800; color: #2c3e50; position: relative; display: inline-block;">
+                        <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">About Us</span>
+                        <div style="position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 80px; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 2px;"></div>
+                    </h2>
+                    <h3 class="section-subheading" style="color: #5a6c7d; font-size: 1.2rem; margin-top: 25px; font-weight: 500;">RajuIt is the online shopping website for ladies & gents</h3>
+                </div>
+                <ul class="timeline">
+                    <li>
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/1.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>2009-2011</h4>
+                                <h4 class="subheading">Our Humble Beginnings</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">We started our journey with a simple vision — to offer trendy, comfortable, and affordable fashion for both ladies and gents. Today, we continue to grow with your love and support, delivering quality styles for every occasion.</p></div>
+                        </div>
+                    </li>
+                    <li class="timeline-inverted">
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/2.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>March 2011</h4>
+                                <h4 class="subheading">Our brand was Born</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">Our brand started with a passion for fashion and a mission to deliver quality clothing for both women and men. Today, we continue to grow with the love and trust of our customers.</p></div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/3.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>December 2015</h4>
+                                <h4 class="subheading">Transition to Full Service</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">By 2015, our brand had grown stronger with the trust of our customers. We expanded from a small setup into a full-service fashion store for both ladies and gents.</p></div>
+                        </div>
+                    </li>
+                    <li class="timeline-inverted">
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/4.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>July 2020</h4>
+                                <h4 class="subheading">Phase Two Expansion</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">In 2020, we entered a new phase of growth with a major expansion of our brand. We upgraded our collections with modern designs, trending styles, and premium-quality materials.</p></div>
+                        </div>
+                    </li>
+                    <li class="timeline-inverted">
+                        <div class="timeline-image">
+                            <h4>
+                                Be Part
+                                <br />
+                                Of Our
+                                <br />
+                                Story!
+                            </h4>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- Contact-->
+        <section class="page-section" id="contact" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 100px 0; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; right: -100px; width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%; filter: blur(80px);"></div>
+            <div style="position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%; filter: blur(80px);"></div>
+            <div class="container" style="position: relative; z-index: 1;">
+                <div class="text-center mb-5">
+                    <h2 class="section-heading text-uppercase" style="color: white; font-size: 3rem; font-weight: 800; text-shadow: 0 4px 20px rgba(0,0,0,0.2);">Contact Us</h2>
+                    <h3 class="section-subheading" style="color: rgba(255,255,255,0.9); font-size: 1.2rem; margin-top: 20px; font-weight: 400; max-width: 700px; margin-left: auto; margin-right: auto;">For inquiries about our services, pricing, or partnerships, please fill out the form below. Our team will contact you within an hour</h3>
+                </div>
+                <!-- Contact Form -->
+                <form id="contactForm" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 50px; border-radius: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <div class="row align-items-stretch mb-5">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <!-- Name input-->
+                                <label for="contactName" class="form-label" style="color: #2c3e50; font-weight: 600; font-size: 0.95rem;">Your Name <span class="text-danger">*</span></label>
+                                <input class="form-control" id="contactName" name="name" type="text" placeholder="Enter your full name" required style="padding: 14px 20px; border-radius: 12px; border: 2px solid #e0e6ed; font-size: 1rem;" />
+                                <div class="invalid-feedback d-block" id="nameError"></div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <!-- Email address input-->
+                                <label for="contactEmail" class="form-label" style="color: #2c3e50; font-weight: 600; font-size: 0.95rem;">Your Email <span class="text-danger">*</span></label>
+                                <input class="form-control" id="contactEmail" name="email" type="email" placeholder="Enter your email address" required style="padding: 14px 20px; border-radius: 12px; border: 2px solid #e0e6ed; font-size: 1rem;" />
+                                <div class="invalid-feedback d-block" id="emailError"></div>
+                            </div>
+                            <div class="form-group mb-md-0">
+                                <!-- Phone number input-->
+                                <label for="contactPhone" class="form-label" style="color: #2c3e50; font-weight: 600; font-size: 0.95rem;">Your Phone <span class="text-danger">*</span></label>
+                                <input class="form-control" id="contactPhone" name="phone" type="tel" placeholder="Enter your phone number" required style="padding: 14px 20px; border-radius: 12px; border: 2px solid #e0e6ed; font-size: 1rem;" />
+                                <div class="invalid-feedback d-block" id="phoneError"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group form-group-textarea mb-md-0">
+                                <!-- Message input-->
+                                <label for="contactMessage" class="form-label" style="color: #2c3e50; font-weight: 600; font-size: 0.95rem;">Your Message <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="contactMessage" name="message" placeholder="Enter your message here..." rows="5" required style="padding: 14px 20px; border-radius: 12px; border: 2px solid #e0e6ed; font-size: 1rem;"></textarea>
+                                <div class="invalid-feedback d-block" id="messageError"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit success message-->
+                    <div class="alert alert-success d-none" id="submitSuccessMessage" role="alert">
+                        <h4 class="alert-heading">Success!</h4>
+                        <p>Your message has been sent successfully. We'll get back to you soon!</p>
+                    </div>
+                    
+                    <!-- Submit error message-->
+                    <div class="alert alert-danger d-none" id="submitErrorMessage" role="alert">
+                        <h4 class="alert-heading">Error!</h4>
+                        <p id="errorText">Error sending message. Please try again later.</p>
+                    </div>
+                    
+                    <!-- Submit Button-->
+                    <div class="text-center">
+                        <button class="btn btn-xl text-uppercase" id="submitButton" type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 18px 60px; border-radius: 50px; border: none; font-weight: 700; font-size: 1.1rem; box-shadow: 0 10px 30px rgba(102,126,234,0.4); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 40px rgba(102,126,234,0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(102,126,234,0.4)'">
+                            <span id="buttonText"><i class="fas fa-paper-plane me-2"></i>Send Message</span>
+                            <span id="buttonSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+        
+        <!-- Footer-->
+        <footer class="footer" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 60px 0 30px; color: white; position: relative; z-index: 10; clear: both;">
+            <div class="container">
+                <div class="row align-items-center mb-4">
+                    <div class="col-lg-4 text-lg-start mb-3 mb-lg-0">
+                        <h5 style="font-weight: 700; margin-bottom: 15px;"><i class="fas fa-store me-2"></i>Raju IT</h5>
+                        <p style="color: rgba(255,255,255,0.8); font-size: 0.95rem; margin: 0;">Copyright &copy; Raju It 2025</p>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-top: 5px;">Premium Fashion Store</p>
+                    </div>
+                    <div class="col-lg-4 my-3 my-lg-0 text-center">
+                        <h6 style="color: rgba(255,255,255,0.9); margin-bottom: 20px; font-weight: 600;">Follow Us</h6>
+                        <a class="btn btn-social mx-2" href="https://www.instagram.com/rajuit1396/?igsh=MWZlOHk4bWxrY3hwMg%3D%3D&fbclid=IwY2xjawOXwtFleHRuA2FlbQIxMABicmlkETFXaXRyMnR5aWF3eHB2SVl4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmKxgCF0yvOPwVkc5ovEt0JNh-K_DZ4egj27cYWVsba8m6bRIbTOszGrRkTA_aem_wyHdzWPSdl7DxeJ2So-lUw&brid=JbRWKsUzQoW71PD4MGNTnw" aria-label="Instagram" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; width: 45px; height: 45px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s ease; border: none; box-shadow: 0 4px 15px rgba(240,147,251,0.4);" onmouseover="this.style.transform='translateY(-5px) scale(1.1)'; this.style.boxShadow='0 8px 25px rgba(240,147,251,0.6)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(240,147,251,0.4)'"><i class="fab fa-instagram"></i></a>
+                        <a class="btn btn-social mx-2" href="https://www.facebook.com/profile.php?id=61584622701133" aria-label="Facebook" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; width: 45px; height: 45px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s ease; border: none; box-shadow: 0 4px 15px rgba(79,172,254,0.4);" onmouseover="this.style.transform='translateY(-5px) scale(1.1)'; this.style.boxShadow='0 8px 25px rgba(79,172,254,0.6)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(79,172,254,0.4)'"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <h6 style="color: rgba(255,255,255,0.9); margin-bottom: 15px; font-weight: 600;">Quick Links</h6>
+                        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                            <a class="text-decoration-none" href="privacy&policy.html" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: all 0.3s ease;" onmouseover="this.style.color='#ffc800'; this.style.paddingLeft='10px'" onmouseout="this.style.color='rgba(255,255,255,0.8)'; this.style.paddingLeft='0'"><i class="fas fa-chevron-right me-2" style="font-size: 0.7rem;"></i>Privacy Policy</a>
+                            <a class="text-decoration-none" href="terms&conditions.html" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: all 0.3s ease;" onmouseover="this.style.color='#ffc800'; this.style.paddingLeft='10px'" onmouseout="this.style.color='rgba(255,255,255,0.8)'; this.style.paddingLeft='0'"><i class="fas fa-chevron-right me-2" style="font-size: 0.7rem;"></i>Terms & Conditions</a>
+                            <a class="text-decoration-none" href="return&refund.html" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: all 0.3s ease;" onmouseover="this.style.color='#ffc800'; this.style.paddingLeft='10px'" onmouseout="this.style.color='rgba(255,255,255,0.8)'; this.style.paddingLeft='0'"><i class="fas fa-chevron-right me-2" style="font-size: 0.7rem;"></i>Return & Refund Policy</a>
+                            <a class="text-decoration-none" href="shippingpolicy.html" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: all 0.3s ease;" onmouseover="this.style.color='#ffc800'; this.style.paddingLeft='10px'" onmouseout="this.style.color='rgba(255,255,255,0.8)'; this.style.paddingLeft='0'"><i class="fas fa-chevron-right me-2" style="font-size: 0.7rem;"></i>Shipping Policy</a>
+                            <a class="text-decoration-none" href="disclaimer.html" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: all 0.3s ease;" onmouseover="this.style.color='#ffc800'; this.style.paddingLeft='10px'" onmouseout="this.style.color='rgba(255,255,255,0.8)'; this.style.paddingLeft='0'"><i class="fas fa-chevron-right me-2" style="font-size: 0.7rem;"></i>Disclaimer</a>
+                        </div>
+                    </div>
+                </div>
+                <hr style="border-color: rgba(255,255,255,0.2); margin: 30px 0 20px;">
+                <div class="text-center" style="color: rgba(255,255,255,0.7); font-size: 0.85rem;">
+                    <p style="margin: 0;">Made with <i class="fas fa-heart" style="color: #ff6b9d;"></i> by Raju IT Team | All Rights Reserved</p>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Login Modal -->
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content login-box">
+              <div class="modal-header border-0">
+                <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="loginForm">
+                  <div class="mb-3">
+                    <label for="loginEmail" class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" id="loginEmail" placeholder="Enter your email" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" id="loginPassword" placeholder="Enter your password" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100">Login</button>
+                  
+                  <div class="text-center my-3">
+                    <span class="text-muted">or</span>
+                  </div>
+                  
+                  <a href="https://rajuit.online/auth/google" class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center gap-2">
+                    <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                      <path fill="none" d="M0 0h48v48H0z"/>
+                    </svg>
+                    Continue with Google
+                  </a>
+                  
+                  <div class="mt-3 text-center">
+                    <a href="/forgot-password" class="small text-muted" id="forgotPasswordLink">Forgot password?</a><br>
+                    <a href="#" class="small text-muted" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">Don't have an account? Create account</a>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content login-box">
+              <div class="modal-header border-0">
+                <h5 class="modal-title" id="registerModalLabel">Create an account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="registerForm">
+                  <div class="mb-3">
+                    <label for="registerName" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" name="name" id="registerName" placeholder="Enter your full name" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="registerEmail" class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" id="registerEmail" placeholder="Enter your email" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="registerPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" id="registerPassword" placeholder="Enter your password" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" name="confirmpassword" id="registerConfirmPassword" placeholder="Confirm your password" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="registerPhone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" name="phone" id="registerPhone" placeholder="Enter your phone number" required>
+                  </div>
+                  <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                    <label class="form-check-label" for="agreeTerms">
+                      I agree to the <a href="privacy&policy.html" target="_blank" class="text-primary">Privacy Policy</a> and <a href="terms&conditions.html" target="_blank" class="text-primary">Terms & Conditions</a>
+                    </label>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100">Create account</button>
+                  <div class="text-center mt-3">
+                    <small>Already have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Login</a></small>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WhatsApp Chat Widget -->
+        <div class="whatsapp-widget" id="whatsappWidget" style="display: none;">
+            <div class="whatsapp-chat-box" id="whatsappChatBox" style="display: none;">
+                <div class="whatsapp-header">
+                    <img src="https://ui-avatars.com/api/?name=Raju+IT&background=25d366&color=fff" alt="Support" class="whatsapp-avatar">
+                    <div class="whatsapp-header-text">
+                        <h4>Raju IT Support</h4>
+                        <p>Typically replies instantly</p>
+                    </div>
+                    <button class="whatsapp-close" onclick="toggleWhatsAppChat()">×</button>
+                </div>
+                <div class="whatsapp-body">
+                    <div class="whatsapp-message">
+                        <p>Hi there! 👋<br>How can we help you?</p>
+                    </div>
+                </div>
+                <div class="whatsapp-footer">
+                    <input type="text" id="whatsappInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendWhatsAppMessage()">
+                    <button onclick="sendWhatsAppMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            <button class="whatsapp-float" onclick="toggleWhatsAppChat()">
+                <i class="fab fa-whatsapp whatsapp-icon"></i>
+            </button>
+        </div>
+
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="js/scripts.js"></script>
+
+        <style>
+            .whatsapp-widget {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+            }
+
+            .whatsapp-float {
+                width: 60px;
+                height: 60px;
+                background-color: #25d366;
+                color: #FFF;
+                border-radius: 50%;
+                border: none;
+                font-size: 30px;
+                box-shadow: 0 4px 20px rgba(37, 211, 102, 0.5);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                animation: pulse 2s infinite;
+            }
+            
+            .whatsapp-float::before {
+                content: '';
+                position: absolute;
+                top: -5px;
+                left: -5px;
+                right: -5px;
+                bottom: -5px;
+                border-radius: 50%;
+                border: 2px solid #25d366;
+                animation: ripple 2s infinite;
+            }
+            
+            .whatsapp-float::after {
+                content: 'Need Help?';
+                position: absolute;
+                top: 50%;
+                right: 75px;
+                transform: translateY(-50%);
+                background: #25d366;
+                color: white;
+                padding: 8px 15px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 600;
+                white-space: nowrap;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                animation: slideLabel 3s infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+            }
+            
+            @keyframes ripple {
+                0% {
+                    opacity: 1;
+                    transform: scale(0.8);
+                }
+                100% {
+                    opacity: 0;
+                    transform: scale(1.3);
+                }
+            }
+            
+            @keyframes slideLabel {
+                0%, 70% { opacity: 1; right: 75px; }
+                80%, 100% { opacity: 0; right: 85px; }
+            }
+
+            .whatsapp-float:hover {
+                background-color: #128c7e;
+                transform: scale(1.15);
+                box-shadow: 0 6px 25px rgba(37, 211, 102, 0.7);
+            }
+            
+            .whatsapp-float:hover::before {
+                animation: none;
+                opacity: 0;
+            }
+            
+            .whatsapp-float:hover::after {
+                animation: none;
+                opacity: 1;
+                right: 75px;
+            }
+
+            .whatsapp-chat-box {
+                position: absolute;
+                bottom: 80px;
+                right: 0;
+                width: 350px;
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                overflow: hidden;
+                animation: slideUp 0.3s ease;
+            }
+
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .whatsapp-header {
+                background: #075e54;
+                color: white;
+                padding: 15px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .whatsapp-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+            }
+
+            .whatsapp-header-text h4 {
+                margin: 0;
+                font-size: 16px;
+            }
+
+            .whatsapp-header-text p {
+                margin: 0;
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .whatsapp-close {
+                margin-left: auto;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 0;
+                width: 30px;
+                height: 30px;
+            }
+
+            .whatsapp-body {
+                padding: 20px;
+                background: #e5ddd5;
+                min-height: 200px;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+
+            .whatsapp-message {
+                background: white;
+                padding: 10px 15px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            }
+
+            .whatsapp-message p {
+                margin: 0;
+                font-size: 14px;
+                color: #333;
+            }
+
+            .whatsapp-footer {
+                background: white;
+                padding: 10px;
+                display: flex;
+                gap: 10px;
+                border-top: 1px solid #ddd;
+            }
+
+            .whatsapp-footer input {
+                flex: 1;
+                border: 1px solid #ddd;
+                border-radius: 20px;
+                padding: 8px 15px;
+                font-size: 14px;
+                outline: none;
+            }
+
+            .whatsapp-footer button {
+                background: #25d366;
+                border: none;
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s;
+            }
+
+            .whatsapp-footer button:hover {
+                background: #128c7e;
+            }
+
+            @media screen and (max-width: 767px) {
+                .whatsapp-chat-box {
+                    width: calc(100vw - 40px);
+                    right: 0;
+                }
+                
+                .whatsapp-float {
+                    width: 50px;
+                    height: 50px;
+                    font-size: 25px;
+                }
+            }
+        </style>
+
+        <script>
+console.log("🚀 Script loaded - starting initialization...");
+
+// Handle Google OAuth callback
+const urlParams = new URLSearchParams(window.location.search);
+const googleToken = urlParams.get('token');
+const isGoogleAuth = urlParams.get('googleAuth');
+
+if (googleToken && isGoogleAuth) {
+  console.log("✅ Google OAuth token received, storing...");
+  localStorage.setItem('token', googleToken);
+  
+  // Check for pending cart item
+  const pendingItem = localStorage.getItem('pendingCartItem');
+  
+  if (pendingItem) {
+    const item = JSON.parse(pendingItem);
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart.push(item);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.removeItem('pendingCartItem');
+  }
+  
+  // Remove query parameters from URL without reloading
+  window.history.replaceState({}, document.title, window.location.pathname);
+  console.log("✅ Google OAuth complete, initializing auth...");
+}
+
+// Update badge counts function - defined early for use everywhere
+function updateBadgeCounts() {
+  const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+  const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+  
+  const cartCount = document.getElementById('cartCount');
+  const wishlistCount = document.getElementById('wishlistCount');
+  
+  if (cartCount) {
+    cartCount.textContent = cartItems.length;
+  }
+  if (wishlistCount) {
+    wishlistCount.textContent = wishlistItems.length;
+  }
+}
+
+(async function initAuth() {
+  const authContainer = document.getElementById("authContainer");
+  const navLogin = document.getElementById("navLoginBtn");
+  if (!navLogin || !authContainer) return;
+
+  function showLogin() {
+    localStorage.removeItem("token");
+    navLogin.innerText = "Login";
+    navLogin.setAttribute("data-bs-toggle", "modal");
+    navLogin.setAttribute("data-bs-target", "#loginModal");
+    navLogin.removeAttribute("href");
+    // Remove logout button if exists
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) logoutBtn.remove();
+  }
+
+  function showLogout(userName) {
+    console.log("🔐 showLogout called for user:", userName);
+    navLogin.innerText = userName;
+    navLogin.removeAttribute("data-bs-toggle");
+    navLogin.removeAttribute("data-bs-target");
+    navLogin.href = "/dashboard"; // Direct href assignment
+    navLogin.style.cursor = "pointer";
+    
+    console.log("✅ Username click handler set, href:", navLogin.href);
+
+    // ✅ Add Logout button
+    let logoutBtn = document.getElementById("logoutBtn");
+    if (!logoutBtn) {
+      logoutBtn = document.createElement("li");
+      logoutBtn.className = "nav-item";
+      logoutBtn.id = "logoutBtn";
+      logoutBtn.innerHTML = '<a class="nav-link" href="/logout">Logout</a>';
+      authContainer.parentElement.appendChild(logoutBtn);
+    }
+    
+    // ✅ Show cart and wishlist after login
+    const cartContainer = document.getElementById("cartContainer");
+    const wishlistContainer = document.getElementById("wishlistContainer");
+    console.log("🛒 Cart container:", cartContainer, "Wishlist container:", wishlistContainer);
+    if (cartContainer) {
+      cartContainer.removeAttribute('style');
+      const cartDisplay = window.getComputedStyle(cartContainer).display;
+      console.log("✅ Cart container style removed, computed display:", cartDisplay);
+    }
+    if (wishlistContainer) {
+      wishlistContainer.removeAttribute('style');
+      const wishlistDisplay = window.getComputedStyle(wishlistContainer).display;
+      console.log("✅ Wishlist container style removed, computed display:", wishlistDisplay);
+    }
+    
+    // ✅ Update cart and wishlist counts
+    updateBadgeCounts();
+    
+    // ✅ Re-attach cart and wishlist click handlers
+    attachCartWishlistHandlers();
+    
+    // ✅ Show WhatsApp widget after login
+    const whatsappWidget = document.getElementById("whatsappWidget");
+    console.log("📱 WhatsApp widget element:", whatsappWidget);
+    if (whatsappWidget) {
+      whatsappWidget.style.display = "block";
+      console.log("✅ WhatsApp widget displayed");
+    } else {
+      console.error("❌ WhatsApp widget not found!");
+    }
+    
+    console.log("✅ showLogout completed");
+  }
+
+  // Cart and Wishlist Dropdown Functions
+  function toggleCartDropdown() {
+    const dropdown = document.getElementById('cartDropdown');
+    const wishlistDropdown = document.getElementById('wishlistDropdown');
+    
+    // Close wishlist if open
+    if (wishlistDropdown) {
+      wishlistDropdown.classList.remove('show');
+    }
+    
+    if (dropdown) {
+      dropdown.classList.toggle('show');
+      if (dropdown.classList.contains('show')) {
+        renderCartDropdown();
+      }
+    }
+  }
+
+  function toggleWishlistDropdown() {
+    const dropdown = document.getElementById('wishlistDropdown');
+    const cartDropdown = document.getElementById('cartDropdown');
+    
+    // Close cart if open
+    if (cartDropdown) {
+      cartDropdown.classList.remove('show');
+    }
+    
+    if (dropdown) {
+      dropdown.classList.toggle('show');
+      if (dropdown.classList.contains('show')) {
+        renderWishlistDropdown();
+      }
+    }
+  }
+
+  function renderCartDropdown() {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const dropdown = document.getElementById('cartDropdown');
+    
+    if (!dropdown) return;
+    
+    if (cartItems.length === 0) {
+      dropdown.innerHTML = `
+        <div class="empty-message">
+          <i class="fas fa-shopping-cart"></i>
+          <p>Your cart is empty</p>
+        </div>
+      `;
+      return;
+    }
+    
+    const total = cartItems.reduce((sum, item) => {
+      const price = parseFloat(item.price) || 0;
+      const quantity = parseInt(item.quantity) || 1;
+      return sum + (price * quantity);
+    }, 0);
+    
+    dropdown.innerHTML = `
+      <div class="dropdown-header">
+        Shopping Cart (${cartItems.length} items)
+      </div>
+      <div class="dropdown-items">
+        ${cartItems.map((item, index) => `
+          <div class="dropdown-item-card">
+            <img src="${item.image || '/assets/img/products/aaa777.jpg'}" alt="${item.name}" class="item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
+            <div class="item-details">
+              <div class="item-name">${item.name}</div>
+              <div class="item-price">৳${item.price}</div>
+              <div class="item-quantity">Quantity: ${item.quantity}</div>
+            </div>
+            <button class="item-remove" onclick="removeFromCart(${index})" title="Remove">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `).join('')}
+      </div>
+      <div class="dropdown-footer">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <strong style="color: #333;">Total: ৳${total.toFixed(2)}</strong>
+          <button class="btn btn-primary btn-sm" onclick="window.location.href='checkout.html'">Checkout</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderWishlistDropdown() {
+    let wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    
+    // Fix legacy data: ensure all items are strings
+    wishlistItems = wishlistItems.filter(item => typeof item === 'string');
+    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+    
+    const dropdown = document.getElementById('wishlistDropdown');
+    
+    if (!dropdown) return;
+    
+    if (wishlistItems.length === 0) {
+      dropdown.innerHTML = `
+        <div class="empty-message">
+          <i class="fas fa-heart"></i>
+          <p>Your wishlist is empty</p>
+        </div>
+      `;
+      return;
+    }
+    
+    dropdown.innerHTML = `
+      <div class="dropdown-header">
+        Wishlist (${wishlistItems.length} items)
+      </div>
+      <div class="dropdown-items">
+        ${wishlistItems.map((item, index) => {
+          const itemName = typeof item === 'object' ? item.name : item;
+          const itemImage = typeof item === 'object' ? item.image : '/assets/img/products/aaa777.jpg';
+          const itemPrice = typeof item === 'object' ? item.price : 0;
+          const itemId = typeof item === 'object' ? item.id : index;
+          
+          return `
+          <div class="dropdown-item-card">
+            <img src="${itemImage}" alt="${itemName}" class="item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
+            <div class="item-details">
+              <div class="item-name">${itemName}</div>
+              ${itemPrice > 0 ? `<div class="item-price">৳${itemPrice}</div>` : ''}
+              <button class="btn btn-sm btn-success mt-1" onclick="addToCartFromWishlist(${index})" style="font-size: 0.75rem; padding: 2px 8px;">
+                <i class="fas fa-cart-plus me-1"></i>Add to Cart
+              </button>
+            </div>
+            <button class="item-remove" onclick="removeFromWishlist(${index})" title="Remove">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `}).join('')}
+      </div>
+      <div class="dropdown-footer">
+        <button class="btn btn-outline-primary btn-sm w-100" onclick="window.location.href='products.html'">Continue Shopping</button>
+      </div>
+    `;
+  }
+  
+  function addToCartFromWishlist(wishlistIndex) {
+    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    const item = wishlistItems[wishlistIndex];
+    
+    if (!item) return;
+    
+    const itemName = typeof item === 'object' ? item.name : item;
+    const itemPrice = typeof item === 'object' ? item.price : 0;
+    const itemId = typeof item === 'object' ? item.id : wishlistIndex;
+    const itemImage = typeof item === 'object' ? item.image : '/assets/img/products/aaa777.jpg';
+    
+    // Add to cart
+    let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const existingItem = cartItems.find(cartItem => cartItem.id === itemId);
+    
+    if (existingItem) {
+      existingItem.quantity++;
+      alert(`${itemName} quantity increased in cart!`);
+    } else {
+      cartItems.push({
+        id: itemId,
+        name: itemName,
+        price: itemPrice,
+        quantity: 1,
+        image: itemImage
+      });
+      alert(`${itemName} added to cart!`);
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+    updateBadgeCounts();
+    renderCartDropdown();
+  }
+
+  function removeFromCart(index) {
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    cartItems.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+    updateBadgeCounts();
+    renderCartDropdown();
+  }
+
+  function removeFromWishlist(index) {
+    const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+    wishlistItems.splice(index, 1);
+    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+    updateBadgeCounts();
+    renderWishlistDropdown();
+  }
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', function(e) {
+    const cartBtn = document.getElementById('cartBtn');
+    const wishlistBtn = document.getElementById('wishlistBtn');
+    const cartDropdown = document.getElementById('cartDropdown');
+    const wishlistDropdown = document.getElementById('wishlistDropdown');
+    
+    if (cartBtn && !cartBtn.contains(e.target) && cartDropdown && !cartDropdown.contains(e.target)) {
+      cartDropdown.classList.remove('show');
+    }
+    
+    if (wishlistBtn && !wishlistBtn.contains(e.target) && wishlistDropdown && !wishlistDropdown.contains(e.target)) {
+      wishlistDropdown.classList.remove('show');
+    }
+  });
+
+  // Attach click events to cart and wishlist buttons
+  function attachCartWishlistHandlers() {
+    const cartBtn = document.getElementById('cartBtn');
+    const wishlistBtn = document.getElementById('wishlistBtn');
+    
+    if (cartBtn) {
+      // Remove existing listeners by cloning
+      const newCartBtn = cartBtn.cloneNode(true);
+      cartBtn.parentNode.replaceChild(newCartBtn, cartBtn);
+      
+      newCartBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log("🛒 Cart button clicked!");
+        toggleCartDropdown();
+      });
+      console.log("✅ Cart button click handler attached");
+    }
+    
+    if (wishlistBtn) {
+      // Remove existing listeners by cloning
+      const newWishlistBtn = wishlistBtn.cloneNode(true);
+      wishlistBtn.parentNode.replaceChild(newWishlistBtn, wishlistBtn);
+      
+      newWishlistBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log("❤️ Wishlist button clicked!");
+        toggleWishlistDropdown();
+      });
+      console.log("✅ Wishlist button click handler attached");
+    }
+  }
+  
+  window.addEventListener('DOMContentLoaded', () => {
+    attachCartWishlistHandlers();
+  });
+
+  // WhatsApp Chat Functions - Make them global
+  window.toggleWhatsAppChat = function() {
+    console.log("📱 toggleWhatsAppChat called");
+    const chatBox = document.getElementById('whatsappChatBox');
+    console.log("📱 Chat box element:", chatBox);
+    if (chatBox.style.display === 'none' || chatBox.style.display === '') {
+      chatBox.style.display = 'block';
+      console.log("✅ Chat box opened");
+    } else {
+      chatBox.style.display = 'none';
+      console.log("✅ Chat box closed");
+    }
+  }
+
+  window.sendWhatsAppMessage = function() {
+    console.log("📱 sendWhatsAppMessage called");
+    const input = document.getElementById('whatsappInput');
+    const message = input.value.trim();
+    
+    if (message) {
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
+      console.log("📱 Opening WhatsApp URL:", whatsappUrl);
+      window.open(whatsappUrl, '_blank');
+      input.value = '';
+      
+      // Close chat box after sending
+      setTimeout(() => {
+        document.getElementById('whatsappChatBox').style.display = 'none';
+      }, 500);
+    }
+  }
+
+  // Try server-side session first
+  try {
+    const res = await fetch("/check-login", { credentials: "include" });
+    if (res.ok) {
+      const data = await res.json().catch(()=>null);
+      if (data && data.loggedIn) {
+        const name = data.user?.name || data.user?.email || "User";
+        showLogout(name);
+        return;
+      }
+    }
+  } catch (err) {
+    console.debug("check-login failed", err);
+  }
+
+  // Fallback: validate local token
+  const token = localStorage.getItem("token");
+  console.log("🔑 Token from localStorage:", token ? "exists" : "missing");
+  if (!token) { showLogin(); return; }
+
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) throw new Error("Invalid token format");
+    const decoded = JSON.parse(atob(parts[1]));
+    console.log("📝 Decoded token:", decoded);
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Token expired");
+
+    console.log("🌐 Fetching /dashboard with token...");
+    const apiRes = await fetch("/dashboard", {
+      method: "GET",
+      headers: { "Authorization": `Bearer ${token}` },
+      credentials: "include"
+    });
+
+    console.log("📡 Dashboard response status:", apiRes.status);
+    if (apiRes.ok) {
+      const apiData = await apiRes.json().catch(()=>null);
+      console.log("📦 Dashboard data:", apiData);
+      const name = apiData?.user?.name || decoded.name || decoded.email || "User";
+      showLogout(name);
+      return;
+    } else {
+      console.warn("⚠️ Dashboard request failed with status:", apiRes.status);
+      showLogin();
+    }
+  } catch (err) {
+    console.log("❌ Token invalid:", err.message);
+    showLogin();
+  }
+})();
+
+document.addEventListener("click", function (e) {
+  if (e.target.getAttribute("href") === "/logout") {
+    localStorage.removeItem("token");
+  }
+});
+
+// ✅ Login
+document.getElementById("loginForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+
+  try {
+    const res = await fetch("https://rajuit.online/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ email, password }),
+      credentials: "include"
+    });
+    
+    console.log("Login response status:", res.status);
+    const data = await res.json().catch((e)=>{
+      console.error("Failed to parse response:", e);
+      return null;
+    });
+    console.log("Login response data:", data);
+
+    if (res.ok && data?.token) {
+      // ✅ Store token immediately
+      localStorage.setItem("token", data.token);
+      
+      // ✅ Check for pending cart item
+      const pendingItem = localStorage.getItem('pendingCartItem');
+      
+      // ✅ Close modal and wait longer
+      const modalEl = document.getElementById('loginModal');
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+      
+      // ✅ Handle pending cart item or redirect
+      if (pendingItem) {
+        // Add the pending item to cart
+        const item = JSON.parse(pendingItem);
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart.push(item);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        localStorage.removeItem('pendingCartItem');
+        updateBadgeCounts();
+        
+        // Show success message and stay on homepage
+        setTimeout(() => {
+          alert(`✅ ${item.name} has been added to your cart!`);
+          // Refresh the page to update UI
+          window.location.reload();
+        }, 300);
+      } else {
+        // Normal redirect to dashboard
+        setTimeout(() => {
+          console.log("🔄 Redirecting to dashboard...");
+          window.location.href = "/dashboard";
+        }, 600);
+      }
+    } else {
+      // Check if verification is required
+      if (data?.requiresVerification) {
+        if (data?.emailSent) {
+          alert("📧 " + (data?.message || "Verification email sent! Please check your inbox and click the verification link to login."));
+        } else {
+          alert("⚠️ " + (data?.message || "Please verify your email before logging in. Check your inbox for the verification link."));
+        }
+      } else {
+        alert(data?.message || "Login failed");
+      }
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Network error during login. Please check if the server is running. Error: " + err.message);
+  }
+});
+
+// ✅ Register Form Handler
+document.getElementById("registerForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  const data = {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+    confirmpassword: formData.get('confirmpassword'),
+    phone: formData.get('phone')
+  };
+
+  console.log("📝 Registering user:", data.email);
+
+  // Validate passwords match
+  if (data.password !== data.confirmpassword) {
+    alert("Passwords do not match!");
+    return;
+  }
+
+  try {
+    const res = await fetch("/register", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(data),
+      credentials: "include"
+    });
+    
+    const result = await res.json().catch(()=>null);
+
+    if (res.ok) {
+      // Show detailed verification message
+      const userEmail = data.email;
+      const message = result?.emailSent 
+        ? `Registration successful! ✅\n\nA verification email has been sent to:\n${userEmail}\n\nPlease check your inbox and click the verification link to activate your account.\n\n📧 Don't forget to check your spam folder if you don't see it!`
+        : `Registration successful! ✅\n\nHowever, there was an issue sending the verification email.\nPlease contact support or try using the "Resend Verification" option.`;
+      
+      alert(message);
+      
+      // Close register modal
+      const registerModalEl = document.getElementById('registerModal');
+      const registerModal = bootstrap.Modal.getInstance(registerModalEl);
+      if (registerModal) registerModal.hide();
+      
+      // Reset form
+      e.target.reset();
+      
+      // Don't auto-open login modal since they need to verify email first
+      // User can click login when ready after verification
+    } else {
+      alert(result?.message || "Registration failed");
+    }
+  } catch (err) {
+    console.error("Register error:", err);
+    alert("Network error during registration");
+  }
+});
+
+// Forgot password link now goes to dedicated page (forgot-password.html)
+
+// ✅ Contact Form Handler
+document.getElementById('contactForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const submitBtn = document.getElementById('submitButton');
+  const buttonText = document.getElementById('buttonText');
+  const buttonSpinner = document.getElementById('buttonSpinner');
+  const successMsg = document.getElementById('submitSuccessMessage');
+  const errorMsg = document.getElementById('submitErrorMessage');
+  const errorText = document.getElementById('errorText');
+  
+  // Clear previous messages
+  successMsg.classList.add('d-none');
+  errorMsg.classList.add('d-none');
+  
+  // Show loading state
+  submitBtn.disabled = true;
+  buttonText.textContent = 'Sending...';
+  buttonSpinner.classList.remove('d-none');
+  
+  // Get form data
+  const formData = new FormData(e.target);
+  const data = {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    phone: formData.get('phone'),
+    message: formData.get('message')
+  };
+  
+  try {
+    const response = await fetch('/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok && result.success) {
+      // Show success message
+      successMsg.classList.remove('d-none');
+      e.target.reset(); // Clear form
+      
+      // Scroll to success message
+      successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      // Show error message
+      errorText.textContent = result.message || 'Error sending message. Please try again later.';
+      errorMsg.classList.remove('d-none');
+      errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  } catch (error) {
+    console.error('Contact form error:', error);
+    errorText.textContent = 'Network error. Please check your connection and try again.';
+    errorMsg.classList.remove('d-none');
+    errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } finally {
+    // Reset button state
+    submitBtn.disabled = false;
+    buttonText.textContent = 'Send Message';
+    buttonSpinner.classList.add('d-none');
+  }
+});
+
+// ============= NEW ARRIVALS CAROUSEL =============
+let currentSlide = 0;
+let newArrivalProducts = [];
+let autoSlideInterval;
+
+// Fetch and display new arrivals
+async function loadNewArrivals() {
+  try {
+    const response = await fetch('https://rajuit.online/api/products');
+    const products = await response.json();
+    
+    // Get the latest 12 products
+    newArrivalProducts = products.slice(0, 12);
+    
+    displayNewArrivals();
+    setupCarouselIndicators();
+    startAutoSlide();
+  } catch (error) {
+    console.error('Error loading new arrivals:', error);
+    document.getElementById('newArrivalsTrack').innerHTML = `
+      <div class="text-center w-100 p-5">
+        <p class="text-white">Unable to load products. Please try again later.</p>
+      </div>
+    `;
+  }
+}
+
+function displayNewArrivals() {
+  const track = document.getElementById('newArrivalsTrack');
+  
+  if (newArrivalProducts.length === 0) {
+    track.innerHTML = `
+      <div class="text-center w-100 p-5">
+        <p class="text-white">No new arrivals at the moment. Check back soon!</p>
+      </div>
+    `;
+    return;
+  }
+  
+  track.innerHTML = newArrivalProducts.map(product => `
+    <div class="arrival-card" onclick="window.location.href='products.html'">
+      <span class="new-badge"><i class="fas fa-sparkles me-1"></i>NEW</span>
+      <button class="wishlist-btn" onclick="event.stopPropagation(); addToWishlistFromCarousel(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${product.image_url}')" 
+              id="wishlist-${product.id}">
+        <i class="far fa-heart"></i>
+      </button>
+      <img src="${product.image_url}" alt="${product.name}" onerror="this.src='/assets/img/products/aaa777.jpg'">
+      <div class="card-body">
+        <div class="product-name">${product.name}</div>
+        <div class="product-price">৳${parseFloat(product.price).toFixed(2)}</div>
+        <button class="btn btn-add-cart" onclick="event.stopPropagation(); addToCartFromCarousel(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${product.image_url}')">
+          <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+        </button>
+      </div>
+    </div>
+  `).join('');
+  
+  // Check wishlist status for all products
+  checkWishlistStatus();
+}
+
+function checkWishlistStatus() {
+  const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+  newArrivalProducts.forEach(product => {
+    const isInWishlist = wishlist.some(item => {
+      const itemId = typeof item === 'object' ? item.id : item;
+      return itemId == product.id;
+    });
+    
+    const btn = document.getElementById(`wishlist-${product.id}`);
+    if (btn && isInWishlist) {
+      btn.classList.add('active');
+      btn.innerHTML = '<i class="fas fa-heart"></i>';
+    }
+  });
+}
+
+function addToCartFromCarousel(productId, productName, price, imageUrl) {
+  // Check if user is logged in
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    // Store product details to add after login
+    localStorage.setItem('pendingCartItem', JSON.stringify({
+      id: productId,
+      name: productName,
+      price: price,
+      image: imageUrl
+    }));
+    
+    // Show alert and open login modal
+    alert('Please login first to add items to cart');
+    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+    loginModal.show();
+    return;
+  }
+  
+  const cart = JSON.parse(localStorage.getItem('cart')) || [];
+  
+  // Check if product already exists
+  const existingIndex = cart.findIndex(item => {
+    const itemId = typeof item === 'object' ? item.id : item;
+    return itemId == productId;
+  });
+  
+  if (existingIndex > -1) {
+    alert('This product is already in your cart!');
+    return;
+  }
+  
+  // Add product with full details
+  cart.push({
+    id: productId,
+    name: productName,
+    price: price,
+    image: imageUrl
+  });
+  
+  localStorage.setItem('cart', JSON.stringify(cart));
+  updateBadgeCounts();
+  
+  // Show success message
+  const btn = event.target.closest('.btn-add-cart');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-check me-2"></i>Added!';
+  btn.style.background = '#10ac84';
+  
+  setTimeout(() => {
+    btn.innerHTML = originalText;
+    btn.style.background = '';
+  }, 2000);
+}
+
+function addToWishlistFromCarousel(productId, productName, price, imageUrl) {
+  const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+  
+  // Check if product already exists
+  const existingIndex = wishlist.findIndex(item => {
+    const itemId = typeof item === 'object' ? item.id : item;
+    return itemId == productId;
+  });
+  
+  const btn = document.getElementById(`wishlist-${productId}`);
+  
+  if (existingIndex > -1) {
+    // Remove from wishlist
+    wishlist.splice(existingIndex, 1);
+    btn.classList.remove('active');
+    btn.innerHTML = '<i class="far fa-heart"></i>';
+  } else {
+    // Add to wishlist
+    wishlist.push({
+      id: productId,
+      name: productName,
+      price: price,
+      image: imageUrl
+    });
+    btn.classList.add('active');
+    btn.innerHTML = '<i class="fas fa-heart"></i>';
+  }
+  
+  localStorage.setItem('wishlist', JSON.stringify(wishlist));
+  updateBadgeCounts();
+}
+
+function setupCarouselIndicators() {
+  const indicators = document.getElementById('carouselIndicators');
+  const totalSlides = Math.ceil(newArrivalProducts.length / 3);
+  
+  indicators.innerHTML = Array.from({length: totalSlides}, (_, i) => 
+    `<button class="indicator-dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></button>`
+  ).join('');
+}
+
+function slideProducts(direction) {
+  const track = document.getElementById('newArrivalsTrack');
+  const cards = track.getElementsByClassName('arrival-card');
+  const totalSlides = Math.ceil(cards.length / 3);
+  
+  currentSlide += direction;
+  
+  if (currentSlide < 0) {
+    currentSlide = totalSlides - 1;
+  } else if (currentSlide >= totalSlides) {
+    currentSlide = 0;
+  }
+  
+  updateCarouselPosition();
+  updateIndicators();
+  resetAutoSlide();
+}
+
+function goToSlide(index) {
+  currentSlide = index;
+  updateCarouselPosition();
+  updateIndicators();
+  resetAutoSlide();
+}
+
+function updateCarouselPosition() {
+  const track = document.getElementById('newArrivalsTrack');
+  const slideWidth = 100;
+  track.style.transform = `translateX(-${currentSlide * slideWidth}%)`;
+}
+
+function updateIndicators() {
+  const dots = document.querySelectorAll('.indicator-dot');
+  dots.forEach((dot, index) => {
+    dot.classList.toggle('active', index === currentSlide);
+  });
+}
+
+function startAutoSlide() {
+  autoSlideInterval = setInterval(() => {
+    slideProducts(1);
+  }, 4000); // Slide every 4 seconds
+}
+
+function resetAutoSlide() {
+  clearInterval(autoSlideInterval);
+  startAutoSlide();
+}
+
+// Pause auto-slide on hover
+document.addEventListener('DOMContentLoaded', () => {
+  const carousel = document.querySelector('.new-arrivals-carousel');
+  if (carousel) {
+    carousel.addEventListener('mouseenter', () => {
+      clearInterval(autoSlideInterval);
+    });
+    
+    carousel.addEventListener('mouseleave', () => {
+      startAutoSlide();
+    });
+  }
+  
+  // Load new arrivals
+  loadNewArrivals();
+});
+
+        </script>
+    </body>
+</html>
+

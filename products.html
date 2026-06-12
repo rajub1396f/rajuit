@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <title>Products - Raju IT | Ladies & Gents Fashion Collection</title>
+        <meta name="description" content="Browse our exclusive collection of trendy fashion for ladies and gents. Quality clothing, latest styles, competitive prices. Shop female and male collections online." />
+        <meta name="keywords" content="products, fashion collection, ladies fashion, gents fashion, women clothing, men clothing, online shopping Saudi Arabia, Raju IT products" />
+        <meta name="author" content="Raju IT" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://rajuit.online/products" />
+        
+        <!-- Open Graph Meta Tags -->
+        <meta property="og:title" content="Products - Raju IT Fashion Collection" />
+        <meta property="og:description" content="Browse our exclusive collection of trendy fashion for ladies and gents" />
+        <meta property="og:url" content="https://rajuit.online/products" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://rajuit.online/assets/img/products/aaa777.jpg" />
+        
+        <!-- Schema.org Product Catalog -->
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "Raju IT Product Collection",
+          "description": "Fashion collection for ladies and gents",
+          "url": "https://rajuit.online/products",
+          "provider": {
+            "@type": "Store",
+            "name": "Raju IT"
+          }
+        }
+        </script>
+        
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PRR4JTPJK9"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-PRR4JTPJK9');
+        </script>
+        
+        <link href="css/styles.css" rel="stylesheet" />
+        <link href="css/login.css" rel="stylesheet" />
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <style>
+            /* Navbar styling to match dashboard */
+            #mainNav {
+                background-color: #212529 !important;
+            }
+            
+            #mainNav .navbar-nav .nav-item .nav-link {
+                color: #fff !important;
+            }
+            
+            #mainNav .navbar-nav .nav-item .nav-link:hover,
+            #mainNav .navbar-nav .nav-item .nav-link.active {
+                color: #ffc800 !important;
+            }
+            
+            .sub-navbar {
+                background-color: #343a40;
+                padding: 15px 0;
+                margin-top: 90px;
+                position: sticky;
+                top: 90px;
+                z-index: 999;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            
+            .sub-navbar .nav-pills {
+                justify-content: center;
+            }
+            
+            .sub-navbar .nav-link {
+                color: #fff;
+                padding: 10px 30px;
+                margin: 0 10px;
+                border-radius: 25px;
+                font-weight: 600;
+                text-transform: uppercase;
+                transition: all 0.3s;
+            }
+            
+            .sub-navbar .nav-link:hover {
+                background-color: #ffc800;
+                color: #212529;
+            }
+            
+            .sub-navbar .nav-link.active {
+                background-color: #ffc800;
+                color: #212529;
+            }
+            
+            .products-section {
+                padding: 50px 0;
+                min-height: 60vh;
+            }
+            
+            .product-card {
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                height: 100%;
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid #e8e8e8;
+                background: white;
+                position: relative;
+            }
+            
+            .product-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+                border-color: #667eea;
+            }
+            
+            .product-card .product-image-wrapper {
+                position: relative;
+                overflow: hidden;
+                background: #f8f9fa;
+                cursor: zoom-in;
+                height: 280px;
+            }
+            
+            .product-card .product-image-wrapper img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s ease;
+            }
+            
+            .product-card .card-img-top {
+                height: 280px;
+                object-fit: cover;
+                background: #f8f9fa;
+                transition: transform 0.3s ease;
+                width: 100%;
+            }
+            
+            .product-card:hover .card-img-top {
+                transform: scale(1.05);
+            }
+            
+            /* Image Zoom Modal */
+            .image-zoom-modal {
+                display: none;
+                position: fixed;
+                z-index: 9999;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.95);
+                animation: fadeIn 0.3s ease;
+                overflow: hidden;
+                touch-action: none;
+            }
+            
+            .image-zoom-modal.active {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .zoom-container {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                cursor: grab;
+                position: relative;
+            }
+            
+            .zoom-container:active {
+                cursor: grabbing;
+            }
+            
+            .zoom-container img {
+                max-width: 90%;
+                max-height: 90vh;
+                object-fit: contain;
+                animation: zoomIn 0.3s ease;
+                transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                transform-origin: center center;
+                user-select: none;
+                -webkit-user-select: none;
+                -webkit-user-drag: none;
+                position: relative;
+            }
+            
+            .zoom-controls {
+                position: fixed;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(255, 255, 255, 0.95);
+                padding: 12px 20px;
+                border-radius: 50px;
+                display: flex;
+                gap: 15px;
+                align-items: center;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                z-index: 10001;
+            }
+            
+            .zoom-btn {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border: none;
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.2s;
+                font-size: 18px;
+            }
+            
+            .zoom-btn:hover {
+                transform: scale(1.1);
+            }
+            
+            .zoom-btn:active {
+                transform: scale(0.95);
+            }
+            
+            .zoom-level {
+                font-weight: 600;
+                color: #333;
+                min-width: 60px;
+                text-align: center;
+                font-size: 14px;
+            }
+            
+            /* Instagram Video Link */
+            .product-video-link {
+                text-align: center;
+                margin: 12px 0 16px 0;
+            }
+            
+            .instagram-video-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 8px 16px;
+                background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 8px rgba(225, 48, 108, 0.3);
+                max-width: 100%;
+                text-align: center;
+            }
+            
+            .instagram-video-btn:hover {
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(225, 48, 108, 0.5);
+            }
+            
+            .instagram-video-btn i {
+                font-size: 14px;
+            }
+            
+            /* Ensure proper card body spacing */
+            .product-card .card-body {
+                display: flex;
+                flex-direction: column;
+                height: auto;
+                min-height: 200px;
+            }
+            
+            .product-card .product-price-section {
+                margin-top: auto;
+            }
+            
+            @media (max-width: 768px) {
+                .zoom-controls {
+                    bottom: 20px;
+                    padding: 10px 16px;
+                    gap: 12px;
+                }
+                
+                .zoom-btn {
+                    width: 36px;
+                    height: 36px;
+                    font-size: 16px;
+                }
+                
+                .zoom-container img {
+                    max-width: 95%;
+                    max-height: 85vh;
+                }
+            }
+            
+            .image-zoom-close {
+                position: absolute;
+                top: 20px;
+                right: 30px;
+                color: white;
+                font-size: 40px;
+                font-weight: bold;
+                cursor: pointer;
+                z-index: 10000;
+                transition: transform 0.2s;
+            }
+            
+            .image-zoom-close:hover {
+                transform: scale(1.2);
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes zoomIn {
+                from { transform: scale(0.8); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+            
+            .product-card .product-badge {
+                position: absolute;
+                top: 15px;
+                left: 15px;
+                background: rgba(255, 255, 255, 0.95);
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 600;
+                color: #667eea;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            
+            .product-card .stock-badge {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            
+            .product-card .stock-badge.in-stock {
+                background: rgba(46, 204, 113, 0.95);
+                color: white;
+            }
+            
+            .product-card .stock-badge.out-of-stock {
+                background: rgba(231, 76, 60, 0.95);
+                color: white;
+            }
+            
+            .product-card .card-body {
+                padding: 18px;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .product-card .card-title {
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 6px;
+                color: #2c3e50;
+                line-height: 1.3;
+                min-height: auto;
+                display: -webkit-box;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            
+            .product-card .product-description {
+                font-size: 13px;
+                line-height: 1.4;
+                color: #95a5a6;
+                margin-bottom: 10px;
+                min-height: auto;
+                max-height: 36px;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .product-card .product-price-section {
+                margin: 10px 0 14px 0;
+                padding: 0;
+            }
+            
+            .product-card .product-price {
+                font-size: 22px;
+                font-weight: 700;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin: 0;
+                letter-spacing: -0.5px;
+            }
+            
+            .product-card .product-actions {
+                display: flex;
+                gap: 10px;
+                margin-top: auto;
+            }
+            
+            .product-card .btn {
+                border-radius: 10px;
+                font-weight: 600;
+                padding: 12px 20px;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                border: none;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .product-card .btn-add-cart {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                flex: 1;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            }
+            
+            .product-card .btn-add-cart:hover:not(:disabled) {
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+                transform: translateY(-2px);
+            }
+            
+            .product-card .btn-add-cart:disabled {
+                background: #bdc3c7;
+                cursor: not-allowed;
+                box-shadow: none;
+            }
+            
+            .product-card .btn-wishlist {
+                background: white;
+                border: 2px solid #e74c3c !important;
+                color: #e74c3c;
+                padding: 12px 16px;
+                box-shadow: 0 4px 15px rgba(231, 76, 60, 0.2);
+            }
+            
+            .product-card .btn-wishlist:hover {
+                background: #e74c3c;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+            }
+            
+            .product-card .btn i {
+                font-size: 16px;
+            }
+            
+            @media (max-width: 768px) {
+                .product-card .card-img-top {
+                    height: 250px;
+                    object-fit: cover;
+                }
+                
+                .product-card .product-image-wrapper {
+                    height: 250px;
+                }
+                
+                .instagram-video-btn {
+                    font-size: 11px;
+                    padding: 6px 12px;
+                }
+                
+                .product-card .card-body {
+                    padding: 18px;
+                }
+                
+                .product-card .card-title {
+                    font-size: 17px;
+                    min-height: auto;
+                }
+                
+                .product-card .product-description {
+                    min-height: auto;
+                    max-height: 42px;
+                }
+                
+                .product-card .product-price {
+                    font-size: 24px;
+                }
+            }
+            
+            .collection-section {
+                display: none;
+            }
+            
+            .collection-section.active {
+                display: block;
+            }
+            
+            /* Footer styling to match dashboard */
+            .footer {
+                background-color: #212529;
+                margin-top: 80px;
+            }
+            
+            .footer .text-lg-start,
+            .footer .text-lg-end a {
+                color: #fff !important;
+            }
+            
+            @media (max-width: 768px) {
+                .sub-navbar {
+                    margin-top: 70px;
+                    top: 70px;
+                }
+                
+                .sub-navbar .nav-link {
+                    padding: 8px 20px;
+                    margin: 5px;
+                    font-size: 14px;
+                }
+            }
+            
+            /* Cart and Wishlist Dropdown Styling */
+            .cart-dropdown, .wishlist-dropdown {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                width: 350px;
+                max-height: 400px;
+                overflow-y: auto;
+                z-index: 9999;
+                display: none;
+                margin-top: 10px;
+            }
+            
+            .cart-dropdown.show, .wishlist-dropdown.show {
+                display: block;
+            }
+            
+            .dropdown-header {
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+                font-weight: bold;
+                background: #f8f9fa;
+                border-radius: 8px 8px 0 0;
+                color: #333;
+            }
+            
+            .dropdown-items {
+                max-height: 250px;
+                overflow-y: auto;
+            }
+            
+            .dropdown-item-card {
+                padding: 12px 15px;
+                border-bottom: 1px solid #f1f1f1;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                transition: background 0.2s;
+            }
+            
+            .dropdown-item-card:hover {
+                background: #f8f9fa;
+            }
+            
+            .dropdown-item-card:last-child {
+                border-bottom: none;
+            }
+            
+            .item-image {
+                width: 60px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 4px;
+            }
+            
+            .item-details {
+                flex: 1;
+            }
+            
+            .item-name {
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 4px;
+                font-size: 14px;
+            }
+            
+            .item-price {
+                color: #666;
+                font-size: 13px;
+            }
+            
+            .item-quantity {
+                color: #999;
+                font-size: 12px;
+            }
+            
+            .item-remove {
+                background: none;
+                border: none;
+                color: #dc3545;
+                cursor: pointer;
+                font-size: 18px;
+                padding: 5px;
+            }
+            
+            .item-remove:hover {
+                color: #a71d2a;
+            }
+            
+            .dropdown-footer {
+                padding: 15px;
+                border-top: 1px solid #eee;
+                background: #f8f9fa;
+                border-radius: 0 0 8px 8px;
+            }
+            
+            .empty-message {
+                padding: 30px 15px;
+                text-align: center;
+                color: #999;
+            }
+            
+            .empty-message i {
+                font-size: 48px;
+                margin-bottom: 10px;
+                opacity: 0.5;
+            }
+            
+            /* Position dropdown containers */
+            .nav-item {
+                position: relative;
+            }
+
+            /* WhatsApp Widget Styles */
+            .whatsapp-widget {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+            }
+
+            .whatsapp-float {
+                width: 60px;
+                height: 60px;
+                background-color: #25d366;
+                color: #FFF;
+                border-radius: 50%;
+                border: none;
+                font-size: 30px;
+                box-shadow: 0 4px 20px rgba(37, 211, 102, 0.5);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                animation: pulse 2s infinite;
+            }
+            
+            .whatsapp-float::before {
+                content: '';
+                position: absolute;
+                top: -5px;
+                left: -5px;
+                right: -5px;
+                bottom: -5px;
+                border-radius: 50%;
+                border: 2px solid #25d366;
+                animation: ripple 2s infinite;
+            }
+            
+            .whatsapp-float::after {
+                content: 'Need Help?';
+                position: absolute;
+                top: 50%;
+                right: 75px;
+                transform: translateY(-50%);
+                background: #25d366;
+                color: white;
+                padding: 8px 15px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 600;
+                white-space: nowrap;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                animation: slideLabel 3s infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+            }
+            
+            @keyframes ripple {
+                0% {
+                    opacity: 1;
+                    transform: scale(0.8);
+                }
+                100% {
+                    opacity: 0;
+                    transform: scale(1.3);
+                }
+            }
+            
+            @keyframes slideLabel {
+                0%, 70% { opacity: 1; right: 75px; }
+                80%, 100% { opacity: 0; right: 85px; }
+            }
+
+            .whatsapp-float:hover {
+                background-color: #128c7e;
+                transform: scale(1.15);
+                box-shadow: 0 6px 25px rgba(37, 211, 102, 0.7);
+            }
+            
+            .whatsapp-float:hover::before {
+                animation: none;
+                opacity: 0;
+            }
+            
+            .whatsapp-float:hover::after {
+                animation: none;
+                opacity: 1;
+                right: 75px;
+            }
+
+            .whatsapp-chat-box {
+                position: absolute;
+                bottom: 80px;
+                right: 0;
+                width: 350px;
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                overflow: hidden;
+                animation: slideUp 0.3s ease;
+            }
+
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            /* Category Navigation Styles */
+            .category-nav {
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 10px;
+            }
+            
+            .category-btn {
+                border-radius: 25px;
+                padding: 8px 20px;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+            
+            .category-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            
+            .category-btn.active {
+                background-color: #0d6efd;
+                color: white;
+                border-color: #0d6efd;
+            }
+            
+            .product-item {
+                transition: all 0.3s ease;
+            }
+
+            .whatsapp-header {
+                background: #075e54;
+                color: white;
+                padding: 15px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .whatsapp-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+            }
+
+            .whatsapp-header-text h4 {
+                margin: 0;
+                font-size: 16px;
+            }
+
+            .whatsapp-header-text p {
+                margin: 0;
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .whatsapp-close {
+                margin-left: auto;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 0;
+                width: 30px;
+                height: 30px;
+            }
+
+            .whatsapp-body {
+                padding: 20px;
+                background: #e5ddd5;
+                min-height: 200px;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+
+            .whatsapp-message {
+                background: white;
+                padding: 10px 15px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            }
+
+            .whatsapp-message p {
+                margin: 0;
+                font-size: 14px;
+                color: #333;
+            }
+
+            .whatsapp-footer {
+                background: white;
+                padding: 10px;
+                display: flex;
+                gap: 10px;
+                border-top: 1px solid #ddd;
+            }
+
+            .whatsapp-footer input {
+                flex: 1;
+                border: 1px solid #ddd;
+                border-radius: 20px;
+                padding: 8px 15px;
+                font-size: 14px;
+                outline: none;
+            }
+
+            .whatsapp-footer button {
+                background: #25d366;
+                border: none;
+                color: white;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s;
+            }
+
+            .whatsapp-footer button:hover {
+                background: #128c7e;
+            }
+
+            @media screen and (max-width: 767px) {
+                .whatsapp-chat-box {
+                    width: calc(100vw - 40px);
+                    right: 0;
+                }
+                
+                .whatsapp-float {
+                    width: 50px;
+                    height: 50px;
+                    font-size: 25px;
+                }
+            }
+        </style>
+    </head>
+    <body id="page-top">
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+            <div class="container">
+                <a class="navbar-brand" href="/"><img src="assets/img/navbar-logo.svg" alt="..." /></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars ms-1"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="/products">Products</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/#about">About Us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/#contact">Contact Us</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/download-app.html" style="color: #ffc800 !important; position: relative;">
+                                <i class="fas fa-mobile-alt me-1"></i>Get App
+                                <span style="position: absolute; top: -2px; right: -8px; background: #ff4444; color: white; font-size: 9px; padding: 2px 4px; border-radius: 8px; font-weight: bold;">NEW</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" id="wishlistContainer" style="display: none;">
+                            <a class="nav-link" href="#" id="wishlistBtn" title="Wishlist">
+                                <i class="fas fa-heart"></i>
+                                <span class="badge bg-danger" id="wishlistCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
+                            </a>
+                            <div class="wishlist-dropdown" id="wishlistDropdown"></div>
+                        </li>
+                        <li class="nav-item" id="cartContainer" style="display: none;">
+                            <a class="nav-link" href="#" id="cartBtn" title="Cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="badge bg-primary" id="cartCount" style="font-size: 10px; position: relative; top: -5px;">0</span>
+                            </a>
+                            <div class="cart-dropdown" id="cartDropdown"></div>
+                        </li>
+                        <li class="nav-item" id="authContainer">
+                            <a class="nav-link" href="#" id="navLoginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sub Navigation -->
+        <div class="sub-navbar">
+            <div class="container">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-collection="female" onclick="switchCollection('female'); return false;">
+                            <i class="fas fa-female me-2"></i>Female Collection
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-collection="male" onclick="switchCollection('male'); return false;">
+                            <i class="fas fa-male me-2"></i>Male Collection
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-collection="baby" onclick="switchCollection('baby'); return false;">
+                            <i class="fas fa-baby me-2"></i>Baby Collection
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-collection="home" onclick="switchCollection('home'); return false;">
+                            <i class="fas fa-home me-2"></i>House Accessories
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Female Collection -->
+        <section class="products-section collection-section active" id="femaleCollection">
+            <div class="container" style="padding-bottom: 60px;">
+                <h2 class="text-center fw-bold mb-4"><i class="fas fa-female me-3" style="color: #e91e63;"></i>Female Collection</h2>
+                
+                <!-- Category Navigation for Female -->
+                <div class="category-nav mb-4">
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <button class="btn btn-outline-primary category-btn active" onclick="filterCategory('female', 'all')">
+                            <i class="fas fa-th me-2"></i>All Products
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('female', 'clothing')">
+                            <i class="fas fa-tshirt me-2"></i>Clothing
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('female', 'accessories')">
+                            <i class="fas fa-gem me-2"></i>Accessories
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('female', 'footwear')">
+                            <i class="fas fa-shoe-prints me-2"></i>Footwear
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('female', 'jewelry')">
+                            <i class="fas fa-ring me-2"></i>Jewelry
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-4" id="femaleProductsGrid">
+                    <div class="col-md-4 product-item" data-category="clothing">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Stylish Dress">
+                            <div class="card-body">
+                                <h5 class="card-title">Stylish Dress</h5>
+                                <p class="text-muted mb-1">Premium Quality</p>
+                                <h6 class="text-primary fw-bold">BDT ৳299</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Stylish Dress', 299)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Stylish Dress')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 product-item" data-category="accessories">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Hand Bag">
+                            <div class="card-body">
+                                <h5 class="card-title">Designer Hand Bag</h5>
+                                <p class="text-muted mb-1">Luxury Collection</p>
+                                <h6 class="text-primary fw-bold">BDT ৳199</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Designer Hand Bag', 199)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Designer Hand Bag')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 product-item" data-category="accessories">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Women Watch">
+                            <div class="card-body">
+                                <h5 class="card-title">Women Watch</h5>
+                                <p class="text-muted mb-1">Elegant Style</p>
+                                <h6 class="text-primary fw-bold">BDT ৳379</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Women Watch', 379)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Women Watch')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 product-item" data-category="clothing">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Abaya">
+                            <div class="card-body">
+                                <h5 class="card-title">Designer Abaya</h5>
+                                <p class="text-muted mb-1">Traditional Wear</p>
+                                <h6 class="text-primary fw-bold">BDT ৳599</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Designer Abaya', 599)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Designer Abaya')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 product-item" data-category="footwear">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Heels">
+                            <div class="card-body">
+                                <h5 class="card-title">High Heels</h5>
+                                <p class="text-muted mb-1">Comfort & Style</p>
+                                <h6 class="text-primary fw-bold">BDT ৳249</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('High Heels', 249)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('High Heels')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 product-item" data-category="jewelry">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa777.jpg" class="card-img-top" alt="Jewelry">
+                            <div class="card-body">
+                                <h5 class="card-title">Gold Jewelry Set</h5>
+                                <p class="text-muted mb-1">Premium Quality</p>
+                                <h6 class="text-primary fw-bold">BDT ৳899</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Gold Jewelry Set', 899)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Gold Jewelry Set')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Male Collection -->
+        <section class="products-section collection-section" id="maleCollection">
+            <div class="container" style="padding-bottom: 60px;">
+                <h2 class="text-center fw-bold mb-4"><i class="fas fa-male me-3" style="color: #2196f3;"></i>Male Collection</h2>
+                
+                <!-- Category Navigation for Male -->
+                <div class="category-nav mb-4">
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <button class="btn btn-outline-primary category-btn active" onclick="filterCategory('male', 'all')">
+                            <i class="fas fa-th me-2"></i>All Products
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('male', 'clothing')">
+                            <i class="fas fa-tshirt me-2"></i>Clothing
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('male', 'accessories')">
+                            <i class="fas fa-gem me-2"></i>Accessories
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('male', 'footwear')">
+                            <i class="fas fa-shoe-prints me-2"></i>Footwear
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row g-4" id="maleProductsGrid">
+                    <div class="col-md-4 product-item" data-category="clothing">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="T-Shirt">
+                            <div class="card-body">
+                                <h5 class="card-title">Men's T-Shirt</h5>
+                                <p class="text-muted mb-1">Casual Wear</p>
+                                <h6 class="text-primary fw-bold">BDT ৳159</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Men\'s T-Shirt', 159)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Men\'s T-Shirt')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 product-item" data-category="clothing">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="Jacket">
+                            <div class="card-body">
+                                <h5 class="card-title">Men's Jacket</h5>
+                                <p class="text-muted mb-1">Winter Collection</p>
+                                <h6 class="text-primary fw-bold">BDT ৳439</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Men\'s Jacket', 439)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Men\'s Jacket')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 product-item" data-category="accessories">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="Watch">
+                            <div class="card-body">
+                                <h5 class="card-title">Men's Watch</h5>
+                                <p class="text-muted mb-1">Sport Edition</p>
+                                <h6 class="text-primary fw-bold">BDT ৳399</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Men\'s Watch', 399)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Men\'s Watch')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 product-item" data-category="clothing">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="Thobe">
+                            <div class="card-body">
+                                <h5 class="card-title">Traditional Thobe</h5>
+                                <p class="text-muted mb-1">Formal Wear</p>
+                                <h6 class="text-primary fw-bold">BDT ৳499</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Traditional Thobe', 499)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Traditional Thobe')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 product-item" data-category="footwear">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="Shoes">
+                            <div class="card-body">
+                                <h5 class="card-title">Formal Shoes</h5>
+                                <p class="text-muted mb-1">Leather Quality</p>
+                                <h6 class="text-primary fw-bold">BDT ৳329</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Formal Shoes', 329)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Formal Shoes')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 product-item" data-category="accessories">
+                        <div class="card product-card shadow">
+                            <img src="/assets/img/products/aaa111.jpg" class="card-img-top" alt="Sunglasses">
+                            <div class="card-body">
+                                <h5 class="card-title">Designer Sunglasses</h5>
+                                <p class="text-muted mb-1">UV Protection</p>
+                                <h6 class="text-primary fw-bold">BDT ৳279</h6>
+                                <button class="btn btn-dark btn-sm" onclick="addToCart('Designer Sunglasses', 279)">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm ms-2" onclick="addToWishlist('Designer Sunglasses')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Baby Collection -->
+        <section class="products-section collection-section" id="babyCollection">
+            <div class="container" style="padding-bottom: 60px;">
+                <h2 class="text-center fw-bold mb-4"><i class="fas fa-baby me-3" style="color: #ff6b9d;"></i>Baby Collection</h2>
+                
+                <!-- Category Navigation for Baby -->
+                <div class="category-nav mb-4">
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <button class="btn btn-outline-primary category-btn active" onclick="filterCategory('baby', 'all')">
+                            <i class="fas fa-th me-2"></i>All Products
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('baby', 'clothing')">
+                            <i class="fas fa-baby-carriage me-2"></i>Baby Clothing
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('baby', 'toys')">
+                            <i class="fas fa-dice me-2"></i>Toys & Games
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('baby', 'accessories')">
+                            <i class="fas fa-gift me-2"></i>Accessories
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('baby', 'care')">
+                            <i class="fas fa-heart me-2"></i>Baby Care Products
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row g-4" id="babyProductsGrid">
+                    <!-- Baby products will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- House Accessories Collection -->
+        <section class="products-section collection-section" id="homeCollection">
+            <div class="container" style="padding-bottom: 60px;">
+                <h2 class="text-center fw-bold mb-4"><i class="fas fa-home me-3" style="color: #4a90e2;"></i>House Accessories</h2>
+                
+                <!-- Category Navigation for House Accessories -->
+                <div class="category-nav mb-4">
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <button class="btn btn-outline-primary category-btn active" onclick="filterCategory('home', 'all')">
+                            <i class="fas fa-th me-2"></i>All Products
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('home', 'decor')">
+                            <i class="fas fa-paint-brush me-2"></i>Home Decor
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('home', 'kitchen')">
+                            <i class="fas fa-utensils me-2"></i>Kitchen Items
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('home', 'storage')">
+                            <i class="fas fa-box me-2"></i>Storage Solutions
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('home', 'lighting')">
+                            <i class="fas fa-lightbulb me-2"></i>Lighting & Lamps
+                        </button>
+                        <button class="btn btn-outline-primary category-btn" onclick="filterCategory('home', 'textile')">
+                            <i class="fas fa-couch me-2"></i>Home Textiles
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row g-4" id="homeProductsGrid">
+                    <!-- Home accessories will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Image Zoom Modal -->
+        <div id="imageZoomModal" class="image-zoom-modal">
+            <span class="image-zoom-close" onclick="closeImageZoom()">&times;</span>
+            <div class="zoom-container" id="zoomContainer">
+                <img id="zoomedImage" src="" alt="Product Image">
+            </div>
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out (-)">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <span class="zoom-level" id="zoomLevel">100%</span>
+                <button class="zoom-btn" onclick="zoomIn()" title="Zoom In (+)">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer-->
+        <footer class="footer py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-4 text-lg-start">Copyright &copy; Raju It 2025</div>
+                    <div class="col-lg-4 my-3 my-lg-0">
+                        <a class="btn btn-dark btn-social mx-2" href="https://www.instagram.com/rajuit1396/?igsh=MWZlOHk4bWxrY3hwMg%3D%3D&fbclid=IwY2xjawOXwtFleHRuA2FlbQIxMABicmlkETFXaXRyMnR5aWF3eHB2SVl4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmKxgCF0yvOPwVkc5ovEt0JNh-K_DZ4egj27cYWVsba8m6bRIbTOszGrRkTA_aem_wyHdzWPSdl7DxeJ2So-lUw&brid=JbRWKsUzQoW71PD4MGNTnw" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a class="btn btn-dark btn-social mx-2" href="https://www.facebook.com/profile.php?id=61584622701133" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a class="link-dark text-decoration-none me-3 text-white" href="privacy&policy.html">Privacy Policy</a>
+                        <a class="link-dark text-decoration-none text-white" href="terms&conditions.html">Terms & Conditions</a>
+                        <a class="link-dark text-decoration-none text-white" href="return&refund.html">Return & Refund Policy</a>
+                        <a class="link-dark text-decoration-none text-white" href="shippingpolicy.html">Shipping Policy</a>
+                        <a class="link-dark text-decoration-none text-white" href="disclaimer.html">Disclaimer</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Login Modal -->
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content login-box">
+              <div class="modal-header border-0">
+                <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="loginForm">
+                  <div class="mb-3">
+                    <label for="loginEmail" class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" id="loginEmail" placeholder="Enter your email" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" id="loginPassword" placeholder="Enter your password" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100">Login</button>
+                  
+                  <div class="text-center my-3">
+                    <span class="text-muted">or</span>
+                  </div>
+                  
+                  <a href="/auth/google" class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center gap-2">
+                    <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                      <path fill="none" d="M0 0h48v48H0z"/>
+                    </svg>
+                    Continue with Google
+                  </a>
+                  
+                  <div class="mt-3 text-center">
+                    <a href="#" class="small text-primary" data-bs-toggle="modal" data-bs-target="#forgotModal" data-bs-dismiss="modal">Forgot password?</a><br>
+                    <a href="#" class="small" style="color: #ffc800;" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">Don't have an account? Create account</a>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content login-box">
+              <div class="modal-header border-0">
+                <h5 class="modal-title" id="registerModalLabel">Create an account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="registerForm">
+                  <div class="mb-3">
+                    <label for="registerName" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" name="name" id="registerName" placeholder="Enter your full name" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="registerEmail" class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" id="registerEmail" placeholder="Enter your email" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="registerPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" id="registerPassword" placeholder="Enter your password" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" name="confirmpassword" id="registerConfirmPassword" placeholder="Confirm your password" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="registerPhone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" name="phone" id="registerPhone" placeholder="Enter your phone number" required>
+                  </div>
+                  <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                    <label class="form-check-label" for="agreeTerms">
+                      I agree to the <a href="privacy&policy.html" target="_blank" class="text-primary">Privacy Policy</a> and <a href="terms&conditions.html" target="_blank" class="text-primary">Terms & Conditions</a>
+                    </label>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100">Create account</button>
+                  <div class="text-center mt-3">
+                    <small>Already have an account? <a href="#" style="color: #ffc800; font-weight: 600;" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Login</a></small>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Forgot Password Modal -->
+        <div class="modal fade" id="forgotModal" tabindex="-1" aria-labelledby="forgotModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content login-box">
+              <div class="modal-header border-0">
+                <h5 class="modal-title" id="forgotModalLabel">Forgot Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="forgotForm">
+                  <div class="mb-3">
+                    <label for="forgotEmail" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="forgotEmail" placeholder="Enter your email" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100">Send Reset Link</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WhatsApp Chat Widget (Shows only after login) -->
+        <div class="whatsapp-widget" id="whatsappWidget" style="display: none;">
+            <div class="whatsapp-chat-box" id="whatsappChatBox" style="display: none;">
+                <div class="whatsapp-header">
+                    <img src="https://ui-avatars.com/api/?name=Raju+IT&background=25d366&color=fff" alt="Support" class="whatsapp-avatar">
+                    <div class="whatsapp-header-text">
+                        <h4>Raju IT Support</h4>
+                        <p>Typically replies instantly</p>
+                    </div>
+                    <button class="whatsapp-close" onclick="toggleWhatsAppChat()">×</button>
+                </div>
+                <div class="whatsapp-body">
+                    <div class="whatsapp-message">
+                        <p>Hi there! 👋<br>How can we help you?</p>
+                    </div>
+                </div>
+                <div class="whatsapp-footer">
+                    <input type="text" id="whatsappInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendWhatsAppMessage()">
+                    <button onclick="sendWhatsAppMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                    <button onclick="openWhatsAppDirect()" title="Open WhatsApp directly" style="background: #25d366; margin-left: 5px; border: none; color: white; padding: 8px; border-radius: 5px;">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>
+                </div>
+            </div>
+            <button class="whatsapp-float" onclick="toggleWhatsAppChat()" ondblclick="openWhatsAppDirect()" title="Single click to chat, double click for direct WhatsApp">
+                <i class="fab fa-whatsapp whatsapp-icon"></i>
+            </button>
+        </div>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <script>
+            // Handle Google OAuth callback
+            const urlParams = new URLSearchParams(window.location.search);
+            const googleToken = urlParams.get('token');
+            const isGoogleAuth = urlParams.get('googleAuth');
+
+            if (googleToken && isGoogleAuth) {
+                console.log("✅ Google OAuth token received on products page, storing...");
+                localStorage.setItem('token', googleToken);
+                
+                // Check for pending cart item
+                const pendingItem = localStorage.getItem('pendingCartItem');
+                
+                if (pendingItem) {
+                    const item = JSON.parse(pendingItem);
+                    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                    cart.push(item);
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    localStorage.removeItem('pendingCartItem');
+                }
+                
+                // Remove query parameters from URL without reloading
+                window.history.replaceState({}, document.title, window.location.pathname);
+                console.log("✅ Google OAuth complete on products page");
+            }
+        
+            // Global variable to track login status
+            let isUserLoggedIn = false;
+
+            // Collection switching function
+            function switchCollection(collection) {
+                // Hide all collections
+                document.querySelectorAll('.collection-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Show selected collection
+                if (collection === 'female') {
+                    document.getElementById('femaleCollection').classList.add('active');
+                } else if (collection === 'male') {
+                    document.getElementById('maleCollection').classList.add('active');
+                } else if (collection === 'baby') {
+                    document.getElementById('babyCollection').classList.add('active');
+                } else if (collection === 'home') {
+                    document.getElementById('homeCollection').classList.add('active');
+                }
+                
+                // Update active nav link
+                document.querySelectorAll('.sub-navbar .nav-link').forEach(link => {
+                    link.classList.remove('active');
+                });
+                document.querySelector(`[data-collection="${collection}"]`).classList.add('active');
+            }
+
+            // Check if user is logged in (for cart/wishlist buttons)
+            function checkLoginAndAct(action) {
+                // Check both global login status and localStorage token as backup
+                const token = localStorage.getItem('token');
+                if (!isUserLoggedIn && !token) {
+                    alert('Please login to ' + action);
+                    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                    loginModal.show();
+                    return false;
+                }
+                return true;
+            }
+
+            // Cart and Wishlist storage
+            let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            let wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+            // Update badge counts
+            function updateBadgeCounts() {
+                const cartCount = document.getElementById('cartCount');
+                const wishlistCount = document.getElementById('wishlistCount');
+                
+                if (cartCount) {
+                    cartCount.textContent = cartItems.length;
+                }
+                if (wishlistCount) {
+                    wishlistCount.textContent = wishlistItems.length;
+                }
+            }
+
+            // Cart and Wishlist Dropdown Functions
+            function toggleCartDropdown() {
+                const dropdown = document.getElementById('cartDropdown');
+                const wishlistDropdown = document.getElementById('wishlistDropdown');
+                
+                // Close wishlist if open
+                if (wishlistDropdown) {
+                    wishlistDropdown.classList.remove('show');
+                }
+                
+                if (dropdown) {
+                    dropdown.classList.toggle('show');
+                    if (dropdown.classList.contains('show')) {
+                        renderCartDropdown();
+                    }
+                }
+            }
+
+            function toggleWishlistDropdown() {
+                const dropdown = document.getElementById('wishlistDropdown');
+                const cartDropdown = document.getElementById('cartDropdown');
+                
+                // Close cart if open
+                if (cartDropdown) {
+                    cartDropdown.classList.remove('show');
+                }
+                
+                if (dropdown) {
+                    dropdown.classList.toggle('show');
+                    if (dropdown.classList.contains('show')) {
+                        renderWishlistDropdown();
+                    }
+                }
+            }
+
+            function renderCartDropdown() {
+                const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+                const dropdown = document.getElementById('cartDropdown');
+                
+                if (!dropdown) return;
+                
+                if (cartItems.length === 0) {
+                    dropdown.innerHTML = `
+                        <div class="empty-message">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>Your cart is empty</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const total = cartItems.reduce((sum, item) => {
+                    const price = parseFloat(item.price) || 0;
+                    const quantity = parseInt(item.quantity) || 1;
+                    return sum + (price * quantity);
+                }, 0);
+                
+                dropdown.innerHTML = `
+                    <div class="dropdown-header">
+                        Shopping Cart (${cartItems.length} items)
+                    </div>
+                    <div class="dropdown-items">
+                        ${cartItems.map((item, index) => `
+                            <div class="dropdown-item-card">
+                                <img src="${item.image || '/assets/img/products/aaa777.jpg'}" alt="${item.name}" class="item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
+                                <div class="item-details">
+                                    <div class="item-name">${item.name}</div>
+                                    <div class="item-price">৳${item.price}</div>
+                                    <div class="item-quantity">Quantity: ${item.quantity}</div>
+                                </div>
+                                <button class="item-remove" onclick="removeFromCart(${index})" title="Remove">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="dropdown-footer">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <strong style="color: #333;">Total: ৳${total.toFixed(2)}</strong>
+                            <button class="btn btn-primary btn-sm" onclick="window.location.href='checkout.html'">Checkout</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderWishlistDropdown() {
+                let wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+                
+                const dropdown = document.getElementById('wishlistDropdown');
+                
+                if (!dropdown) return;
+                
+                if (wishlistItems.length === 0) {
+                    dropdown.innerHTML = `
+                        <div class="empty-message">
+                            <i class="fas fa-heart"></i>
+                            <p>Your wishlist is empty</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                dropdown.innerHTML = `
+                    <div class="dropdown-header">
+                        Wishlist (${wishlistItems.length} items)
+                    </div>
+                    <div class="dropdown-items">
+                        ${wishlistItems.map((item, index) => {
+                            const itemName = typeof item === 'object' ? item.name : item;
+                            const itemImage = typeof item === 'object' ? item.image : '/assets/img/products/aaa777.jpg';
+                            const itemPrice = typeof item === 'object' ? item.price : 0;
+                            const itemId = typeof item === 'object' ? item.id : index;
+                            
+                            return `
+                            <div class="dropdown-item-card">
+                                <img src="${itemImage}" alt="${itemName}" class="item-image" onerror="this.src='https://via.placeholder.com/80x80/667eea/ffffff?text=Product'">
+                                <div class="item-details">
+                                    <div class="item-name">${itemName}</div>
+                                    ${itemPrice > 0 ? `<div class="item-price">৳${itemPrice}</div>` : ''}
+                                    <button class="btn btn-sm btn-success mt-1" onclick="addToCartFromWishlist(${index})" style="font-size: 0.75rem; padding: 2px 8px;">
+                                        <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                                    </button>
+                                </div>
+                                <button class="item-remove" onclick="removeFromWishlist(${index})" title="Remove">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `}).join('')}
+                    </div>
+                    <div class="dropdown-footer">
+                        <button class="btn btn-outline-primary btn-sm w-100" onclick="window.location.href='products.html'">Continue Shopping</button>
+                    </div>
+                `;
+            }
+            
+            function addToCartFromWishlist(wishlistIndex) {
+                const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+                const item = wishlistItems[wishlistIndex];
+                
+                if (!item) return;
+                
+                const itemName = typeof item === 'object' ? item.name : item;
+                const itemPrice = typeof item === 'object' ? item.price : 0;
+                const itemId = typeof item === 'object' ? item.id : wishlistIndex;
+                const itemImage = typeof item === 'object' ? item.image : '/assets/img/products/aaa777.jpg';
+                
+                // Add to cart
+                addToCart(itemName, itemPrice, itemId, itemImage);
+            }
+
+            function removeFromCart(index) {
+                cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+                cartItems.splice(index, 1);
+                localStorage.setItem('cart', JSON.stringify(cartItems));
+                updateBadgeCounts();
+                renderCartDropdown();
+            }
+
+            function removeFromWishlist(index) {
+                wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+                wishlistItems.splice(index, 1);
+                localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+                updateBadgeCounts();
+                renderWishlistDropdown();
+            }
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                const cartBtn = document.getElementById('cartBtn');
+                const wishlistBtn = document.getElementById('wishlistBtn');
+                const cartDropdown = document.getElementById('cartDropdown');
+                const wishlistDropdown = document.getElementById('wishlistDropdown');
+                
+                if (cartBtn && !cartBtn.contains(e.target) && cartDropdown && !cartDropdown.contains(e.target)) {
+                    cartDropdown.classList.remove('show');
+                }
+                
+                if (wishlistBtn && !wishlistBtn.contains(e.target) && wishlistDropdown && !wishlistDropdown.contains(e.target)) {
+                    wishlistDropdown.classList.remove('show');
+                }
+            });
+
+            // Attach click events to cart and wishlist buttons on load
+            function attachCartWishlistHandlers() {
+                const cartBtn = document.getElementById('cartBtn');
+                const wishlistBtn = document.getElementById('wishlistBtn');
+                
+                if (cartBtn) {
+                    // Remove existing listeners by cloning
+                    const newCartBtn = cartBtn.cloneNode(true);
+                    cartBtn.parentNode.replaceChild(newCartBtn, cartBtn);
+                    
+                    newCartBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        console.log("🛒 Cart button clicked!");
+                        toggleCartDropdown();
+                    });
+                    console.log("✅ Cart button click handler attached");
+                }
+                
+                if (wishlistBtn) {
+                    // Remove existing listeners by cloning
+                    const newWishlistBtn = wishlistBtn.cloneNode(true);
+                    wishlistBtn.parentNode.replaceChild(newWishlistBtn, wishlistBtn);
+                    
+                    newWishlistBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        console.log("❤️ Wishlist button clicked!");
+                        toggleWishlistDropdown();
+                    });
+                    console.log("✅ Wishlist button click handler attached");
+                }
+            }
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                attachCartWishlistHandlers();
+            });
+
+            // Add to cart function
+            function addToCart(productName, price, productId, imageUrl) {
+                if (checkLoginAndAct('add items to cart')) {
+                    // Check if item already exists
+                    const existingItem = cartItems.find(item => item.id === productId || item.name === productName);
+                    
+                    if (existingItem) {
+                        existingItem.quantity++;
+                        alert(`${productName} quantity increased in cart!`);
+                    } else {
+                        cartItems.push({
+                            id: productId,
+                            name: productName,
+                            price: price,
+                            quantity: 1,
+                            image: imageUrl || '/assets/img/products/aaa777.jpg'
+                        });
+                        alert(`${productName} added to cart!`);
+                    }
+                    
+                    localStorage.setItem('cart', JSON.stringify(cartItems));
+                    updateBadgeCounts();
+                }
+            }
+
+            // Add to wishlist function
+            function addToWishlist(productName, productId, price, imageUrl) {
+                // Check login status - also check localStorage token as backup
+                const token = localStorage.getItem('token');
+                if (!isUserLoggedIn && !token) {
+                    alert('Please login to add items to wishlist');
+                    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                    loginModal.show();
+                    return;
+                }
+                
+                // Reload wishlist items from localStorage to ensure fresh data
+                wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+                
+                // Check if item already exists
+                const existingItem = wishlistItems.find(item => 
+                    (typeof item === 'object' && item.id === productId)
+                );
+                
+                if (existingItem) {
+                    alert(`${productName} is already in your wishlist!`);
+                } else {
+                    wishlistItems.push({ 
+                        id: productId, 
+                        name: productName,
+                        price: price || 0,
+                        image: imageUrl || '/assets/img/products/aaa777.jpg'
+                    });
+                    alert(`${productName} added to wishlist!`);
+                    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+                    updateBadgeCounts();
+                }
+            }
+
+            // Category filter function
+            // Image Zoom Functions
+            let currentZoom = 1;
+            let isDragging = false;
+            let currentX = 0;
+            let currentY = 0;
+            let initialX = 0;
+            let initialY = 0;
+            let xOffset = 0;
+            let yOffset = 0;
+            
+            function openImageZoom(imageSrc, productName) {
+                const modal = document.getElementById('imageZoomModal');
+                const zoomedImage = document.getElementById('zoomedImage');
+                
+                zoomedImage.src = imageSrc;
+                zoomedImage.alt = productName;
+                modal.classList.add('active');
+                currentZoom = 1;
+                xOffset = 0;
+                yOffset = 0;
+                updateZoomDisplay();
+                document.body.style.overflow = 'hidden';
+                
+                // Reset transform
+                zoomedImage.style.transform = 'translate(0px, 0px) scale(1)';
+            }
+            
+            function zoomIn() {
+                if (currentZoom < 3) {
+                    currentZoom += 0.25;
+                    applyZoom();
+                }
+            }
+            
+            function zoomOut() {
+                if (currentZoom > 0.5) {
+                    currentZoom -= 0.25;
+                    // Reset position when zooming out to 1x
+                    if (currentZoom <= 1) {
+                        xOffset = 0;
+                        yOffset = 0;
+                    }
+                    applyZoom();
+                }
+            }
+            
+            function applyZoom() {
+                const zoomedImage = document.getElementById('zoomedImage');
+                zoomedImage.style.transform = `translate(${xOffset}px, ${yOffset}px) scale(${currentZoom})`;
+                updateZoomDisplay();
+            }
+            
+            function updateZoomDisplay() {
+                const zoomLevel = document.getElementById('zoomLevel');
+                zoomLevel.textContent = Math.round(currentZoom * 100) + '%';
+            }
+            
+            function closeImageZoom() {
+                const modal = document.getElementById('imageZoomModal');
+                modal.classList.remove('active');
+                currentZoom = 1;
+                xOffset = 0;
+                yOffset = 0;
+                document.body.style.overflow = 'auto';
+            }
+            
+            // Initialize zoom controls
+            document.addEventListener('DOMContentLoaded', function() {
+                const modal = document.getElementById('imageZoomModal');
+                const zoomedImage = document.getElementById('zoomedImage');
+                const container = document.getElementById('zoomContainer');
+                
+                if (modal && zoomedImage && container) {
+                    // Click on image to zoom in
+                    zoomedImage.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (currentZoom < 3) {
+                            zoomIn();
+                        }
+                    });
+                    
+                    // Drag to pan when zoomed
+                    container.addEventListener('mousedown', function(e) {
+                        if (currentZoom > 1 && e.target === zoomedImage) {
+                            isDragging = true;
+                            initialX = e.clientX - xOffset;
+                            initialY = e.clientY - yOffset;
+                            container.style.cursor = 'grabbing';
+                        }
+                    });
+                    
+                    container.addEventListener('mousemove', function(e) {
+                        if (!isDragging) return;
+                        e.preventDefault();
+                        
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                        
+                        xOffset = currentX;
+                        yOffset = currentY;
+                        
+                        zoomedImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${currentZoom})`;
+                    });
+                    
+                    document.addEventListener('mouseup', function() {
+                        if (isDragging) {
+                            isDragging = false;
+                            container.style.cursor = 'grab';
+                        }
+                    });
+                    
+                    container.addEventListener('mouseleave', function() {
+                        if (isDragging) {
+                            isDragging = false;
+                            container.style.cursor = 'grab';
+                        }
+                    });
+                    
+                    // Touch events for mobile
+                    let touchStartDistance = 0;
+                    let touchStartZoom = 1;
+                    
+                    container.addEventListener('touchstart', function(e) {
+                        if (e.touches.length === 2) {
+                            e.preventDefault();
+                            touchStartDistance = Math.hypot(
+                                e.touches[0].pageX - e.touches[1].pageX,
+                                e.touches[0].pageY - e.touches[1].pageY
+                            );
+                            touchStartZoom = currentZoom;
+                        }
+                    });
+                    
+                    container.addEventListener('touchmove', function(e) {
+                        if (e.touches.length === 2) {
+                            e.preventDefault();
+                            const touchDistance = Math.hypot(
+                                e.touches[0].pageX - e.touches[1].pageX,
+                                e.touches[0].pageY - e.touches[1].pageY
+                            );
+                            const scale = touchDistance / touchStartDistance;
+                            currentZoom = Math.min(Math.max(touchStartZoom * scale, 0.5), 3);
+                            applyZoom();
+                        }
+                    });
+                    
+                    // Click on background to close
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === modal || e.target === container) {
+                            closeImageZoom();
+                        }
+                    });
+                    
+                    // Mouse wheel zoom
+                    container.addEventListener('wheel', function(e) {
+                        e.preventDefault();
+                        if (e.deltaY < 0) {
+                            zoomIn();
+                        } else {
+                            zoomOut();
+                        }
+                    }, { passive: false });
+                }
+                
+                // Keyboard controls
+                document.addEventListener('keydown', function(e) {
+                    if (modal.classList.contains('active')) {
+                        if (e.key === 'Escape') {
+                            closeImageZoom();
+                        } else if (e.key === '+' || e.key === '=') {
+                            zoomIn();
+                        } else if (e.key === '-' || e.key === '_') {
+                            zoomOut();
+                        }
+                    }
+                });
+            });
+
+            function filterCategory(collection, category) {
+                // Map collection to grid ID
+                const gridMapping = {
+                    'female': 'femaleProductsGrid',
+                    'male': 'maleProductsGrid',
+                    'baby': 'babyProductsGrid',
+                    'home': 'homeProductsGrid'
+                };
+                
+                const gridId = gridMapping[collection];
+                if (!gridId) return;
+                
+                const grid = document.getElementById(gridId);
+                if (!grid) return;
+                
+                const items = grid.querySelectorAll('.product-item');
+                const buttons = grid.closest('.container').querySelectorAll('.category-btn');
+                
+                // Update active button
+                buttons.forEach(btn => btn.classList.remove('active'));
+                event.target.closest('.category-btn').classList.add('active');
+                
+                // Show/hide products based on category
+                items.forEach(item => {
+                    if (category === 'all' || item.getAttribute('data-category') === category) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+
+            // Load products dynamically from database
+            async function loadProducts() {
+                const femaleGrid = document.getElementById('femaleProductsGrid');
+                const maleGrid = document.getElementById('maleProductsGrid');
+                const babyGrid = document.getElementById('babyProductsGrid');
+                const homeGrid = document.getElementById('homeProductsGrid');
+                
+                // Show loading state
+                const loadingHtml = `
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading products...</p>
+                    </div>`;
+                
+                if (femaleGrid) femaleGrid.innerHTML = loadingHtml;
+                if (maleGrid) maleGrid.innerHTML = loadingHtml;
+                if (babyGrid) babyGrid.innerHTML = loadingHtml;
+                if (homeGrid) homeGrid.innerHTML = loadingHtml;
+                
+                try {
+                    // Load female products
+                    const femaleResponse = await fetch('https://rajuit.online/api/products?category=female');
+                    const femaleProducts = await femaleResponse.json();
+                    displayProducts('femaleProductsGrid', femaleProducts);
+                    
+                    // Load male products
+                    const maleResponse = await fetch('https://rajuit.online/api/products?category=male');
+                    const maleProducts = await maleResponse.json();
+                    displayProducts('maleProductsGrid', maleProducts);
+                    
+                    // Load baby products
+                    const babyResponse = await fetch('https://rajuit.online/api/products?category=baby');
+                    const babyProducts = await babyResponse.json();
+                    displayProducts('babyProductsGrid', babyProducts);
+                    
+                    // Load home accessories
+                    const homeResponse = await fetch('https://rajuit.online/api/products?category=home');
+                    const homeProducts = await homeResponse.json();
+                    displayProducts('homeProductsGrid', homeProducts);
+                } catch (error) {
+                    console.error('Error loading products:', error);
+                    const errorHtml = `
+                        <div class="col-12">
+                            <div class="alert alert-danger text-center">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Failed to load products. Please refresh the page.
+                            </div>
+                        </div>`;
+                    if (femaleGrid) femaleGrid.innerHTML = errorHtml;
+                    if (maleGrid) maleGrid.innerHTML = errorHtml;
+                    if (babyGrid) babyGrid.innerHTML = errorHtml;
+                    if (homeGrid) homeGrid.innerHTML = errorHtml;
+                }
+            }
+
+            function displayProducts(gridId, products) {
+                const grid = document.getElementById(gridId);
+                if (!grid) return;
+                
+                if (products.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-info text-center py-5" style="border-radius: 16px; border: none; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);">
+                                <i class="fas fa-info-circle" style="font-size: 48px; color: #667eea; margin-bottom: 16px;"></i>
+                                <h5 style="color: #2c3e50; font-weight: 600;">No Products Available</h5>
+                                <p class="text-muted mb-0">Check back soon for new arrivals!</p>
+                            </div>
+                        </div>`;
+                    return;
+                }
+                
+                grid.innerHTML = products.map(product => {
+                    const productName = product.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const description = (product.description || 'Premium quality product').substring(0, 60);
+                    const isInStock = product.stock_quantity > 0;
+                    const categoryDisplay = product.subcategory || product.category || 'Product';
+                    
+                    return `
+                    <div class="col-lg-4 col-md-6 mb-4 product-item" data-category="${product.subcategory || 'all'}">
+                        <div class="card product-card">
+                            <div class="product-image-wrapper" onclick="openImageZoom('${(product.image_url || '/assets/img/products/aaa777.jpg').replace(/'/g, "\\'")}', '${productName}')">
+                                <img src="${product.image_url || '/assets/img/products/aaa777.jpg'}" 
+                                     class="card-img-top" 
+                                     alt="${product.name}"
+                                     onerror="this.src='https://via.placeholder.com/400x400/667eea/ffffff?text=${encodeURIComponent(product.name)}'">
+                                <div class="product-badge">
+                                    <i class="fas fa-tag me-1"></i>${categoryDisplay}
+                                </div>
+                                <div class="stock-badge ${isInStock ? 'in-stock' : 'out-of-stock'}">
+                                    ${isInStock ? `<i class="fas fa-check me-1"></i>${product.stock_quantity} Available` : '<i class="fas fa-times me-1"></i>Out of Stock'}
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">${product.name}</h5>
+                                <p class="product-description">${description}</p>
+                                ${product.instagram_video_url ? `
+                                <div class="product-video-link mb-2">
+                                    <a href="${product.instagram_video_url}" target="_blank" class="instagram-video-btn">
+                                        <i class="fab fa-instagram me-2"></i>Watch Product Video
+                                    </a>
+                                </div>` : ''}
+                                <div class="product-price-section">
+                                    <div class="product-price">৳${parseFloat(product.price).toFixed(2)}</div>
+                                </div>
+                                <div class="product-actions">
+                                    <button class="btn btn-add-cart" 
+                                            onclick="addToCart('${productName}', ${product.price}, ${product.id}, '${(product.image_url || '/assets/img/products/aaa777.jpg').replace(/'/g, "\'")}')"
+                                            ${!isInStock ? 'disabled' : ''}>
+                                        <i class="fas fa-shopping-cart me-2"></i>${isInStock ? 'Add to Cart' : 'Sold Out'}
+                                    </button>
+                                    <button class="btn btn-wishlist" 
+                                            onclick="addToWishlist('${productName}', ${product.id}, ${product.price}, '${(product.image_url || '/assets/img/products/aaa777.jpg').replace(/'/g, "\'")}')"
+                                            title="Add to Wishlist">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+
+            // Load cart/wishlist counts on page load and check URL parameters
+            window.addEventListener('DOMContentLoaded', () => {
+                updateBadgeCounts();
+                loadProducts(); // Load products from database
+                
+                // Check if collection is specified in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const collection = urlParams.get('collection');
+                
+                if (collection === 'male' || collection === 'female') {
+                    switchCollection(collection);
+                }
+            });
+
+            // Auth check and display logic (same as index.html)
+            (async function initAuth() {
+                const authContainer = document.getElementById("authContainer");
+                const navLogin = document.getElementById("navLoginBtn");
+                if (!navLogin || !authContainer) return;
+
+                function showLogin() {
+                    localStorage.removeItem("token");
+                    navLogin.innerText = "Login";
+                    navLogin.setAttribute("data-bs-toggle", "modal");
+                    navLogin.setAttribute("data-bs-target", "#loginModal");
+                    navLogin.removeAttribute("href");
+                    const logoutBtn = document.getElementById("logoutBtn");
+                    if (logoutBtn) logoutBtn.remove();
+                }
+
+                function showLogout(userName) {
+                    console.log("🔐 showLogout called for user:", userName);
+                    isUserLoggedIn = true; // Set global login status
+                    
+                    navLogin.innerText = userName;
+                    navLogin.removeAttribute("data-bs-toggle");
+                    navLogin.removeAttribute("data-bs-target");
+                    navLogin.href = "/dashboard"; // Direct href assignment
+                    navLogin.style.cursor = "pointer";
+                    
+                    console.log("✅ Username href set to:", navLogin.href);
+
+                    let logoutBtn = document.getElementById("logoutBtn");
+                    if (!logoutBtn) {
+                        logoutBtn = document.createElement("li");
+                        logoutBtn.className = "nav-item";
+                        logoutBtn.id = "logoutBtn";
+                        logoutBtn.innerHTML = '<a class="nav-link" href="/logout">Logout</a>';
+                        authContainer.parentElement.appendChild(logoutBtn);
+                    }
+                    
+                    const cartContainer = document.getElementById("cartContainer");
+                    const wishlistContainer = document.getElementById("wishlistContainer");
+                    console.log("🛒 Cart container:", cartContainer, "Wishlist container:", wishlistContainer);
+                    if (cartContainer) {
+                        cartContainer.removeAttribute('style');
+                        const cartDisplay = window.getComputedStyle(cartContainer).display;
+                        console.log("✅ Cart container style removed, computed display:", cartDisplay);
+                    }
+                    if (wishlistContainer) {
+                        wishlistContainer.removeAttribute('style');
+                        const wishlistDisplay = window.getComputedStyle(wishlistContainer).display;
+                        console.log("✅ Wishlist container style removed, computed display:", wishlistDisplay);
+                    }
+                    
+                    // Update badge counts
+                    updateBadgeCounts();
+                    
+                    // Re-attach cart and wishlist click handlers
+                    attachCartWishlistHandlers();
+                    
+                    // Show WhatsApp widget after login
+                    const whatsappWidget = document.getElementById("whatsappWidget");
+                    if (whatsappWidget) {
+                        whatsappWidget.style.display = "block";
+                    }
+                    
+                    console.log("✅ showLogout completed");
+                }
+
+                try {
+                    const res = await fetch("/check-login", { credentials: "include" });
+                    if (res.ok) {
+                        const data = await res.json().catch(()=>null);
+                        if (data && data.loggedIn) {
+                            const name = data.user?.name || data.user?.email || "User";
+                            showLogout(name);
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.debug("check-login failed", err);
+                }
+
+                const token = localStorage.getItem("token");
+                console.log("🔑 Token from localStorage:", token ? "exists" : "missing");
+                if (!token) { showLogin(); return; }
+
+                try {
+                    const parts = token.split('.');
+                    if (parts.length !== 3) throw new Error("Invalid token format");
+                    const decoded = JSON.parse(atob(parts[1]));
+                    console.log("📝 Decoded token:", decoded);
+                    if (decoded.exp && decoded.exp * 1000 < Date.now()) throw new Error("Token expired");
+
+                    console.log("🌐 Fetching /dashboard with token...");
+                    const apiRes = await fetch("/dashboard", {
+                        method: "GET",
+                        headers: { "Authorization": `Bearer ${token}` },
+                        credentials: "include"
+                    });
+
+                    console.log("📡 Dashboard response status:", apiRes.status);
+                    if (apiRes.ok) {
+                        const apiData = await apiRes.json().catch(()=>null);
+                        console.log("📦 Dashboard data:", apiData);
+                        const name = apiData?.user?.name || decoded.name || decoded.email || "User";
+                        showLogout(name);
+                    } else {
+                        console.warn("⚠️ Dashboard request failed with status:", apiRes.status);
+                        showLogin();
+                    }
+                } catch (err) {
+                    console.log("❌ Token invalid:", err.message);
+                    showLogin();
+                }
+            })();
+
+            // Login Form Handler
+            document.getElementById("loginForm").addEventListener("submit", async function (e) {
+                e.preventDefault();
+                const email = document.getElementById("loginEmail").value.trim();
+                const password = document.getElementById("loginPassword").value;
+
+                try {
+                    const res = await fetch("/login", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({ email, password }),
+                        credentials: "include"
+                    });
+                    const data = await res.json().catch(()=>null);
+
+                    if (res.ok && data?.token) {
+                        localStorage.setItem("token", data.token);
+                        
+                        const modalEl = document.getElementById('loginModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                        
+                        // Reload page to update navbar
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 600);
+                    } else {
+                        alert(data?.message || "Login failed");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Network error during login");
+                }
+            });
+
+            // Register Form Handler
+            document.getElementById("registerForm").addEventListener("submit", async function (e) {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                const data = {
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                    confirmpassword: formData.get('confirmpassword'),
+                    phone: formData.get('phone')
+                };
+
+                if (data.password !== data.confirmpassword) {
+                    alert("Passwords do not match!");
+                    return;
+                }
+
+                try {
+                    const res = await fetch("/register", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify(data),
+                        credentials: "include"
+                    });
+                    
+                    const result = await res.json().catch(()=>null);
+
+                    if (res.ok) {
+                        alert("Registration successful! Please login.");
+                        
+                        const registerModalEl = document.getElementById('registerModal');
+                        const registerModal = bootstrap.Modal.getInstance(registerModalEl);
+                        if (registerModal) registerModal.hide();
+                        
+                        e.target.reset();
+                        
+                        setTimeout(() => {
+                            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                            loginModal.show();
+                        }, 500);
+                    } else {
+                        alert(result?.message || "Registration failed");
+                    }
+                } catch (err) {
+                    console.error("Register error:", err);
+                    alert("Network error during registration");
+                }
+            });
+
+            // Forgot Password Form Handler
+            document.getElementById("forgotForm").addEventListener("submit", async function (e) {
+                e.preventDefault();
+                alert("Password reset functionality coming soon!");
+            });
+
+            // WhatsApp Chat Functions - Make them globally accessible
+            window.toggleWhatsAppChat = function() {
+                const chatBox = document.getElementById('whatsappChatBox');
+                if (chatBox.style.display === 'none' || chatBox.style.display === '') {
+                    chatBox.style.display = 'block';
+                } else {
+                    chatBox.style.display = 'none';
+                }
+            }
+
+            // Direct WhatsApp opening function
+            window.openWhatsAppDirect = function() {
+                const defaultMessage = "Hi! I need help with Raju IT Fashion Store products. Can you please assist me?";
+                const encodedMessage = encodeURIComponent(defaultMessage);
+                const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+            }
+
+            window.sendWhatsAppMessage = function() {
+                const input = document.getElementById('whatsappInput');
+                const message = input.value.trim();
+                
+                if (message) {
+                    const encodedMessage = encodeURIComponent(message);
+                    const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
+                    window.open(whatsappUrl, '_blank');
+                    input.value = '';
+                    
+                    // Close chat box after sending
+                    setTimeout(() => {
+                        document.getElementById('whatsappChatBox').style.display = 'none';
+                    }, 500);
+                } else {
+                    // If no message, open with default message
+                    openWhatsAppDirect();
+                }
+            }
+        </script>
+    </body>
+</html>
