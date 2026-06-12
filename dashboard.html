@@ -1671,15 +1671,9 @@
                 <a href="invoice.html?id=${order.id}" class="btn btn-outline-primary btn-sm" target="_blank">
                   <i class="fas fa-file-invoice"></i> View Invoice
                 </a>
-                ${order.invoice_pdf_url ? `
-                  <a href="${order.invoice_pdf_url}" class="btn btn-primary btn-sm" target="_blank" download>
-                    <i class="fas fa-download"></i> Download PDF
-                  </a>
-                ` : `
-                  <button onclick="downloadInvoice(${order.id})" class="btn btn-primary btn-sm">
-                    <i class="fas fa-download"></i> Download Invoice
-                  </button>
-                `}
+                <button onclick="downloadInvoice(${order.id})" class="btn btn-primary btn-sm">
+                  <i class="fas fa-download"></i> Download PDF
+                </button>
               </div>
             </div>
           `;
@@ -1695,7 +1689,7 @@
     }
   })();
 
-  // Download Invoice Function
+  // Download Invoice PDF Function
   async function downloadInvoice(orderId) {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -1704,36 +1698,22 @@
     }
 
     try {
-      const res = await fetch(`/get-invoice/${orderId}`, {
+      const res = await fetch(`/download-invoice/${orderId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
         credentials: 'include'
       });
 
       if (res.ok) {
-        const data = await res.json();
-        const invoiceHtml = data.invoice;
-        
-        // Open invoice in new window/tab
-        const printWindow = window.open('', '_blank');
-        
-        if (!printWindow) {
-          alert('Please allow pop-ups to view the invoice');
-          return;
-        }
-        
-        // Write the invoice HTML to the new window
-        printWindow.document.open();
-        printWindow.document.write(invoiceHtml);
-        printWindow.document.close();
-        
-        // Wait for content and images to load, then trigger print dialog
-        printWindow.onload = function() {
-          setTimeout(() => {
-            printWindow.focus();
-            printWindow.print();
-          }, 500);
-        };
-        
+        const pdfBlob = await res.blob();
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const downloadLink = document.createElement('a');
+
+        downloadLink.href = pdfUrl;
+        downloadLink.download = `invoice-${String(orderId).padStart(6, '0')}.pdf`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.remove();
+        URL.revokeObjectURL(pdfUrl);
       } else {
         const errorData = await res.json().catch(() => ({}));
         alert(errorData.message || 'Unable to download invoice. Please try again.');

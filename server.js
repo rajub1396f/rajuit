@@ -11,6 +11,7 @@ const brevo = require('@getbrevo/brevo');
 const ImageKit = require('imagekit');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const puppeteer = require('puppeteer');
 
 const app = express();
 
@@ -467,6 +468,63 @@ function generateInvoiceHtml(order, items) {
     </div>
 </body>
 </html>`;
+}
+
+function getChromeExecutablePath() {
+  const configuredPath = process.env.PUPPETEER_EXECUTABLE_PATH;
+
+  if (configuredPath && !configuredPath.includes('*')) {
+    return configuredPath;
+  }
+
+  try {
+    const fs = require('fs');
+    const renderCacheDir = '/opt/render/.cache/puppeteer/chrome';
+
+    if (fs.existsSync(renderCacheDir)) {
+      const versions = fs.readdirSync(renderCacheDir).filter(dir => dir.startsWith('linux-'));
+      if (versions.length > 0) {
+        const chromePath = path.join(renderCacheDir, versions[versions.length - 1], 'chrome-linux64', 'chrome');
+        if (fs.existsSync(chromePath)) {
+          return chromePath;
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('Could not resolve Render Chrome path:', error.message);
+  }
+
+  return puppeteer.executablePath();
+}
+
+async function generateInvoicePdfBuffer(invoiceHtml) {
+  let browser;
+
+  try {
+    browser = await puppeteer.launch({
+      headless: true,
+      executablePath: getChromeExecutablePath(),
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu'
+      ]
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(invoiceHtml, { waitUntil: 'networkidle0', timeout: 30000 });
+
+    return await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }
+    });
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
 }
 
 // Function to generate PDF and upload to ImageKit
@@ -2573,6 +2631,54 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
   } catch (err) {
     console.error("❌ Get invoice error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+app.get("/download-invoice/:orderId", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user?.userId || req.user?.id;
+    const orderId = req.params.orderId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const orderResult = await sql`
+      SELECT
+        o.id,
+        o.user_id,
+        o.total_amount,
+        o.status,
+        o.shipping_address,
+        o.created_at,
+        u.name,
+        u.email
+      FROM orders o
+      JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId} AND o.user_id = ${userId}
+    `;
+
+    if (!orderResult || orderResult.length === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const items = await sql`
+      SELECT product_name as name, product_image as image, quantity, price
+      FROM order_items
+      WHERE order_id = ${orderId}
+    `;
+
+    const invoiceHtml = generateInvoiceHtml(orderResult[0], items || []);
+    const pdfBuffer = await generateInvoicePdfBuffer(invoiceHtml);
+    const filename = `invoice-${String(orderId).padStart(6, '0')}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error("Download invoice PDF error:", err.message);
+    res.status(500).json({ message: "Unable to generate invoice PDF. Please try again later." });
   }
 });
 
