@@ -63,6 +63,7 @@ dependencies:
 
   # Toast/Snackbar
   fluttertoast: ^8.2.0
+  local_auth: ^3.0.1
 
 dev_dependencies:
   flutter_test:

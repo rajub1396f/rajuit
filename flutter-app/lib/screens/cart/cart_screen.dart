@@ -45,7 +45,12 @@ class CartScreen extends StatelessWidget {
               // Cart Items
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(Constants.defaultPadding),
+                  padding: const EdgeInsets.fromLTRB(
+                    Constants.defaultPadding,
+                    Constants.defaultPadding,
+                    Constants.defaultPadding,
+                    Constants.helpButtonBottomClearance,
+                  ),
                   itemCount: cartProvider.items.length,
                   itemBuilder: (context, index) {
                     final item = cartProvider.items[index];
@@ -70,11 +75,14 @@ class CartScreen extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(8),
                                       child: CachedNetworkImage(
                                         imageUrl: item.image!,
-                                        fit: BoxFit.contain, // Changed to contain for better display
-                                        placeholder: (context, url) => const Center(
+                                        fit: BoxFit
+                                            .contain, // Changed to contain for better display
+                                        placeholder: (context, url) =>
+                                            const Center(
                                           child: CircularProgressIndicator(),
                                         ),
-                                        errorWidget: (context, url, error) => const Icon(
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(
                                           Icons.image_not_supported,
                                           size: 30,
                                         ),
@@ -234,8 +242,7 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value,
-      {bool isBold = false}) {
+  Widget _buildSummaryRow(String label, String value, {bool isBold = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

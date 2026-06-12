@@ -10,9 +10,11 @@ import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/orders/orders_screen.dart';
 import 'screens/checkout/order_confirmation_screen.dart';
+import 'widgets/app_lock_gate.dart';
 import 'widgets/global_help_button.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
   runApp(const MyApp());
 }
@@ -31,6 +33,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: Constants.appName,
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(
@@ -71,11 +74,13 @@ class MyApp extends StatelessWidget {
           ),
         ),
         builder: (context, child) {
-          return Stack(
-            children: [
-              child ?? const SizedBox.shrink(),
-              const GlobalHelpButton(),
-            ],
+          return AppLockGate(
+            child: Stack(
+              children: [
+                child ?? const SizedBox.shrink(),
+                const GlobalHelpButton(),
+              ],
+            ),
           );
         },
         home: Consumer<AuthProvider>(

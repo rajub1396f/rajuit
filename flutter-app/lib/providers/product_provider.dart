@@ -11,14 +11,38 @@ class ProductProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   String _selectedCategory = 'all';
+  String _selectedSubcategory = 'all';
+  String _selectedItemType = 'all';
+  String _searchQuery = '';
 
   // Getters
-  List<ProductModel> get products => _filteredProducts.isEmpty ? _products : _filteredProducts;
+  List<ProductModel> get products => _filteredProducts;
   List<ProductModel> get allProducts => _products;
   ProductModel? get selectedProduct => _selectedProduct;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String get selectedCategory => _selectedCategory;
+  String get selectedSubcategory => _selectedSubcategory;
+  String get selectedItemType => _selectedItemType;
+
+  List<String> get visibleItemTypes {
+    final itemTypes = _products
+        .where((product) {
+          final matchesCategory = _selectedCategory == 'all' ||
+              product.category == _selectedCategory;
+          final matchesSubcategory = _selectedSubcategory == 'all' ||
+              product.subcategory == _selectedSubcategory;
+          return matchesCategory &&
+              matchesSubcategory &&
+              product.type.isNotEmpty;
+        })
+        .map((product) => product.type)
+        .toSet()
+        .toList();
+
+    itemTypes.sort((a, b) => _formatLabel(a).compareTo(_formatLabel(b)));
+    return itemTypes;
+  }
 
   Future<void> fetchProducts() async {
     try {
@@ -27,7 +51,7 @@ class ProductProvider extends ChangeNotifier {
       notifyListeners();
 
       _products = await _apiService.getProducts();
-      _filteredProducts = List.from(_products);
+      _applyFilters();
 
       _isLoading = false;
       notifyListeners();
@@ -46,12 +70,14 @@ class ProductProvider extends ChangeNotifier {
       notifyListeners();
 
       if (category == 'all') {
-        _filteredProducts = List.from(_products);
+        _selectedSubcategory = 'all';
+        _selectedItemType = 'all';
       } else {
-        // Filter from already loaded products instead of making new API call
-        _filteredProducts =
-            _products.where((p) => p.category == category).toList();
+        _selectedSubcategory = 'all';
+        _selectedItemType = 'all';
       }
+
+      _applyFilters();
 
       _isLoading = false;
       notifyListeners();
@@ -68,12 +94,30 @@ class ProductProvider extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       _selectedCategory = category;
+      _selectedSubcategory = subcategory;
+      _selectedItemType = 'all';
       notifyListeners();
 
-      // Filter products by category and subcategory
-      _filteredProducts = _products
-          .where((p) => p.category == category)
-          .toList();
+      _applyFilters();
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchProductsByItemType(String category, String itemType) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      _selectedCategory = category;
+      _selectedItemType = itemType;
+      notifyListeners();
+
+      _applyFilters();
 
       _isLoading = false;
       notifyListeners();
@@ -102,34 +146,15 @@ class ProductProvider extends ChangeNotifier {
   }
 
   void searchProducts(String query) {
-    if (query.isEmpty) {
-      // If search is cleared, show products from current category
-      if (_selectedCategory == 'all') {
-        _filteredProducts = List.from(_products);
-      } else {
-        _filteredProducts = _products
-            .where((p) => p.category == _selectedCategory)
-            .toList();
-      }
-    } else {
-      // Filter by search query and current category
-      _filteredProducts = _products
-          .where((product) {
-            final matchesSearch = product.name.toLowerCase().contains(query.toLowerCase()) ||
-                product.description.toLowerCase().contains(query.toLowerCase());
-            final matchesCategory = _selectedCategory == 'all' || 
-                product.category == _selectedCategory;
-            return matchesSearch && matchesCategory;
-          })
-          .toList();
-    }
+    _searchQuery = query;
+    _applyFilters();
     notifyListeners();
   }
 
   void filterByPrice(double minPrice, double maxPrice) {
     _filteredProducts = _products
-        .where((product) =>
-            product.price >= minPrice && product.price <= maxPrice)
+        .where(
+            (product) => product.price >= minPrice && product.price <= maxPrice)
         .toList();
     notifyListeners();
   }
@@ -162,8 +187,43 @@ class ProductProvider extends ChangeNotifier {
   }
 
   void resetFilters() {
-    _filteredProducts = List.from(_products);
     _selectedCategory = 'all';
+    _selectedSubcategory = 'all';
+    _selectedItemType = 'all';
+    _searchQuery = '';
+    _applyFilters();
     notifyListeners();
+  }
+
+  void _applyFilters() {
+    final normalizedQuery = _searchQuery.trim().toLowerCase();
+
+    _filteredProducts = _products.where((product) {
+      final matchesCategory =
+          _selectedCategory == 'all' || product.category == _selectedCategory;
+      final matchesSubcategory = _selectedSubcategory == 'all' ||
+          product.subcategory == _selectedSubcategory;
+      final matchesItem =
+          _selectedItemType == 'all' || product.type == _selectedItemType;
+      final matchesSearch = normalizedQuery.isEmpty ||
+          product.name.toLowerCase().contains(normalizedQuery) ||
+          product.description.toLowerCase().contains(normalizedQuery) ||
+          product.subcategory.toLowerCase().contains(normalizedQuery) ||
+          product.type.toLowerCase().contains(normalizedQuery);
+
+      return matchesCategory &&
+          matchesSubcategory &&
+          matchesItem &&
+          matchesSearch;
+    }).toList();
+  }
+
+  String _formatLabel(String value) {
+    return value
+        .replaceAll(RegExp(r'[-_]+'), ' ')
+        .split(' ')
+        .where((word) => word.isNotEmpty)
+        .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
+        .join(' ');
   }
 }

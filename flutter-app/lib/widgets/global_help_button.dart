@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
+import '../services/whatsapp_service.dart';
 
 class GlobalHelpButton extends StatefulWidget {
   const GlobalHelpButton({super.key});
@@ -22,7 +22,7 @@ class _GlobalHelpButtonState extends State<GlobalHelpButton>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 1.2,
@@ -120,37 +120,6 @@ class _GlobalHelpButtonState extends State<GlobalHelpButton>
   }
 
   Future<void> _openWhatsAppHelp() async {
-    try {
-      // Using the same phone number as the website: 8801726466000
-      const String phoneNumber = '8801726466000';
-      const String message = 'Hi! I need help with my order or have a question about your products. Can you please assist me?';
-      
-      final String encodedMessage = Uri.encodeQueryComponent(message);
-      final String whatsappUrl = 'https://wa.me/$phoneNumber?text=$encodedMessage';
-      
-      final Uri uri = Uri.parse(whatsappUrl);
-      
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not open WhatsApp. Please check if WhatsApp is installed.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error opening WhatsApp: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    await WhatsAppService.openSupportChat(context);
   }
 }

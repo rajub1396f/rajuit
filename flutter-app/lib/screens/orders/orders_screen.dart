@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'package:dio/dio.dart';
 import '../../config/constants.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/order_provider.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -72,16 +73,49 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
           if (orderProvider.error != null) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Error: ${orderProvider.error}'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => orderProvider.fetchOrders(),
-                    child: const Text('Retry'),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(Constants.defaultPadding),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      orderProvider.hasAuthError
+                          ? Icons.lock_outline
+                          : Icons.error_outline,
+                      size: 56,
+                      color: Colors.grey[500],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      orderProvider.hasAuthError
+                          ? 'Session expired'
+                          : 'Could not load orders',
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      orderProvider.error!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (orderProvider.hasAuthError) {
+                          await context
+                              .read<AuthProvider>()
+                              .forceReAuthentication();
+                        } else {
+                          orderProvider.fetchOrders();
+                        }
+                      },
+                      child: Text(
+                        orderProvider.hasAuthError ? 'Login Again' : 'Retry',
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -161,103 +195,110 @@ class _OrdersScreenState extends State<OrdersScreen> {
               // Orders List
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: Constants.defaultPadding,
+                  padding: const EdgeInsets.fromLTRB(
+                    Constants.defaultPadding,
+                    0,
+                    Constants.defaultPadding,
+                    Constants.helpButtonBottomClearance,
                   ),
                   itemCount: orderProvider.orders.length,
                   itemBuilder: (context, index) {
                     final order = orderProvider.orders[index];
 
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: InkWell(
-                  onTap: () {
-                    orderProvider.selectOrder(order.id);
-                    _showOrderDetails(context, order.id);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Order ID and Status
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Order #${order.id.toString().padLeft(6, '0')}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: InkWell(
+                        onTap: () {
+                          orderProvider.selectOrder(order.id);
+                          _showOrderDetails(context, order.id);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Order ID and Status
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Order #${order.id.toString().padLeft(6, '0')}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getStatusColor(order.status),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      Constants.orderStatusLabels[
+                                              order.status] ??
+                                          order.status,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(order.status),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                Constants.orderStatusLabels[order.status] ??
-                                    order.status,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                              const SizedBox(height: 12),
+                              // Order Date
+                              Text(
+                                'Placed on ${_formatDate(order.createdAt)}',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
                                   fontSize: 12,
-                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        // Order Date
-                        Text(
-                          'Placed on ${_formatDate(order.createdAt)}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // Items Count
-                        Text(
-                          '${order.items.length} item(s)',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Divider(color: Colors.grey[300]),
-                        const SizedBox(height: 12),
-                        // Total Amount
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Total:',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              '৳${order.totalAmount.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFFFC800),
-                                fontSize: 16,
+                              const SizedBox(height: 8),
+                              // Items Count
+                              Text(
+                                '${order.items.length} item(s)',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 12),
+                              Divider(color: Colors.grey[300]),
+                              const SizedBox(height: 12),
+                              // Total Amount
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Total:',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    '৳${order.totalAmount.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFFFC800),
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
               ),
             ],
           );
@@ -317,7 +358,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
               builder: (context, scrollController) {
                 return ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.all(Constants.defaultPadding),
+                  padding: const EdgeInsets.fromLTRB(
+                    Constants.defaultPadding,
+                    Constants.defaultPadding,
+                    Constants.defaultPadding,
+                    Constants.helpButtonBottomClearance,
+                  ),
                   children: [
                     // Header
                     Text(
@@ -400,7 +446,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    if (order.invoicePdfUrl == null || order.invoicePdfUrl!.isEmpty)
+                    if (order.invoicePdfUrl == null ||
+                        order.invoicePdfUrl!.isEmpty)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -441,22 +488,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                       _isRegeneratingInvoice[order.id] = true;
                                     });
 
-                                    final messenger = ScaffoldMessenger.of(context);
+                                    final messenger =
+                                        ScaffoldMessenger.of(context);
 
                                     try {
-                                      print('[OrdersScreen] Sending invoice via email for order ${order.id}');
-                                      
+                                      print(
+                                          '[OrdersScreen] Sending invoice via email for order ${order.id}');
+
                                       final result = await context
                                           .read<OrderProvider>()
                                           .sendInvoiceEmail(order.id);
-                                      
-                                      print('[OrdersScreen] Email result: $result');
+
+                                      print(
+                                          '[OrdersScreen] Email result: $result');
                                       if (!mounted) return;
 
                                       if (result['success'] == true) {
                                         messenger.showSnackBar(
                                           const SnackBar(
-                                            content: Text('Invoice sent successfully! Please check your email to view or download the invoice.'),
+                                            content: Text(
+                                                'Invoice sent successfully! Please check your email to view or download the invoice.'),
                                             backgroundColor: Colors.green,
                                             duration: Duration(seconds: 5),
                                           ),
@@ -464,13 +515,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                       } else {
                                         messenger.showSnackBar(
                                           SnackBar(
-                                            content: Text(result['message'] ?? 'Failed to send invoice email'),
+                                            content: Text(result['message'] ??
+                                                'Failed to send invoice email'),
                                             backgroundColor: Colors.orange,
                                           ),
                                         );
                                       }
                                     } catch (error) {
-                                      print('[OrdersScreen] Error sending invoice email: $error');
+                                      print(
+                                          '[OrdersScreen] Error sending invoice email: $error');
                                       if (mounted) {
                                         messenger.showSnackBar(
                                           SnackBar(

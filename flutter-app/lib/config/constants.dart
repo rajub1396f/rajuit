@@ -1,9 +1,8 @@
-
 class Constants {
   // API Configuration
   // Using rajuit.online domain (Render backend)
   static const String baseUrl = 'https://rajuit.online';
-  
+
   // Fallback URLs for testing
   static const String productionUrl = 'https://rajuit.online';
   static const String renderUrl = 'https://rajuit-fashion-store.onrender.com';
@@ -28,21 +27,46 @@ class Constants {
 
   // Subcategories
   static const Map<String, List<String>> subcategories = {
-    'male': ['clothing', 'accessories', 'shoes'],
-    'female': ['clothing', 'accessories', 'shoes'],
-    'baby': ['clothing', 'toys', 'gear'],
-    'home': ['decor', 'furniture', 'textiles'],
+    'female': ['clothing', 'accessories', 'footwear', 'jewelry'],
+    'male': ['clothing', 'accessories', 'footwear'],
+    'baby': ['clothing', 'toys', 'accessories', 'care'],
+    'home': ['decor', 'kitchen', 'storage', 'lighting', 'textile'],
   };
 
   static const Map<String, String> subcategoryLabels = {
     'clothing': 'Clothing',
     'accessories': 'Accessories',
-    'shoes': 'Shoes',
-    'toys': 'Toys',
-    'gear': 'Gear',
-    'decor': 'Decor',
-    'furniture': 'Furniture',
-    'textiles': 'Textiles',
+    'footwear': 'Footwear',
+    'jewelry': 'Jewelry',
+    'toys': 'Toys & Games',
+    'care': 'Baby Care Products',
+    'decor': 'Home Decor',
+    'kitchen': 'Kitchen Items',
+    'storage': 'Storage Solutions',
+    'lighting': 'Lighting & Lamps',
+    'textile': 'Home Textiles',
+  };
+
+  static const Map<String, List<String>> itemSuggestions = {
+    'clothing': [
+      'Dress',
+      'Abaya',
+      'T-Shirt',
+      'Jacket',
+      'Thobe',
+      'Pants',
+      'Shirt'
+    ],
+    'accessories': ['Bag', 'Watch', 'Sunglasses', 'Belt', 'Wallet'],
+    'footwear': ['Shoes', 'Heels', 'Sandals', 'Sneakers'],
+    'jewelry': ['Necklace', 'Earrings', 'Bracelet', 'Ring'],
+    'toys': ['Toy Set', 'Learning Toy', 'Plush Toy'],
+    'care': ['Baby Lotion', 'Baby Oil', 'Baby Shampoo'],
+    'decor': ['Wall Decor', 'Vase', 'Table Decor'],
+    'kitchen': ['Cookware', 'Dinnerware', 'Kitchen Tool'],
+    'storage': ['Organizer', 'Storage Box', 'Basket'],
+    'lighting': ['Lamp', 'LED Light', 'Decor Light'],
+    'textile': ['Curtain', 'Bedsheet', 'Cushion Cover'],
   };
 
   // Order Status
@@ -66,6 +90,7 @@ class Constants {
   static const double defaultPadding = 16.0;
   static const double defaultRadius = 12.0;
   static const double defaultElevation = 4.0;
+  static const double helpButtonBottomClearance = 150.0;
 
   // Timeouts
   static const Duration connectionTimeout = Duration(seconds: 30);
@@ -77,10 +102,11 @@ class Constants {
   static const String phonePattern = r'^[0-9]{10,}$';
   static const int minPasswordLength = 6;
 
-  // Google OAuth Configuration  
+  // Google OAuth Configuration
   // Web client ID for web version (localhost and production)
-  static const String googleClientId = '1027670106522-cvfn6td1finicio4bv1kk73vip6si300.apps.googleusercontent.com';
-  
+  static const String googleClientId =
+      '1027670106522-cvfn6td1finicio4bv1kk73vip6si300.apps.googleusercontent.com';
+
   // If you created a new Android client ID, replace the above with the new client ID
   // For Android, the client ID is automatically read from google-services.json
 }

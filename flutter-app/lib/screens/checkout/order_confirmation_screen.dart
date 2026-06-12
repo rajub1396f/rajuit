@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'package:dio/dio.dart';
+import '../../config/constants.dart';
 import '../../providers/order_provider.dart';
 import '../../services/storage_service.dart';
 import '../../services/api_service.dart';
@@ -256,7 +257,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
         builder: (context, snapshot) {
           return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                Constants.helpButtonBottomClearance,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

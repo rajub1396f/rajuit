@@ -31,6 +31,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(
+          bottom: Constants.helpButtonBottomClearance,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -48,7 +51,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: widget.product.image != null
                     ? CachedNetworkImage(
                         imageUrl: widget.product.image!,
-                        fit: BoxFit.contain, // Changed from cover to contain for full image
+                        fit: BoxFit
+                            .contain, // Changed from cover to contain for full image
                         placeholder: (context, url) => const Center(
                           child: CircularProgressIndicator(),
                         ),
@@ -237,14 +241,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   productId: widget.product.id,
                                 ),
                               );
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(
+                              ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
                                     'Added $_quantity item(s) to cart',
                                   ),
-                                  duration:
-                                      const Duration(milliseconds: 800),
+                                  duration: const Duration(milliseconds: 800),
                                 ),
                               );
                               Navigator.of(context).pop();
@@ -259,7 +261,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             const SizedBox(height: 24),
 
             // Instagram Video Button
-            if (widget.product.instagramVideoUrl != null && widget.product.instagramVideoUrl!.isNotEmpty) ...[
+            if (widget.product.instagramVideoUrl != null &&
+                widget.product.instagramVideoUrl!.isNotEmpty) ...[
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -307,9 +310,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFFE4405F),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                       ),
-                      onPressed: () => _openInstagramVideo(widget.product.instagramVideoUrl!),
+                      onPressed: () => _openInstagramVideo(
+                          widget.product.instagramVideoUrl!),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -323,7 +328,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-            ],          ],
+            ],
+          ],
         ),
       ),
     );
@@ -411,10 +417,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
       final Uri uri = Uri.parse(videoUrl);
       print('Attempting to open Instagram video: $videoUrl');
-      
+
       // Try different launch modes
       bool launched = false;
-      
+
       // First try: External application (Instagram app)
       try {
         if (await canLaunchUrl(uri)) {
@@ -424,7 +430,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       } catch (e) {
         print('External app launch failed: $e');
       }
-      
+
       // Second try: Platform default (system chooser)
       if (!launched) {
         try {
@@ -434,7 +440,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           print('Platform default launch failed: $e');
         }
       }
-      
+
       // Third try: In-app web view as fallback
       if (!launched) {
         try {
@@ -444,11 +450,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           print('In-app web view launch failed: $e');
         }
       }
-      
+
       if (!launched && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Could not open Instagram video. Try copying this link and opening it manually in Instagram app.'),
+            content: const Text(
+                'Could not open Instagram video. Try copying this link and opening it manually in Instagram app.'),
             backgroundColor: Colors.red,
             action: SnackBarAction(
               label: 'Copy Link',

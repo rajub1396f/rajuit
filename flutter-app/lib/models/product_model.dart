@@ -5,6 +5,8 @@ class ProductModel {
   final double price;
   final String? image;
   final String category;
+  final String subcategory;
+  final String type;
   final int stock;
   final double rating;
   final int reviews;
@@ -18,6 +20,8 @@ class ProductModel {
     required this.price,
     this.image,
     required this.category,
+    this.subcategory = '',
+    this.type = '',
     this.stock = 0,
     this.rating = 0.0,
     this.reviews = 0,
@@ -51,6 +55,8 @@ class ProductModel {
       price: parsePrice(json['price']),
       image: json['image_url'] ?? json['image'],
       category: json['category'] ?? '',
+      subcategory: json['subcategory'] ?? '',
+      type: json['type'] ?? '',
       stock: json['stock_quantity'] ?? json['stock'] ?? 0,
       rating: parseRating(json['rating']),
       reviews: json['reviews'] ?? 0,
@@ -67,6 +73,8 @@ class ProductModel {
       'price': price,
       'image': image,
       'category': category,
+      'subcategory': subcategory,
+      'type': type,
       'stock': stock,
       'rating': rating,
       'reviews': reviews,
@@ -82,6 +90,8 @@ class ProductModel {
     double? price,
     String? image,
     String? category,
+    String? subcategory,
+    String? type,
     int? stock,
     double? rating,
     int? reviews,
@@ -95,6 +105,8 @@ class ProductModel {
       price: price ?? this.price,
       image: image ?? this.image,
       category: category ?? this.category,
+      subcategory: subcategory ?? this.subcategory,
+      type: type ?? this.type,
       stock: stock ?? this.stock,
       rating: rating ?? this.rating,
       reviews: reviews ?? this.reviews,

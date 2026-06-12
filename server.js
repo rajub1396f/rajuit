@@ -5,6 +5,7 @@ const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const brevo = require('@getbrevo/brevo');
@@ -255,7 +256,25 @@ console.log("✅ Brevo email service initialized");
     } catch (alterErr) {
       console.log("Note: verification_token column might already exist:", alterErr.message);
     }
-    
+
+    try {
+      await sql`
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE
+      `;
+      await sql`
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS two_factor_code_hash TEXT
+      `;
+      await sql`
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS two_factor_code_expires_at TIMESTAMP
+      `;
+      console.log("Two-factor columns added/verified");
+    } catch (alterErr) {
+      console.log("Note: two-factor columns might already exist:", alterErr.message);
+    }
+     
     // Add last_password_reset column to users table
     try {
       await sql`
@@ -486,6 +505,65 @@ function generateInvoiceHtml(order, items) {
     </div>
 </body>
 </html>`;
+}
+
+function generateTwoFactorCode() {
+    return crypto.randomInt(100000, 1000000).toString();
+}
+
+function createTwoFactorPendingToken(user) {
+    return jwt.sign(
+        { twoFactorPending: true, id: user.id, email: user.email },
+        process.env.JWT_SECRET || "SECRET_KEY",
+        { expiresIn: "10m" }
+    );
+}
+
+async function saveAndSendTwoFactorCode(user, purpose = "login") {
+    const code = generateTwoFactorCode();
+    const hashedCode = await bcrypt.hash(code, 10);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await sql`
+      UPDATE users
+      SET two_factor_code_hash = ${hashedCode},
+          two_factor_code_expires_at = ${expiresAt}
+      WHERE id = ${user.id}
+    `;
+
+    const title = purpose === "enable"
+      ? "Enable Two-Factor Authentication"
+      : "Your Login Verification Code";
+
+    await sendBrevoEmail({
+      to: user.email,
+      subject: `${title} - Raju IT`,
+      htmlContent: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: #fff; padding: 30px; border-radius: 10px; border: 1px solid #eee;">
+            <h2 style="color: #212529;">${title}</h2>
+            <p>Hi ${escapeHtml(user.name || "there")},</p>
+            <p>Use this verification code to continue:</p>
+            <div style="font-size: 32px; letter-spacing: 8px; font-weight: bold; background: #ffc800; color: #212529; padding: 16px; text-align: center; border-radius: 8px;">
+              ${code}
+            </div>
+            <p style="color: #666; margin-top: 24px;">This code expires in 10 minutes. If you did not request this, you can ignore this email.</p>
+          </div>
+        </div>
+      `
+    });
+}
+
+function buildAuthUser(user) {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+      isVerified: user.is_verified,
+      isTwoFactorEnabled: user.two_factor_enabled === true
+    };
 }
 
 function getChromeExecutablePath() {
@@ -1029,6 +1107,24 @@ app.post("/login", async (req, res) => {
       }
     }
 
+    if (storedUser.two_factor_enabled === true) {
+      try {
+        await saveAndSendTwoFactorCode(storedUser, "login");
+        return res.json({
+          success: false,
+          requiresTwoFactor: true,
+          twoFactorToken: createTwoFactorPendingToken(storedUser),
+          email: storedUser.email,
+          message: "Verification code sent to your email."
+        });
+      } catch (emailError) {
+        console.error("Two-factor email error:", emailError);
+        return res.status(500).json({
+          message: "Could not send two-factor verification code. Please try again."
+        });
+      }
+    }
+
     const payload = {
       id: storedUser.id,
       name: storedUser.name,
@@ -1044,19 +1140,169 @@ app.post("/login", async (req, res) => {
     return res.json({
       success: true,
       token,
-      user: { 
-        id: storedUser.id, 
-        name: storedUser.name, 
-        email: storedUser.email,
-        phone: storedUser.phone,
-        address: storedUser.address,
-        isVerified: storedUser.is_verified
-      },
+      user: buildAuthUser(storedUser),
       redirect: "/dashboard.html"
     });
 
   } catch (err) {
     console.error("Login error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/login/two-factor", async (req, res) => {
+  try {
+    const { twoFactorToken, code } = req.body;
+
+    if (!twoFactorToken || !code) {
+      return res.status(400).json({ message: "Verification token and code are required" });
+    }
+
+    let pending;
+    try {
+      pending = jwt.verify(twoFactorToken, process.env.JWT_SECRET || "SECRET_KEY");
+    } catch (err) {
+      return res.status(401).json({ message: "Verification session expired. Please log in again." });
+    }
+
+    if (!pending.twoFactorPending || !pending.id) {
+      return res.status(401).json({ message: "Invalid verification session" });
+    }
+
+    const userRows = await sql`SELECT * FROM users WHERE id = ${pending.id} LIMIT 1`;
+    const user = userRows && userRows[0];
+
+    if (!user || !user.two_factor_code_hash || !user.two_factor_code_expires_at) {
+      return res.status(400).json({ message: "No active verification code. Please log in again." });
+    }
+
+    if (new Date(user.two_factor_code_expires_at).getTime() < Date.now()) {
+      return res.status(400).json({ message: "Verification code expired. Please log in again." });
+    }
+
+    const isCodeValid = await bcrypt.compare(String(code).trim(), user.two_factor_code_hash);
+    if (!isCodeValid) {
+      return res.status(400).json({ message: "Incorrect verification code" });
+    }
+
+    await sql`
+      UPDATE users
+      SET two_factor_code_hash = NULL,
+          two_factor_code_expires_at = NULL
+      WHERE id = ${user.id}
+    `;
+
+    const payload = {
+      id: user.id,
+      name: user.name,
+      phone: user.phone,
+      address: user.address,
+      email: user.email
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET || "SECRET_KEY", { expiresIn: "2d" });
+    req.session.user = { id: user.id, name: user.name, email: user.email };
+
+    return res.json({
+      success: true,
+      token,
+      user: buildAuthUser(user),
+      redirect: "/dashboard.html"
+    });
+  } catch (err) {
+    console.error("Two-factor login error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/two-factor/status", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id || req.user.userId;
+    const userRows = await sql`
+      SELECT two_factor_enabled
+      FROM users
+      WHERE id = ${userId}
+      LIMIT 1
+    `;
+    const user = userRows && userRows[0];
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      success: true,
+      enabled: user.two_factor_enabled === true
+    });
+  } catch (err) {
+    console.error("Two-factor status error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/two-factor/send-enable-code", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id || req.user.userId;
+    const userRows = await sql`SELECT * FROM users WHERE id = ${userId} LIMIT 1`;
+    const user = userRows && userRows[0];
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.is_verified !== true) {
+      return res.status(403).json({ message: "Please verify your email before enabling two-factor authentication." });
+    }
+
+    await saveAndSendTwoFactorCode(user, "enable");
+    res.json({ success: true, message: "Verification code sent to your email." });
+  } catch (err) {
+    console.error("Two-factor send enable code error:", err);
+    res.status(500).json({ message: "Could not send verification code" });
+  }
+});
+
+app.post("/two-factor/enable", verifyToken, async (req, res) => {
+  try {
+    const { code } = req.body;
+    const userId = req.user.id || req.user.userId;
+
+    if (!code) return res.status(400).json({ message: "Verification code is required" });
+
+    const userRows = await sql`SELECT * FROM users WHERE id = ${userId} LIMIT 1`;
+    const user = userRows && userRows[0];
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user.two_factor_code_hash || !user.two_factor_code_expires_at) {
+      return res.status(400).json({ message: "No active verification code. Request a new code." });
+    }
+    if (new Date(user.two_factor_code_expires_at).getTime() < Date.now()) {
+      return res.status(400).json({ message: "Verification code expired. Request a new code." });
+    }
+
+    const isCodeValid = await bcrypt.compare(String(code).trim(), user.two_factor_code_hash);
+    if (!isCodeValid) return res.status(400).json({ message: "Incorrect verification code" });
+
+    await sql`
+      UPDATE users
+      SET two_factor_enabled = TRUE,
+          two_factor_code_hash = NULL,
+          two_factor_code_expires_at = NULL
+      WHERE id = ${user.id}
+    `;
+
+    res.json({ success: true, enabled: true, message: "Two-factor authentication enabled." });
+  } catch (err) {
+    console.error("Two-factor enable error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/two-factor/disable", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id || req.user.userId;
+    await sql`
+      UPDATE users
+      SET two_factor_enabled = FALSE,
+          two_factor_code_hash = NULL,
+          two_factor_code_expires_at = NULL
+      WHERE id = ${userId}
+    `;
+    res.json({ success: true, enabled: false, message: "Two-factor authentication disabled." });
+  } catch (err) {
+    console.error("Two-factor disable error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -2736,6 +2982,18 @@ app.get("/", (req, res) => {
         return res.redirect('/dashboard');
     }
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get("/download-apk", (req, res) => {
+    const apkPath = path.join(__dirname, "rajuit-fashion-store.apk");
+    res.download(apkPath, "RajuitFashionStore.apk", (err) => {
+        if (err) {
+            console.error("APK download error:", err.message);
+            if (!res.headersSent) {
+                res.status(404).send("APK file not found");
+            }
+        }
+    });
 });
 
 // Handle clean URLs - serve .html files without extension

@@ -13,37 +13,45 @@ class StorageService {
   static const _userNameKey = 'user_name';
   static const _userPhoneKey = 'user_phone';
   static const _userAddressKey = 'user_address';
+  static const _shippingAddressFieldsKey = 'shipping_address_fields';
   static const _isVerifiedKey = 'user_is_verified';
   static const _invoiceSyncKey = 'invoice_sync_data';
   static const _lastInvoiceSyncKey = 'last_invoice_sync';
+  static const _pushNotificationsKey = 'notification_push_enabled';
+  static const _emailNotificationsKey = 'notification_email_enabled';
+  static const _orderUpdatesKey = 'notification_order_updates_enabled';
+  static const _marketingCommunicationsKey =
+      'notification_marketing_communications_enabled';
+  static const _appLockEnabledKey = 'app_lock_enabled';
 
   // Token Management
   static Future<void> saveToken(String token, {int? expiryInSeconds}) async {
     await _secureStorage.write(key: _tokenKey, value: token);
-    
+
     // Save token expiry if provided
     if (expiryInSeconds != null) {
       final expiryTime = DateTime.now().add(Duration(seconds: expiryInSeconds));
-      await _secureStorage.write(key: _tokenExpiryKey, value: expiryTime.toIso8601String());
+      await _secureStorage.write(
+          key: _tokenExpiryKey, value: expiryTime.toIso8601String());
     }
   }
 
   static Future<String?> getToken() async {
     final token = await _secureStorage.read(key: _tokenKey);
-    
+
     // Check if token is expired
     if (token != null && await isTokenExpired()) {
       await deleteToken();
       return null;
     }
-    
+
     return token;
   }
 
   static Future<bool> isTokenExpired() async {
     final expiryStr = await _secureStorage.read(key: _tokenExpiryKey);
     if (expiryStr == null) return false;
-    
+
     try {
       final expiry = DateTime.parse(expiryStr);
       return DateTime.now().isAfter(expiry);
@@ -118,6 +126,10 @@ class StorageService {
     return await _secureStorage.read(key: _userAddressKey);
   }
 
+  static Future<void> saveUserAddress(String address) async {
+    await _secureStorage.write(key: _userAddressKey, value: address);
+  }
+
   static Future<bool> isUserVerified() async {
     final verified = await _secureStorage.read(key: _isVerifiedKey);
     return verified?.toLowerCase() == 'true';
@@ -132,8 +144,34 @@ class StorageService {
     await _secureStorage.deleteAll();
   }
 
+  // Shipping Address Management
+  static Future<void> saveShippingAddressFields(
+    Map<String, String> fields,
+  ) async {
+    await _secureStorage.write(
+      key: _shippingAddressFieldsKey,
+      value: jsonEncode(fields),
+    );
+  }
+
+  static Future<Map<String, String>> getShippingAddressFields() async {
+    final data = await _secureStorage.read(key: _shippingAddressFieldsKey);
+    if (data == null || data.isEmpty) return {};
+
+    try {
+      final decoded = jsonDecode(data);
+      if (decoded is! Map<String, dynamic>) return {};
+
+      return decoded.map(
+        (key, value) => MapEntry(key, value?.toString() ?? ''),
+      );
+    } catch (e) {
+      return {};
+    }
+  }
+
   // ==================== INVOICE SYNC (SECURE) ====================
-  
+
   /// Save invoice data with JWT token for secure sync
   static Future<void> saveInvoiceSync({
     required int orderId,
@@ -191,10 +229,58 @@ class StorageService {
   static Future<bool> invoiceNeedsRefresh(int orderId) async {
     final lastSync = await getLastInvoiceSyncTime();
     if (lastSync == null) return true;
-    
+
     final now = DateTime.now();
     final difference = now.difference(lastSync);
     return difference.inHours >= 24;
+  }
+
+  // Notification Preferences
+  static Future<Map<String, bool>> getNotificationPreferences() async {
+    return {
+      'push': await _readBool(_pushNotificationsKey, defaultValue: true),
+      'email': await _readBool(_emailNotificationsKey, defaultValue: false),
+      'orderUpdates': await _readBool(_orderUpdatesKey, defaultValue: true),
+      'marketing': await _readBool(
+        _marketingCommunicationsKey,
+        defaultValue: false,
+      ),
+    };
+  }
+
+  static Future<void> saveNotificationPreference({
+    required String key,
+    required bool value,
+  }) async {
+    final storageKey = switch (key) {
+      'push' => _pushNotificationsKey,
+      'email' => _emailNotificationsKey,
+      'orderUpdates' => _orderUpdatesKey,
+      'marketing' => _marketingCommunicationsKey,
+      _ => throw ArgumentError('Unknown notification preference: $key'),
+    };
+
+    await _secureStorage.write(key: storageKey, value: value.toString());
+  }
+
+  static Future<bool> getAppLockEnabled() async {
+    return _readBool(_appLockEnabledKey, defaultValue: true);
+  }
+
+  static Future<void> saveAppLockEnabled(bool isEnabled) async {
+    await _secureStorage.write(
+      key: _appLockEnabledKey,
+      value: isEnabled.toString(),
+    );
+  }
+
+  static Future<bool> _readBool(
+    String key, {
+    required bool defaultValue,
+  }) async {
+    final value = await _secureStorage.read(key: key);
+    if (value == null) return defaultValue;
+    return value.toLowerCase() == 'true';
   }
 
   // Additional helpers
@@ -208,4 +294,3 @@ class StorageService {
     };
   }
 }
-

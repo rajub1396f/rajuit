@@ -5,6 +5,7 @@ class UserModel {
   final String phone;
   final String? address;
   final bool isVerified;
+  final bool isTwoFactorEnabled;
   final String? role;
   final String? createdAt;
 
@@ -15,6 +16,7 @@ class UserModel {
     required this.phone,
     this.address,
     required this.isVerified,
+    this.isTwoFactorEnabled = false,
     this.role = 'user',
     this.createdAt,
   });
@@ -27,6 +29,8 @@ class UserModel {
       phone: json['phone'] ?? '',
       address: json['address'],
       isVerified: json['isVerified'] ?? json['is_verified'] ?? false,
+      isTwoFactorEnabled:
+          json['isTwoFactorEnabled'] ?? json['two_factor_enabled'] ?? false,
       role: json['role'] ?? 'user',
       createdAt: json['created_at'],
     );
@@ -40,6 +44,7 @@ class UserModel {
       'phone': phone,
       'address': address,
       'is_verified': isVerified,
+      'two_factor_enabled': isTwoFactorEnabled,
       'role': role,
       'created_at': createdAt,
     };
@@ -52,6 +57,7 @@ class UserModel {
     String? phone,
     String? address,
     bool? isVerified,
+    bool? isTwoFactorEnabled,
     String? role,
     String? createdAt,
   }) {
@@ -62,6 +68,7 @@ class UserModel {
       phone: phone ?? this.phone,
       address: address ?? this.address,
       isVerified: isVerified ?? this.isVerified,
+      isTwoFactorEnabled: isTwoFactorEnabled ?? this.isTwoFactorEnabled,
       role: role ?? this.role,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -118,24 +125,34 @@ class AuthResponse {
   final bool success;
   final String message;
   final String? token;
+  final bool requiresTwoFactor;
+  final String? twoFactorToken;
+  final String? email;
   final UserModel? user;
 
   AuthResponse({
     required this.success,
     required this.message,
     this.token,
+    this.requiresTwoFactor = false,
+    this.twoFactorToken,
+    this.email,
     this.user,
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     // If backend returns token and user, consider it successful
     // This handles cases where backend doesn't explicitly send 'success' field
-    bool isSuccessful = json['success'] ?? (json['token'] != null && json['user'] != null);
-    
+    bool isSuccessful =
+        json['success'] ?? (json['token'] != null && json['user'] != null);
+
     return AuthResponse(
       success: isSuccessful,
       message: json['message'] ?? '',
       token: json['token'],
+      requiresTwoFactor: json['requiresTwoFactor'] ?? false,
+      twoFactorToken: json['twoFactorToken'],
+      email: json['email'],
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
     );
   }
@@ -145,6 +162,9 @@ class AuthResponse {
       'success': success,
       'message': message,
       'token': token,
+      'requiresTwoFactor': requiresTwoFactor,
+      'twoFactorToken': twoFactorToken,
+      'email': email,
       'user': user?.toJson(),
     };
   }

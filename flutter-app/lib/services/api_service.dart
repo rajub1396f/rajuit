@@ -40,11 +40,13 @@ class ApiService {
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
             if (kDebugMode) {
-              print('[JWT] Token added to request: ${token.substring(0, 20)}... for ${options.path}');
+              print(
+                  '[JWT] Token added to request: ${token.substring(0, 20)}... for ${options.path}');
             }
           } else {
             if (kDebugMode) {
-              print('[JWT] ⚠️ No token available for request to ${options.path}');
+              print(
+                  '[JWT] ⚠️ No token available for request to ${options.path}');
             }
           }
           return handler.next(options);
@@ -56,7 +58,7 @@ class ApiService {
               print('[JWT] 401 error for ${error.requestOptions.path}');
               print('[JWT] Response: ${error.response?.data}');
             }
-            
+
             // Don't immediately clear tokens on first 401 - might be a specific endpoint issue
             // Only attempt refresh, but don't clear everything if refresh fails
             final refreshed = await _refreshToken();
@@ -66,7 +68,8 @@ class ApiService {
             } else {
               // Just log the issue but don't clear tokens yet
               if (kDebugMode) {
-                print('[JWT] Token refresh failed for ${error.requestOptions.path} - but preserving token for other requests');
+                print(
+                    '[JWT] Token refresh failed for ${error.requestOptions.path} - but preserving token for other requests');
               }
             }
           }
@@ -123,6 +126,32 @@ class ApiService {
         print('[API] General exception in login: $e');
       }
       throw Exception('Login failed: ${e.toString()}');
+    }
+  }
+
+  Future<AuthResponse> verifyTwoFactorLogin({
+    required String twoFactorToken,
+    required String code,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/login/two-factor',
+        data: {
+          'twoFactorToken': twoFactorToken,
+          'code': code,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return AuthResponse.fromJson(response.data);
+      }
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
@@ -200,10 +229,12 @@ class ApiService {
     }
   }
 
-  Future<AuthResponse> googleAuth(String googleToken, String email, String name) async {
+  Future<AuthResponse> googleAuth(
+      String googleToken, String email, String name) async {
     try {
       if (kDebugMode) {
-        print('[API] Attempting Google Auth to: ${Constants.baseUrl}/auth/google');
+        print(
+            '[API] Attempting Google Auth to: ${Constants.baseUrl}/auth/google');
         print('[API] Email: $email');
       }
 
@@ -341,6 +372,11 @@ class ApiService {
         type: DioExceptionType.badResponse,
       );
     } on DioException catch (e) {
+      if (_isInvalidTokenResponse(e)) {
+        await StorageService.deleteToken();
+        throw Exception('Session expired. Please log in again.');
+      }
+
       throw _handleError(e);
     }
   }
@@ -440,6 +476,74 @@ class ApiService {
     }
   }
 
+  Future<bool> getTwoFactorEnabled() async {
+    try {
+      final response = await _dio.get('/two-factor/status');
+
+      if (response.statusCode == 200) {
+        return response.data['enabled'] == true;
+      }
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> sendTwoFactorEnableCode() async {
+    try {
+      final response = await _dio.post('/two-factor/send-enable-code');
+
+      if (response.statusCode != 200) {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> enableTwoFactor(String code) async {
+    try {
+      final response = await _dio.post(
+        '/two-factor/enable',
+        data: {'code': code},
+      );
+
+      if (response.statusCode != 200) {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> disableTwoFactor() async {
+    try {
+      final response = await _dio.post('/two-factor/disable');
+
+      if (response.statusCode != 200) {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== SEND INVOICE EMAIL ====================
 
   Future<Map<String, dynamic>> sendInvoiceEmail(int orderId) async {
@@ -483,8 +587,9 @@ class ApiService {
     if (error.response != null) {
       final statusCode = error.response?.statusCode;
       final responseData = error.response?.data;
-      
-      if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+
+      if (responseData is Map<String, dynamic> &&
+          responseData['message'] != null) {
         message = responseData['message'];
       } else if (statusCode == 400) {
         message = 'Invalid request. Please check your input.';
@@ -512,6 +617,16 @@ class ApiService {
     return Exception(message);
   }
 
+  bool _isInvalidTokenResponse(DioException error) {
+    final statusCode = error.response?.statusCode;
+    final responseData = error.response?.data;
+    final message = responseData is Map<String, dynamic>
+        ? responseData['message']?.toString().toLowerCase()
+        : null;
+
+    return statusCode == 401 && message == 'invalid token';
+  }
+
   // ==================== JWT TOKEN MANAGEMENT ====================
 
   /// Attempt to refresh JWT token
@@ -519,7 +634,9 @@ class ApiService {
     try {
       final refreshToken = await StorageService.getRefreshToken();
       if (refreshToken == null) {
-        if (kDebugMode) print('[JWT] No refresh token available - keeping current token for now');
+        if (kDebugMode)
+          print(
+              '[JWT] No refresh token available - keeping current token for now');
         return false;
       }
 
@@ -540,7 +657,8 @@ class ApiService {
         return true;
       }
     } catch (e) {
-      if (kDebugMode) print('[JWT] Token refresh failed: $e - but keeping current token');
+      if (kDebugMode)
+        print('[JWT] Token refresh failed: $e - but keeping current token');
       // Don't clear tokens on refresh failure - might be network issue
     }
     return false;
@@ -548,14 +666,16 @@ class ApiService {
 
   /// Handle token expiry by clearing tokens and notifying auth state
   Future<void> _handleTokenExpiry() async {
-    if (kDebugMode) print('[JWT] Handling token expiry - attempting graceful recovery');
-    
+    if (kDebugMode)
+      print('[JWT] Handling token expiry - attempting graceful recovery');
+
     // Don't immediately clear all tokens on first 401 error
     // Instead, just remove the current token but preserve user info
     await StorageService.deleteToken();
-    
+
     // Give the user a chance to re-authenticate before clearing everything
-    if (kDebugMode) print('[JWT] Token cleared - user may need to re-authenticate');
+    if (kDebugMode)
+      print('[JWT] Token cleared - user may need to re-authenticate');
   }
 
   /// Retry a failed request

@@ -26,6 +26,9 @@ class OrderProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isCreating => _isCreating;
+  bool get hasAuthError =>
+      _error?.toLowerCase().contains('session expired') == true ||
+      _error?.toLowerCase().contains('log in again') == true;
 
   Future<void> fetchOrders({bool isAutoRefresh = false}) async {
     try {
@@ -43,7 +46,7 @@ class OrderProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (!isAutoRefresh) {
-        _error = e.toString();
+        _error = _formatError(e);
         _isLoading = false;
       }
       notifyListeners();
@@ -74,7 +77,7 @@ class OrderProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _error = e.toString();
+      _error = _formatError(e);
       _isCreating = false;
       notifyListeners();
       return false;
@@ -102,7 +105,7 @@ class OrderProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      _error = _formatError(e);
       _isLoading = false;
       notifyListeners();
     }
@@ -113,7 +116,7 @@ class OrderProvider extends ChangeNotifier {
       final invoiceData = await _apiService.getInvoice(orderId);
       return invoiceData;
     } catch (e) {
-      _error = e.toString();
+      _error = _formatError(e);
       notifyListeners();
       return null;
     }
@@ -144,7 +147,7 @@ class OrderProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = _formatError(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -168,12 +171,16 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  String _formatError(Object error) {
+    return error.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+  }
+
   Future<Map<String, dynamic>> sendInvoiceEmail(int orderId) async {
     try {
       // Request to send invoice via email
       final result = await _apiService.sendInvoiceEmail(orderId);
       print('[OrderProvider] Send invoice email result: $result');
-      
+
       return result;
     } catch (e) {
       print('[OrderProvider] ❌ Error sending invoice email: $e');

@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pageController = PageController();
     _searchController = TextEditingController();
-    
+
     // Fetch products on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().fetchProducts();
@@ -41,6 +41,17 @@ class _HomeScreenState extends State<HomeScreen> {
     _pageController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  String _formatFilterLabel(String value) {
+    if (value == 'all') return 'all subcategories';
+
+    return value
+        .replaceAll(RegExp(r'[-_]+'), ' ')
+        .split(' ')
+        .where((word) => word.isNotEmpty)
+        .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
+        .join(' ');
   }
 
   @override
@@ -134,6 +145,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildProductsPage() {
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(
+        bottom: Constants.helpButtonBottomClearance,
+      ),
       child: Column(
         children: [
           // Search Bar
@@ -192,8 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             if (category == 'all') {
                               productProvider.resetFilters();
                             } else {
-                              productProvider
-                                  .fetchProductsByCategory(category);
+                              productProvider.fetchProductsByCategory(category);
                             }
                           }
                         },
@@ -225,11 +238,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(
                     horizontal: Constants.defaultPadding,
                   ),
-                  itemCount: subcats.length,
+                  itemCount: subcats.length + 1,
                   itemBuilder: (context, index) {
-                    final subcat = subcats[index];
-                    final label =
-                        Constants.subcategoryLabels[subcat] ?? subcat;
+                    final subcat = index == 0 ? 'all' : subcats[index - 1];
+                    final label = subcat == 'all'
+                        ? 'All Products'
+                        : Constants.subcategoryLabels[subcat] ?? subcat;
 
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
@@ -238,19 +252,90 @@ class _HomeScreenState extends State<HomeScreen> {
                           label,
                           style: const TextStyle(fontSize: 12),
                         ),
-                        selected: false,
+                        selected: productProvider.selectedSubcategory == subcat,
                         onSelected: (selected) {
                           if (selected) {
-                            productProvider.fetchProductsBySubcategory(
-                              selectedCat,
-                              subcat,
-                            );
+                            if (subcat == 'all') {
+                              productProvider
+                                  .fetchProductsByCategory(selectedCat);
+                            } else {
+                              productProvider.fetchProductsBySubcategory(
+                                selectedCat,
+                                subcat,
+                              );
+                            }
                           }
                         },
                       ),
                     );
                   },
                 ),
+              );
+            },
+          ),
+          const SizedBox(height: 4),
+
+          // Item Filter (matches website product type filters)
+          Consumer<ProductProvider>(
+            builder: (context, productProvider, _) {
+              final selectedCat = productProvider.selectedCategory;
+              final itemTypes = productProvider.visibleItemTypes;
+
+              if (selectedCat == 'all' || itemTypes.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Constants.defaultPadding,
+                    ),
+                    child: Text(
+                      'Items under ${_formatFilterLabel(productProvider.selectedSubcategory)}',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 42,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Constants.defaultPadding,
+                      ),
+                      itemCount: itemTypes.length + 1,
+                      itemBuilder: (context, index) {
+                        final itemType =
+                            index == 0 ? 'all' : itemTypes[index - 1];
+                        final label = itemType == 'all'
+                            ? 'All Items'
+                            : _formatFilterLabel(itemType);
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: Text(
+                              label,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            selected:
+                                productProvider.selectedItemType == itemType,
+                            onSelected: (selected) {
+                              if (selected) {
+                                productProvider.fetchProductsByItemType(
+                                  selectedCat,
+                                  itemType,
+                                );
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -296,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.all(Constants.defaultPadding),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.7,
+                  mainAxisExtent: 380,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                 ),
@@ -308,131 +393,174 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) =>
-                              ProductDetailScreen(product: product),
+                          builder: (_) => ProductDetailScreen(product: product),
                         ),
                       );
                     },
                     child: Card(
+                      clipBehavior: Clip.antiAlias,
                       elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Product Image
-                          Expanded(
-                            child: Container(
-                              width: double.infinity,
-                              color: Colors.grey[200],
-                              child: product.image != null
-                                  ? CachedNetworkImage(
-                                      imageUrl: product.image!,
-                                      fit: BoxFit.contain, // Changed to contain for full image
-                                      placeholder: (context, url) => const Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                      errorWidget: (context, url, error) => const Icon(
-                                        Icons.image_not_supported,
-                                        size: 50,
-                                      ),
-                                    )
-                                  : const Icon(Icons.shopping_bag, size: 50),
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: ColoredBox(
+                              color: const Color(0xFFF6F6F6),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: product.image != null
+                                    ? CachedNetworkImage(
+                                        imageUrl: product.image!,
+                                        fit: BoxFit.contain,
+                                        placeholder: (context, url) =>
+                                            const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(
+                                          Icons.image_not_supported,
+                                          size: 50,
+                                        ),
+                                      )
+                                    : const Icon(Icons.shopping_bag, size: 50),
+                              ),
                             ),
                           ),
-                          // Product Info
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product.name,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    product.name,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '৳${product.price.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    color: Color(0xFFFFC800),
-                                    fontWeight: FontWeight.bold,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '৳${product.price.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      color: Color(0xFFFFC800),
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                // Add to Cart Button
-                                Consumer<CartProvider>(
-                                  builder: (context, cartProvider, _) {
-                                    return SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        style:
-                                            ElevatedButton.styleFrom(
-                                          padding:
-                                              const EdgeInsets.symmetric(
-                                                vertical: 8,
+                                  if (product.subcategory.isNotEmpty ||
+                                      product.type.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      [
+                                        if (product.subcategory.isNotEmpty)
+                                          Constants.subcategoryLabels[
+                                                  product.subcategory] ??
+                                              _formatFilterLabel(
+                                                product.subcategory,
                                               ),
-                                          backgroundColor:
-                                              const Color(0xFFFFC800),
+                                        if (product.type.isNotEmpty)
+                                          _formatFilterLabel(product.type),
+                                      ].join(' - '),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                  const Spacer(),
+                                  // Add to Cart Button
+                                  Consumer<CartProvider>(
+                                    builder: (context, cartProvider, _) {
+                                      return SizedBox(
+                                        height: 34,
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            padding: EdgeInsets.zero,
+                                            backgroundColor:
+                                                const Color(0xFFFFC800),
+                                            minimumSize:
+                                                const Size.fromHeight(34),
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                          ),
+                                          onPressed: () {
+                                            cartProvider.addItem(
+                                              CartItem(
+                                                id: product.id,
+                                                name: product.name,
+                                                price: product.price,
+                                                image: product.image,
+                                                productId: product.id,
+                                              ),
+                                            );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Added to cart',
+                                                ),
+                                                duration: Duration(
+                                                  milliseconds: 500,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text(
+                                            'Add',
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12,
+                                            ),
+                                          ),
                                         ),
-                                        onPressed: () {
-                                          cartProvider.addItem(
-                                            CartItem(
-                                              id: product.id,
-                                              name: product.name,
-                                              price: product.price,
-                                              image: product.image,
-                                              productId: product.id,
+                                      );
+                                    },
+                                  ),
+                                  // Instagram Video Button
+                                  if (product.instagramVideoUrl != null &&
+                                      product.instagramVideoUrl!.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: SizedBox(
+                                        height: 32,
+                                        width: double.infinity,
+                                        child: OutlinedButton.icon(
+                                          style: OutlinedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
                                             ),
-                                          );
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Added to cart',
-                                              ),
-                                              duration: Duration(
-                                                milliseconds: 500,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: const Text(
-                                          'Add',
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 12,
+                                            side: const BorderSide(
+                                                color: Color(0xFFE4405F)),
+                                            foregroundColor:
+                                                const Color(0xFFE4405F),
+                                            minimumSize:
+                                                const Size.fromHeight(32),
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                          ),
+                                          onPressed: () => _openInstagramVideo(
+                                              product.instagramVideoUrl!),
+                                          icon: const Icon(
+                                              Icons.play_circle_outline,
+                                              size: 16),
+                                          label: const Text(
+                                            'Watch Video',
+                                            style: TextStyle(fontSize: 10),
                                           ),
                                         ),
                                       ),
-                                    );
-                                  },
-                                ),
-                                // Instagram Video Button
-                                if (product.instagramVideoUrl != null && product.instagramVideoUrl!.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 4),
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      child: OutlinedButton.icon(
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(vertical: 6),
-                                          side: const BorderSide(color: Color(0xFFE4405F)),
-                                          foregroundColor: const Color(0xFFE4405F),
-                                        ),
-                                        onPressed: () => _openInstagramVideo(product.instagramVideoUrl!),
-                                        icon: const Icon(Icons.play_circle_outline, size: 16),
-                                        label: const Text(
-                                          'Watch Video',
-                                          style: TextStyle(fontSize: 10),
-                                        ),
-                                      ),
                                     ),
-                                  ),
-
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -451,16 +579,18 @@ class _HomeScreenState extends State<HomeScreen> {
   // Open Instagram function
   Future<void> _openInstagram() async {
     try {
-      const String instagramUrl = 'https://www.instagram.com/rajuit1396/?igsh=MWZlOHk4bWxrY3hwMg%3D%3D&fbclid=IwY2xjawOXwtFleHRuA2FlbQIxMABicklkETFXaXJyMnR5aWF3eHB2SVl4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmKxgCF0yvOPwVkc5ovEt0JNh-K_DZ4egj27cYWVsba8m6bRIbTOszGrRkTA_aem_wyHdzWPSdl7DxeJ2So-lUw&brid=JbRWKsUzQoW71PD4MGNTnw';
+      const String instagramUrl =
+          'https://www.instagram.com/rajuit1396/?igsh=MWZlOHk4bWxrY3hwMg%3D%3D&fbclid=IwY2xjawOXwtFleHRuA2FlbQIxMABicklkETFXaXJyMnR5aWF3eHB2SVl4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmKxgCF0yvOPwVkc5ovEt0JNh-K_DZ4egj27cYWVsba8m6bRIbTOszGrRkTA_aem_wyHdzWPSdl7DxeJ2So-lUw&brid=JbRWKsUzQoW71PD4MGNTnw';
       final Uri uri = Uri.parse(instagramUrl);
-      
+
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Could not open Instagram. Please check if the Instagram app is installed.'),
+              content: Text(
+                  'Could not open Instagram. Please check if the Instagram app is installed.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -495,10 +625,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final Uri uri = Uri.parse(videoUrl);
       print('Attempting to open Instagram video: $videoUrl');
-      
+
       // Try different launch modes
       bool launched = false;
-      
+
       // First try: External application (Instagram app)
       try {
         if (await canLaunchUrl(uri)) {
@@ -508,7 +638,7 @@ class _HomeScreenState extends State<HomeScreen> {
       } catch (e) {
         print('External app launch failed: $e');
       }
-      
+
       // Second try: Platform default (system chooser)
       if (!launched) {
         try {
@@ -518,7 +648,7 @@ class _HomeScreenState extends State<HomeScreen> {
           print('Platform default launch failed: $e');
         }
       }
-      
+
       // Third try: In-app web view as fallback
       if (!launched) {
         try {
@@ -528,11 +658,12 @@ class _HomeScreenState extends State<HomeScreen> {
           print('In-app web view launch failed: $e');
         }
       }
-      
+
       if (!launched && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Could not open Instagram video. Try copying this link and opening it manually in Instagram app.'),
+            content: const Text(
+                'Could not open Instagram video. Try copying this link and opening it manually in Instagram app.'),
             backgroundColor: Colors.red,
             action: SnackBarAction(
               label: 'Copy Link',
@@ -556,6 +687,4 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
-
-
 }

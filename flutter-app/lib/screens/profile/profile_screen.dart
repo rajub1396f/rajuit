@@ -4,6 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
+import '../../services/app_lock_service.dart';
+import '../../services/storage_service.dart';
+import '../../services/whatsapp_service.dart';
 import '../auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -29,6 +32,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _obscureCurrentPassword = true;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
+  bool _pushNotificationsEnabled = true;
+  bool _emailNotificationsEnabled = false;
+  bool _orderUpdatesEnabled = true;
+  bool _marketingCommunicationsEnabled = false;
+  bool _appLockEnabled = true;
+  bool _deviceLockAvailable = false;
+  bool _twoFactorEnabled = false;
+  bool _isUpdatingTwoFactor = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationPreferences();
+    _loadAppLockPreference();
+    _loadTwoFactorStatus();
+  }
 
   @override
   void dispose() {
@@ -186,6 +205,315 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> _loadNotificationPreferences() async {
+    final preferences = await StorageService.getNotificationPreferences();
+    if (!mounted) return;
+
+    setState(() {
+      _pushNotificationsEnabled = preferences['push'] ?? true;
+      _emailNotificationsEnabled = preferences['email'] ?? false;
+      _orderUpdatesEnabled = preferences['orderUpdates'] ?? true;
+      _marketingCommunicationsEnabled = preferences['marketing'] ?? false;
+    });
+  }
+
+  Future<void> _updateNotificationPreference({
+    required String key,
+    required bool value,
+    required void Function(bool value) updateDialogState,
+  }) async {
+    setState(() {
+      _setNotificationPreferenceValue(key, value);
+    });
+    updateDialogState(value);
+
+    await StorageService.saveNotificationPreference(key: key, value: value);
+
+    if (!mounted) return;
+
+    final label = _notificationPreferenceLabel(key);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$label ${value ? 'enabled' : 'disabled'}'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _setNotificationPreferenceValue(String key, bool value) {
+    switch (key) {
+      case 'push':
+        _pushNotificationsEnabled = value;
+        break;
+      case 'email':
+        _emailNotificationsEnabled = value;
+        break;
+      case 'orderUpdates':
+        _orderUpdatesEnabled = value;
+        break;
+      case 'marketing':
+        _marketingCommunicationsEnabled = value;
+        break;
+    }
+  }
+
+  String _notificationPreferenceLabel(String key) {
+    return switch (key) {
+      'push' => 'Push notifications',
+      'email' => 'Email notifications',
+      'orderUpdates' => 'Order updates',
+      'marketing' => 'Marketing communications',
+      _ => 'Notification setting',
+    };
+  }
+
+  Future<void> _loadAppLockPreference() async {
+    final appLockEnabled = await StorageService.getAppLockEnabled();
+    final deviceLockAvailable = await AppLockService.isDeviceLockAvailable();
+
+    if (!mounted) return;
+
+    setState(() {
+      _appLockEnabled = appLockEnabled;
+      _deviceLockAvailable = deviceLockAvailable;
+    });
+  }
+
+  Future<void> _updateAppLockPreference(
+    bool value,
+    void Function(bool value) updateDialogState,
+  ) async {
+    if (value && !_deviceLockAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Set up a phone PIN, pattern, password, or fingerprint first.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    await StorageService.saveAppLockEnabled(value);
+
+    if (!mounted) return;
+
+    setState(() {
+      _appLockEnabled = value;
+    });
+    updateDialogState(value);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(value ? 'App Lock enabled' : 'App Lock disabled'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  Future<void> _loadTwoFactorStatus() async {
+    try {
+      final enabled = await ApiService().getTwoFactorEnabled();
+      if (!mounted) return;
+
+      setState(() {
+        _twoFactorEnabled = enabled;
+      });
+    } catch (_) {
+      // Keep the local default if the status endpoint is unavailable.
+    }
+  }
+
+  Future<void> _handleTwoFactorToggle(
+    bool value,
+    void Function(bool value) updateDialogState,
+  ) async {
+    if (_isUpdatingTwoFactor) return;
+
+    if (value) {
+      await _startEnableTwoFactor(updateDialogState);
+    } else {
+      await _disableTwoFactor(updateDialogState);
+    }
+  }
+
+  Future<void> _startEnableTwoFactor(
+    void Function(bool value) updateDialogState,
+  ) async {
+    setState(() {
+      _isUpdatingTwoFactor = true;
+    });
+
+    try {
+      await ApiService().sendTwoFactorEnableCode();
+
+      if (!mounted) return;
+
+      final enabled = await _showTwoFactorCodeDialog();
+      if (!mounted) return;
+
+      if (enabled == true) {
+        setState(() {
+          _twoFactorEnabled = true;
+        });
+        updateDialogState(true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Two-factor authentication enabled'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to send code: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdatingTwoFactor = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _disableTwoFactor(
+    void Function(bool value) updateDialogState,
+  ) async {
+    setState(() {
+      _isUpdatingTwoFactor = true;
+    });
+
+    try {
+      await ApiService().disableTwoFactor();
+
+      if (!mounted) return;
+
+      setState(() {
+        _twoFactorEnabled = false;
+      });
+      updateDialogState(false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Two-factor authentication disabled'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to disable two-factor authentication: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdatingTwoFactor = false;
+        });
+      }
+    }
+  }
+
+  Future<bool?> _showTwoFactorCodeDialog() {
+    final codeController = TextEditingController();
+    bool isVerifying = false;
+
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Enter Verification Code'),
+              content: TextField(
+                controller: codeController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                textAlign: TextAlign.center,
+                decoration: const InputDecoration(
+                  hintText: '000000',
+                  counterText: '',
+                ),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 6,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isVerifying
+                      ? null
+                      : () {
+                          codeController.dispose();
+                          Navigator.pop(dialogContext, false);
+                        },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isVerifying
+                      ? null
+                      : () async {
+                          final code = codeController.text.trim();
+                          if (code.length != 6 || int.tryParse(code) == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Enter the 6-digit code'),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                            return;
+                          }
+
+                          setDialogState(() {
+                            isVerifying = true;
+                          });
+
+                          try {
+                            await ApiService().enableTwoFactor(code);
+                            codeController.dispose();
+                            if (dialogContext.mounted) {
+                              Navigator.pop(dialogContext, true);
+                            }
+                          } catch (e) {
+                            setDialogState(() {
+                              isVerifying = false;
+                            });
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Invalid code: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  child: isVerifying
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Verify'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showSecurityOptions() {
     showModalBottomSheet(
       context: context,
@@ -193,70 +521,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Security Settings',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Security Settings',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
                   ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _buildSecurityOption(
-              icon: Icons.login,
-              title: 'Login Activity',
-              subtitle: 'View recent login activity',
-              onTap: () {
-                Navigator.pop(context);
-                _showFeatureNotImplemented('Login Activity');
-              },
-            ),
-            _buildSecurityOption(
-              icon: Icons.shield_outlined,
-              title: 'Two-Factor Authentication',
-              subtitle: 'Add extra security to your account',
-              onTap: () {
-                Navigator.pop(context);
-                _showFeatureNotImplemented('Two-Factor Authentication');
-              },
-            ),
-            _buildSecurityOption(
-              icon: Icons.privacy_tip_outlined,
-              title: 'Privacy Settings',
-              subtitle: 'Control your privacy preferences',
-              onTap: () {
-                Navigator.pop(context);
-                _showFeatureNotImplemented('Privacy Settings');
-              },
-            ),
-            _buildSecurityOption(
-              icon: Icons.no_accounts_outlined,
-              title: 'Account Deactivation',
-              subtitle: 'Temporarily deactivate your account',
-              onTap: () {
-                Navigator.pop(context);
-                _showFeatureNotImplemented('Account Deactivation');
-              },
-              isDestructive: true,
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+                  const SizedBox(height: 20),
+                  _buildAppLockOption(
+                    isEnabled: _appLockEnabled,
+                    isAvailable: _deviceLockAvailable,
+                    onChanged: (value) {
+                      _updateAppLockPreference(value, (newValue) {
+                        setModalState(() {
+                          _appLockEnabled = newValue;
+                        });
+                      });
+                    },
+                  ),
+                  _buildSecurityOption(
+                    icon: Icons.login,
+                    title: 'Login Activity',
+                    subtitle: 'View recent login activity',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showFeatureNotImplemented('Login Activity');
+                    },
+                  ),
+                  _buildTwoFactorOption(
+                    isEnabled: _twoFactorEnabled,
+                    isUpdating: _isUpdatingTwoFactor,
+                    onChanged: (value) {
+                      _handleTwoFactorToggle(value, (newValue) {
+                        setModalState(() {
+                          _twoFactorEnabled = newValue;
+                        });
+                      });
+                    },
+                  ),
+                  _buildSecurityOption(
+                    icon: Icons.privacy_tip_outlined,
+                    title: 'Privacy Settings',
+                    subtitle: 'Control your privacy preferences',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showFeatureNotImplemented('Privacy Settings');
+                    },
+                  ),
+                  _buildSecurityOption(
+                    icon: Icons.no_accounts_outlined,
+                    title: 'Account Deactivation',
+                    subtitle: 'Temporarily deactivate your account',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showFeatureNotImplemented('Account Deactivation');
+                    },
+                    isDestructive: true,
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -267,69 +614,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Notification Settings',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> updatePreference(String key, bool value) async {
+              await _updateNotificationPreference(
+                key: key,
+                value: value,
+                updateDialogState: (newValue) {
+                  setModalState(() {
+                    _setNotificationPreferenceValue(key, newValue);
+                  });
+                },
+              );
+            }
+
+            return Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Notification Settings',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
                   ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _buildNotificationOption(
-              icon: Icons.phone_android,
-              title: 'Push Notifications',
-              subtitle: 'Receive notifications on your device',
-              isEnabled: true,
-              onChanged: (value) {
-                _showFeatureNotImplemented('Push Notifications Toggle');
-              },
-            ),
-            _buildNotificationOption(
-              icon: Icons.email_outlined,
-              title: 'Email Notifications',
-              subtitle: 'Receive notifications via email',
-              isEnabled: false,
-              onChanged: (value) {
-                _showFeatureNotImplemented('Email Notifications Toggle');
-              },
-            ),
-            _buildNotificationOption(
-              icon: Icons.shopping_bag_outlined,
-              title: 'Order Updates',
-              subtitle: 'Get notified about order status',
-              isEnabled: true,
-              onChanged: (value) {
-                _showFeatureNotImplemented('Order Updates Toggle');
-              },
-            ),
-            _buildNotificationOption(
-              icon: Icons.campaign_outlined,
-              title: 'Marketing Communications',
-              subtitle: 'Receive promotional offers and news',
-              isEnabled: false,
-              onChanged: (value) {
-                _showFeatureNotImplemented('Marketing Communications Toggle');
-              },
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+                  const SizedBox(height: 20),
+                  _buildNotificationOption(
+                    icon: Icons.phone_android,
+                    title: 'Push Notifications',
+                    subtitle: 'Receive notifications on your device',
+                    isEnabled: _pushNotificationsEnabled,
+                    onChanged: (value) => updatePreference('push', value),
+                  ),
+                  _buildNotificationOption(
+                    icon: Icons.email_outlined,
+                    title: 'Email Notifications',
+                    subtitle: 'Receive notifications via email',
+                    isEnabled: _emailNotificationsEnabled,
+                    onChanged: (value) => updatePreference('email', value),
+                  ),
+                  _buildNotificationOption(
+                    icon: Icons.shopping_bag_outlined,
+                    title: 'Order Updates',
+                    subtitle: 'Get notified about order status',
+                    isEnabled: _orderUpdatesEnabled,
+                    onChanged: (value) =>
+                        updatePreference('orderUpdates', value),
+                  ),
+                  _buildNotificationOption(
+                    icon: Icons.campaign_outlined,
+                    title: 'Marketing Communications',
+                    subtitle: 'Receive promotional offers and news',
+                    isEnabled: _marketingCommunicationsEnabled,
+                    onChanged: (value) => updatePreference('marketing', value),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -395,7 +753,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return Form(
             key: _formKey,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(Constants.defaultPadding),
+              padding: const EdgeInsets.fromLTRB(
+                Constants.defaultPadding,
+                Constants.defaultPadding,
+                Constants.defaultPadding,
+                Constants.helpButtonBottomClearance,
+              ),
               child: Column(
                 children: [
                   // Profile Header
@@ -990,7 +1353,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF25D366).withOpacity(0.1),
+                                  color:
+                                      const Color(0xFF25D366).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
@@ -1034,7 +1398,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF25D366),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -1075,28 +1440,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          Wrap(
-                            alignment: WrapAlignment.spaceEvenly,
-                            spacing: 8,
-                            runSpacing: 8,
+                          Row(
                             children: [
-                              _buildSocialMediaButton(
-                                icon: Icons.camera_alt,
-                                label: 'Instagram',
-                                color: const Color(0xFFE4405F),
-                                url: 'https://www.instagram.com/rajuit1396/',
+                              Expanded(
+                                child: _buildSocialMediaButton(
+                                  icon: Icons.camera_alt,
+                                  label: 'Instagram',
+                                  color: const Color(0xFFE4405F),
+                                  url: 'https://www.instagram.com/rajuit1396/',
+                                ),
                               ),
-                              _buildSocialMediaButton(
-                                icon: Icons.facebook,
-                                label: 'Facebook',
-                                color: const Color(0xFF4267B2),
-                                url: 'https://www.facebook.com/profile.php?id=61584622701133',
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildSocialMediaButton(
+                                  icon: Icons.facebook,
+                                  label: 'Facebook',
+                                  color: const Color(0xFF4267B2),
+                                  url:
+                                      'https://www.facebook.com/profile.php?id=61584622701133',
+                                ),
                               ),
-                              _buildSocialMediaButton(
-                                icon: Icons.language,
-                                label: 'Website',
-                                color: const Color(0xFF2196F3),
-                                url: 'https://rajuit.online',
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildSocialMediaButton(
+                                  icon: Icons.language,
+                                  label: 'Website',
+                                  color: const Color(0xFF2196F3),
+                                  url: 'https://rajuit.online',
+                                ),
                               ),
                             ],
                           ),
@@ -1387,6 +1758,90 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildAppLockOption({
+    required bool isEnabled,
+    required bool isAvailable,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.green.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.fingerprint,
+            color: Colors.green[700],
+            size: 20,
+          ),
+        ),
+        title: const Text(
+          'App Lock',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          isAvailable
+              ? 'Use your phone fingerprint, PIN, pattern, or password'
+              : 'Set up phone lock security first',
+          style: const TextStyle(fontSize: 13),
+        ),
+        trailing: Switch(
+          value: isAvailable && isEnabled,
+          onChanged: isAvailable ? onChanged : null,
+          activeThumbColor: Colors.green[700],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTwoFactorOption({
+    required bool isEnabled,
+    required bool isUpdating,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.indigo.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.shield_outlined,
+            color: Colors.indigo[700],
+            size: 20,
+          ),
+        ),
+        title: const Text(
+          'Two-Factor Authentication',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          isEnabled
+              ? 'Email code required when logging in'
+              : 'Add an email code after your password',
+          style: const TextStyle(fontSize: 13),
+        ),
+        trailing: isUpdating
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Switch(
+                value: isEnabled,
+                onChanged: onChanged,
+                activeThumbColor: Colors.indigo[700],
+              ),
+      ),
+    );
+  }
+
   Widget _buildNotificationOption({
     required IconData icon,
     required String title,
@@ -1427,38 +1882,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _openWhatsAppSupport() async {
-    try {
-      // Using the same phone number as the website: 8801726466000
-      const String phoneNumber = '8801726466000';
-      const String message = 'Hi! I need help with my order or have a question about your products. Can you please assist me?';
-      
-      final String encodedMessage = Uri.encodeQueryComponent(message);
-      final String whatsappUrl = 'https://wa.me/$phoneNumber?text=$encodedMessage';
-      
-      final Uri uri = Uri.parse(whatsappUrl);
-      
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not open WhatsApp. Please check if WhatsApp is installed.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error opening WhatsApp: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    await WhatsAppService.openSupportChat(context);
   }
 
   Widget _buildSocialMediaButton({
@@ -1495,7 +1919,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       },
       child: Container(
-        width: 80,
+        width: double.infinity,
         height: 80,
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -1526,9 +1950,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 4),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
