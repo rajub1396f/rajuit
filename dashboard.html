@@ -826,33 +826,33 @@
 
 <script>
   // WhatsApp Chat Functions
-  function toggleWhatsAppChat() {
+  window.toggleWhatsAppChat = function() {
     const chatBox = document.getElementById('whatsappChatBox');
     if (chatBox.style.display === 'none' || chatBox.style.display === '') {
       chatBox.style.display = 'block';
     } else {
       chatBox.style.display = 'none';
     }
-  }
+  };
 
   // Direct WhatsApp opening function
-  function openWhatsAppDirect() {
-    const defaultMessage = "Hi! I need help with Raju IT Fashion Store. Can you please assist me?";
+  window.openWhatsAppDirect = function() {
+    const defaultMessage = "Hi! I need help with my Raju IT account/dashboard. Can you please assist me?";
     const encodedMessage = encodeURIComponent(defaultMessage);
     const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
-  }
+  };
 
-  function sendWhatsAppMessage() {
+  window.sendWhatsAppMessage = function() {
     const input = document.getElementById('whatsappInput');
     const message = input.value.trim();
-    
+
     if (message) {
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/8801726466000?text=${encodedMessage}`;
       window.open(whatsappUrl, '_blank');
       input.value = '';
-      
+
       // Close chat box after sending
       setTimeout(() => {
         document.getElementById('whatsappChatBox').style.display = 'none';
@@ -861,8 +861,7 @@
       // If no message, open with default message
       openWhatsAppDirect();
     }
-    }
-  }
+  };
 </script>
 
 <script>
