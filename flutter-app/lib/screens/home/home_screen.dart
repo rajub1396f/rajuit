@@ -58,7 +58,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Raju IT Fashion'),
+        title: Image.asset(
+          'assets/images/logo.png',
+          height: 42,
+          fit: BoxFit.contain,
+        ),
         elevation: 0,
       ),
       body: PageView(

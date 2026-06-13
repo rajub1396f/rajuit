@@ -114,45 +114,67 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final darkInputTheme = Theme.of(context).inputDecorationTheme.copyWith(
+          filled: true,
+          fillColor: const Color(0xFF151515),
+          hintStyle: const TextStyle(color: Colors.white60),
+          prefixIconColor: Colors.white70,
+          suffixIconColor: Colors.white70,
+          labelStyle: const TextStyle(color: Colors.white70),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF3A3A3A)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFFFC800), width: 1.5),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+          ),
+        );
+
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(Constants.defaultPadding),
-          child: _showTwoFactorCode
-              ? Form(
-                  key: _twoFactorFormKey,
-                  child: _buildTwoFactorForm(context),
-                )
-              : Form(
-                  key: _formKey,
-                  child: Column(
+      backgroundColor: Colors.black,
+      body: Theme(
+        data: Theme.of(context).copyWith(
+          inputDecorationTheme: darkInputTheme,
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFFFFC800)),
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(Constants.defaultPadding),
+            child: _showTwoFactorCode
+                ? Form(
+                    key: _twoFactorFormKey,
+                    child: _buildTwoFactorForm(context),
+                  )
+                : Form(
+                    key: _formKey,
+                    child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
                           height: MediaQuery.of(context).size.height * 0.1),
-                      // Logo/Title
-                      const Text(
-                        'Raju IT',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF212529),
-                        ),
+                      Image.asset(
+                        'assets/images/logo.png',
+                        height: 180,
+                        fit: BoxFit.contain,
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Fashion Store',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 32),
 
                       // Email Field
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
+                        style: const TextStyle(color: Colors.white),
                         decoration: const InputDecoration(
                           hintText: 'Email',
                           prefixIcon: Icon(Icons.email_outlined),
@@ -174,6 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
+                        style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           hintText: 'Password',
                           prefixIcon: const Icon(Icons.lock_outlined),
@@ -246,7 +269,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Text(
                               'OR',
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: Colors.grey[400],
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -307,7 +330,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Don't have an account? "),
+                          const Text(
+                            "Don't have an account? ",
+                            style: TextStyle(color: Colors.white70),
+                          ),
                           TextButton(
                             onPressed: () {
                               Navigator.of(context).pushReplacement(
@@ -321,8 +347,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                     ],
+                    ),
                   ),
-                ),
+          ),
         ),
       ),
     );
@@ -336,7 +363,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const Icon(
           Icons.verified_user_outlined,
           size: 72,
-          color: Color(0xFF212529),
+          color: Color(0xFFFFC800),
         ),
         const SizedBox(height: 24),
         const Text(
@@ -344,7 +371,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF212529),
+            color: Colors.white,
           ),
         ),
         const SizedBox(height: 8),
@@ -353,7 +380,7 @@ class _LoginScreenState extends State<LoginScreen> {
             return Text(
               'Enter the 6-digit code sent to ${authProvider.pendingTwoFactorEmail ?? 'your email'}.',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey, height: 1.4),
+              style: const TextStyle(color: Colors.white70, height: 1.4),
             );
           },
         ),
@@ -367,6 +394,7 @@ class _LoginScreenState extends State<LoginScreen> {
             fontSize: 22,
             fontWeight: FontWeight.bold,
             letterSpacing: 6,
+            color: Colors.white,
           ),
           decoration: const InputDecoration(
             hintText: '000000',

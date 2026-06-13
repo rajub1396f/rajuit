@@ -1,2 +1,2 @@
-rootProject.name = "Raju IT Fashion Store"
+rootProject.name = "R-Fashion"
 include(":app")

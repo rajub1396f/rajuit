@@ -634,9 +634,10 @@ class ApiService {
     try {
       final refreshToken = await StorageService.getRefreshToken();
       if (refreshToken == null) {
-        if (kDebugMode)
+        if (kDebugMode) {
           print(
               '[JWT] No refresh token available - keeping current token for now');
+        }
         return false;
       }
 
@@ -657,8 +658,9 @@ class ApiService {
         return true;
       }
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         print('[JWT] Token refresh failed: $e - but keeping current token');
+      }
       // Don't clear tokens on refresh failure - might be network issue
     }
     return false;
@@ -666,16 +668,18 @@ class ApiService {
 
   /// Handle token expiry by clearing tokens and notifying auth state
   Future<void> _handleTokenExpiry() async {
-    if (kDebugMode)
+    if (kDebugMode) {
       print('[JWT] Handling token expiry - attempting graceful recovery');
+    }
 
     // Don't immediately clear all tokens on first 401 error
     // Instead, just remove the current token but preserve user info
     await StorageService.deleteToken();
 
     // Give the user a chance to re-authenticate before clearing everything
-    if (kDebugMode)
+    if (kDebugMode) {
       print('[JWT] Token cleared - user may need to re-authenticate');
+    }
   }
 
   /// Retry a failed request

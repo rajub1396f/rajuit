@@ -9,7 +9,7 @@ class Constants {
   static const String developmentUrl = 'http://localhost:3000';
 
   // App Metadata
-  static const String appName = 'Raju IT Fashion Store';
+  static const String appName = 'R-Fashion';
   static const String appVersion = '1.0.0';
 
   // Default Values

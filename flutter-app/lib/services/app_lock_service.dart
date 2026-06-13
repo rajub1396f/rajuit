@@ -14,7 +14,7 @@ class AppLockService {
   static Future<bool> authenticate() async {
     try {
       return await _auth.authenticate(
-        localizedReason: 'Unlock Rajuit Fashion Store',
+        localizedReason: 'Unlock R-Fashion',
         biometricOnly: false,
         persistAcrossBackgrounding: true,
       );
