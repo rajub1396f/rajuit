@@ -1840,23 +1840,46 @@ function displayNewArrivals() {
     return;
   }
   
-  track.innerHTML = newArrivalProducts.map(product => `
+  function parseProductList(value) {
+    if (Array.isArray(value)) return value.map(item => String(item || '').trim()).filter(Boolean);
+    if (typeof value === 'string' && value.trim()) {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed.map(item => String(item || '').trim()).filter(Boolean);
+      } catch {
+        return value.split(/[\n,]+/).map(item => item.trim()).filter(Boolean);
+      }
+    }
+    return [];
+  }
+
+  function getPrimaryProductImage(product) {
+    const images = parseProductList(product.image_urls);
+    if (product.image_url) images.unshift(product.image_url);
+    return [...new Set(images)].filter(Boolean)[0] || '/assets/img/products/aaa777.jpg';
+  }
+
+  track.innerHTML = newArrivalProducts.map(product => {
+    const productImage = getPrimaryProductImage(product);
+
+    return `
     <div class="arrival-card" onclick="window.location.href='products.html'">
       <span class="new-badge"><i class="fas fa-sparkles me-1"></i>NEW</span>
-      <button class="wishlist-btn" onclick="event.stopPropagation(); addToWishlistFromCarousel(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${product.image_url}')" 
+      <button class="wishlist-btn" onclick="event.stopPropagation(); addToWishlistFromCarousel(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${productImage}')"
               id="wishlist-${product.id}">
         <i class="far fa-heart"></i>
       </button>
-      <img src="${product.image_url}" alt="${product.name}" onerror="this.src='/assets/img/products/aaa777.jpg'">
+      <img src="${productImage}" alt="${product.name}" onerror="this.src='/assets/img/products/aaa777.jpg'">
       <div class="card-body">
         <div class="product-name">${product.name}</div>
         <div class="product-price">৳${parseFloat(product.price).toFixed(2)}</div>
-        <button class="btn btn-add-cart" onclick="event.stopPropagation(); addToCartFromCarousel(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${product.image_url}')">
+        <button class="btn btn-add-cart" onclick="event.stopPropagation(); addToCartFromCarousel(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${productImage}')">
           <i class="fas fa-shopping-cart me-2"></i>Add to Cart
         </button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
   
   // Check wishlist status for all products
   checkWishlistStatus();

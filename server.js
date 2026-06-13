@@ -188,6 +188,23 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
+function normalizeStringArray(value) {
+    const rawValues = Array.isArray(value)
+        ? value
+        : String(value || '').split(/[\n,]+/);
+
+    return [...new Set(rawValues
+        .map(item => String(item || '').trim())
+        .filter(Boolean)
+    )];
+}
+
+function normalizeProductImages(primaryImage, extraImages) {
+    const images = normalizeStringArray(extraImages);
+    const primary = String(primaryImage || '').trim();
+    return normalizeStringArray(primary ? [primary, ...images] : images);
+}
+
 // Verify Brevo API connection
 console.log("✅ Brevo email service initialized");
 
@@ -352,6 +369,8 @@ console.log("✅ Brevo email service initialized");
           subcategory VARCHAR(100),
           type VARCHAR(100),
           image_url TEXT,
+          image_urls JSONB DEFAULT '[]'::jsonb,
+          sizes JSONB DEFAULT '[]'::jsonb,
           stock_quantity INTEGER DEFAULT 0,
           is_active BOOLEAN DEFAULT TRUE,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -374,6 +393,18 @@ console.log("✅ Brevo email service initialized");
       ADD COLUMN IF NOT EXISTS type VARCHAR(100)
     `;
     console.log("✅ Product type column added/verified");
+
+    await sql`
+      ALTER TABLE products
+      ADD COLUMN IF NOT EXISTS image_urls JSONB DEFAULT '[]'::jsonb
+    `;
+    console.log("Product extra images column added/verified");
+
+    await sql`
+      ALTER TABLE products
+      ADD COLUMN IF NOT EXISTS sizes JSONB DEFAULT '[]'::jsonb
+    `;
+    console.log("Product sizes column added/verified");
 
     await sql`
       ALTER TABLE products 
@@ -3706,17 +3737,19 @@ app.get("/admin/products/:id", verifyAdmin, async (req, res) => {
 // Create new product
 app.post("/admin/products", verifyAdmin, async (req, res) => {
   try {
-    const { name, description, price, category, subcategory, type, image_url, stock_quantity, instagram_video_url } = req.body;
+    const { name, description, price, category, subcategory, type, image_url, image_urls, sizes, stock_quantity, instagram_video_url } = req.body;
+    const productImages = normalizeProductImages(image_url, image_urls);
+    const productSizes = normalizeStringArray(sizes);
     
-    console.log('Creating product with data:', { name, price, category, subcategory, type, instagram_video_url });
+    console.log('Creating product with data:', { name, price, category, subcategory, type, imageCount: productImages.length, sizes: productSizes, instagram_video_url });
     
     if (!name || !price || !category) {
       return res.status(400).json({ message: "Name, price, and category are required" });
     }
     
     const result = await sql`
-      INSERT INTO products (name, description, price, category, subcategory, type, image_url, stock_quantity, instagram_video_url, is_active)
-      VALUES (${name}, ${description || ''}, ${price}, ${category}, ${subcategory || ''}, ${type || ''}, ${image_url || ''}, ${stock_quantity || 0}, ${instagram_video_url || null}, true)
+      INSERT INTO products (name, description, price, category, subcategory, type, image_url, image_urls, sizes, stock_quantity, instagram_video_url, is_active)
+      VALUES (${name}, ${description || ''}, ${price}, ${category}, ${subcategory || ''}, ${type || ''}, ${productImages[0] || ''}, ${JSON.stringify(productImages)}::jsonb, ${JSON.stringify(productSizes)}::jsonb, ${stock_quantity || 0}, ${instagram_video_url || null}, true)
       RETURNING *
     `;
     
@@ -3736,9 +3769,12 @@ app.post("/admin/products", verifyAdmin, async (req, res) => {
 app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
   try {
     const productId = parseInt(req.params.id);
-    const { name, description, price, category, subcategory, type, image_url, stock_quantity, is_active, instagram_video_url } = req.body;
+    const { name, description, price, category, subcategory, type, image_url, image_urls, sizes, stock_quantity, is_active, instagram_video_url } = req.body;
+    const hasImageUpdate = image_url !== undefined || image_urls !== undefined;
+    const productImages = hasImageUpdate ? normalizeProductImages(image_url, image_urls) : null;
+    const productSizes = sizes !== undefined ? normalizeStringArray(sizes) : null;
     
-    console.log('Updating product:', productId, 'with instagram_video_url:', instagram_video_url);
+    console.log('Updating product:', productId, 'with imageCount:', productImages?.length, 'sizes:', productSizes, 'instagram_video_url:', instagram_video_url);
     
     // Check if product exists
     const existingProduct = await sql`SELECT * FROM products WHERE id = ${productId}`;
@@ -3756,7 +3792,9 @@ app.put("/admin/products/:id", verifyAdmin, async (req, res) => {
         category = ${category || existingProduct[0].category},
         subcategory = ${subcategory !== undefined ? subcategory : existingProduct[0].subcategory},
         type = ${type !== undefined ? type : existingProduct[0].type},
-        image_url = ${image_url !== undefined ? image_url : existingProduct[0].image_url},
+        image_url = ${hasImageUpdate ? (productImages[0] || '') : existingProduct[0].image_url},
+        image_urls = ${hasImageUpdate ? JSON.stringify(productImages) : JSON.stringify(existingProduct[0].image_urls || [])}::jsonb,
+        sizes = ${sizes !== undefined ? JSON.stringify(productSizes) : JSON.stringify(existingProduct[0].sizes || [])}::jsonb,
         stock_quantity = ${stock_quantity !== undefined ? stock_quantity : existingProduct[0].stock_quantity},
         is_active = ${is_active !== undefined ? is_active : existingProduct[0].is_active},
         instagram_video_url = ${instagram_video_url !== undefined ? (instagram_video_url || null) : existingProduct[0].instagram_video_url},

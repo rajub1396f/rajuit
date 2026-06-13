@@ -188,6 +188,21 @@
             border-radius: 10px;
             margin-top: 10px;
         }
+
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .image-preview-grid img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
         
         .loading-spinner {
             display: flex;
@@ -310,10 +325,22 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Image URL</label>
+                            <label class="form-label">Main Image URL</label>
                             <input type="url" class="form-control" id="productImage" placeholder="https://example.com/image.jpg">
-                            <small class="text-muted">Enter image URL or upload from ImageKit</small>
+                            <small class="text-muted">This is the first photo customers see.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">More Product Photos</label>
+                            <textarea class="form-control" id="productAdditionalImages" rows="3" placeholder="Paste one image URL per line"></textarea>
+                            <small class="text-muted">Add as many extra product photos as needed, one URL per line.</small>
                             <div id="imagePreviewContainer"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Product Sizes</label>
+                            <input type="text" class="form-control" id="productSizes" placeholder="S, M, L, XL or 38, 39, 40">
+                            <small class="text-muted">Optional. Leave empty when this product does not need sizes.</small>
                         </div>
                         
                         <div class="mb-3">
@@ -445,18 +472,63 @@
                 .map(item => `<option value="${item}"></option>`)
                 .join('');
         }
+
+        function parseList(value) {
+            return [...new Set(String(value || '')
+                .split(/[\n,]+/)
+                .map(item => item.trim())
+                .filter(Boolean))];
+        }
+
+        function getProductImages(product) {
+            let images = [];
+
+            if (Array.isArray(product.image_urls)) {
+                images = product.image_urls;
+            } else if (typeof product.image_urls === 'string' && product.image_urls.trim()) {
+                try {
+                    images = JSON.parse(product.image_urls);
+                } catch {
+                    images = parseList(product.image_urls);
+                }
+            }
+
+            if (product.image_url) {
+                images.unshift(product.image_url);
+            }
+
+            return [...new Set(images.map(image => String(image || '').trim()).filter(Boolean))];
+        }
+
+        function getProductSizes(product) {
+            if (Array.isArray(product.sizes)) return product.sizes;
+            if (typeof product.sizes === 'string' && product.sizes.trim()) {
+                try {
+                    const parsed = JSON.parse(product.sizes);
+                    return Array.isArray(parsed) ? parsed : parseList(product.sizes);
+                } catch {
+                    return parseList(product.sizes);
+                }
+            }
+            return [];
+        }
+
+        function renderImagePreviews() {
+            const mainImage = document.getElementById('productImage').value.trim();
+            const extraImages = parseList(document.getElementById('productAdditionalImages').value);
+            const images = [...new Set([mainImage, ...extraImages].filter(Boolean))];
+            const container = document.getElementById('imagePreviewContainer');
+
+            container.innerHTML = images.length ? `
+                <div class="image-preview-grid">
+                    ${images.map(url => `<img src="${url}" onerror="this.style.display='none'">`).join('')}
+                </div>
+            ` : '';
+        }
         
         // Show image preview
-        document.getElementById('productImage').addEventListener('input', function() {
-            const url = this.value;
-            const container = document.getElementById('imagePreviewContainer');
-            
-            if (url) {
-                container.innerHTML = `<img src="${url}" class="image-preview" onerror="this.style.display='none'">`;
-            } else {
-                container.innerHTML = '';
-            }
-        });
+        document.getElementById('productImage').addEventListener('input', renderImagePreviews);
+        document.getElementById('productAdditionalImages').addEventListener('input', renderImagePreviews);
         
         async function loadProducts() {
             const container = document.getElementById('productsContainer');
@@ -501,9 +573,14 @@
                 return;
             }
             
-            container.innerHTML = products.map(product => `
+            container.innerHTML = products.map(product => {
+                const productImages = getProductImages(product);
+                const productSizes = getProductSizes(product);
+                const primaryImage = productImages[0] || 'https://via.placeholder.com/280x200?text=No+Image';
+
+                return `
                 <div class="product-card">
-                    <img src="${product.image_url || 'https://via.placeholder.com/280x200?text=No+Image'}" 
+                    <img src="${primaryImage}"
                          class="product-image" 
                          onerror="this.src='https://via.placeholder.com/280x200?text=No+Image'">
                     <div class="product-info">
@@ -511,6 +588,8 @@
                         <div class="product-category">
                             <i class="fas ${getCategoryIcon(product.category)} me-1"></i>${getCategoryLabel(product.category)} ${product.subcategory ? '• ' + (subcategoryLabels[product.subcategory] || product.subcategory) : ''}
                             ${product.type ? `<br><i class="fas fa-box-open me-1"></i>Items: ${formatItemLabel(product.type)}` : ''}
+                            ${productImages.length > 1 ? `<br><i class="fas fa-images me-1"></i>${productImages.length} Photos` : ''}
+                            ${productSizes.length ? `<br><i class="fas fa-ruler-combined me-1"></i>Sizes: ${productSizes.join(', ')}` : ''}
                         </div>
                         <div class="product-price">৳${parseFloat(product.price).toFixed(2)}</div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -531,7 +610,8 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
         
         function openAddProductModal() {
@@ -540,6 +620,8 @@
             document.getElementById('productForm').reset();
             document.getElementById('productId').value = '';
             document.getElementById('imagePreviewContainer').innerHTML = '';
+            document.getElementById('productAdditionalImages').value = '';
+            document.getElementById('productSizes').value = '';
             
             const modal = new bootstrap.Modal(document.getElementById('productModal'));
             modal.show();
@@ -576,13 +658,14 @@
                 document.getElementById('productDescription').value = product.description || '';
                 document.getElementById('productStock').value = product.stock_quantity;
                 document.getElementById('productStatus').value = product.is_active.toString();
-                document.getElementById('productImage').value = product.image_url || '';
+                const productImages = getProductImages(product);
+                const productSizes = getProductSizes(product);
+
+                document.getElementById('productImage').value = productImages[0] || '';
+                document.getElementById('productAdditionalImages').value = productImages.slice(1).join('\n');
+                document.getElementById('productSizes').value = productSizes.join(', ');
                 document.getElementById('productInstagramVideo').value = product.instagram_video_url || '';
-                
-                if (product.image_url) {
-                    document.getElementById('imagePreviewContainer').innerHTML = 
-                        `<img src="${product.image_url}" class="image-preview">`;
-                }
+                renderImagePreviews();
                 
                 const modal = new bootstrap.Modal(document.getElementById('productModal'));
                 modal.show();
@@ -605,6 +688,11 @@
                 stock_quantity: parseInt(document.getElementById('productStock').value) || 0,
                 is_active: document.getElementById('productStatus').value === 'true',
                 image_url: document.getElementById('productImage').value,
+                image_urls: [
+                    document.getElementById('productImage').value,
+                    ...parseList(document.getElementById('productAdditionalImages').value)
+                ],
+                sizes: parseList(document.getElementById('productSizes').value),
                 instagram_video_url: document.getElementById('productInstagramVideo').value
             };
             

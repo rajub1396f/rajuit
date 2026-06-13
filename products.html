@@ -129,6 +129,50 @@
                 object-fit: cover;
                 transition: transform 0.3s ease;
             }
+
+            .product-photo-thumbs {
+                display: flex;
+                gap: 6px;
+                padding: 10px 12px 0;
+                overflow-x: auto;
+            }
+
+            .product-photo-thumbs button {
+                width: 44px;
+                height: 44px;
+                flex: 0 0 44px;
+                border: 1px solid #e5e7eb;
+                border-radius: 6px;
+                padding: 0;
+                overflow: hidden;
+                background: #fff;
+                cursor: zoom-in;
+            }
+
+            .product-photo-thumbs img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .product-sizes {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+
+            .product-size-badge {
+                min-width: 32px;
+                padding: 4px 8px;
+                border: 1px solid #d9dbe7;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                color: #2c3e50;
+                text-align: center;
+                background: #fff;
+            }
             
             .product-card .card-img-top {
                 height: 280px;
@@ -2251,6 +2295,29 @@
                 }
             }
 
+            function parseProductList(value) {
+                if (Array.isArray(value)) return value.map(item => String(item || '').trim()).filter(Boolean);
+                if (typeof value === 'string' && value.trim()) {
+                    try {
+                        const parsed = JSON.parse(value);
+                        if (Array.isArray(parsed)) return parsed.map(item => String(item || '').trim()).filter(Boolean);
+                    } catch {
+                        return value.split(/[\n,]+/).map(item => item.trim()).filter(Boolean);
+                    }
+                }
+                return [];
+            }
+
+            function getProductImages(product) {
+                const images = parseProductList(product.image_urls);
+                if (product.image_url) images.unshift(product.image_url);
+                return [...new Set(images)].filter(Boolean);
+            }
+
+            function getProductSizes(product) {
+                return [...new Set(parseProductList(product.sizes))];
+            }
+
             function displayProducts(gridId, products) {
                 const grid = document.getElementById(gridId);
                 if (!grid) return;
@@ -2286,12 +2353,26 @@
                     const categoryDisplay = product.subcategory || product.category || 'Product';
                     const itemDisplay = product.type ? formatItemLabel(product.type) : '';
                     const itemValue = (product.type || '').replace(/"/g, '&quot;');
+                    const productImages = getProductImages(product);
+                    const primaryImage = productImages[0] || '/assets/img/products/aaa777.jpg';
+                    const productSizes = getProductSizes(product);
+                    const thumbnailHtml = productImages.length > 1 ? `
+                                <div class="product-photo-thumbs">
+                                    ${productImages.map((image, index) => `
+                                    <button type="button" onclick="openImageZoom('${image.replace(/'/g, "\\'")}', '${productName}')" title="View photo ${index + 1}">
+                                        <img src="${image}" alt="${product.name} photo ${index + 1}" onerror="this.closest('button').style.display='none'">
+                                    </button>`).join('')}
+                                </div>` : '';
+                    const sizesHtml = productSizes.length ? `
+                                <div class="product-sizes">
+                                    ${productSizes.map(size => `<span class="product-size-badge">${size}</span>`).join('')}
+                                </div>` : '';
                     
                     return `
                     <div class="col-lg-4 col-md-6 mb-4 product-item" data-category="${product.subcategory || 'all'}" data-item="${itemValue}">
                         <div class="card product-card">
-                            <div class="product-image-wrapper" onclick="openImageZoom('${(product.image_url || '/assets/img/products/aaa777.jpg').replace(/'/g, "\\'")}', '${productName}')">
-                                <img src="${product.image_url || '/assets/img/products/aaa777.jpg'}" 
+                            <div class="product-image-wrapper" onclick="openImageZoom('${primaryImage.replace(/'/g, "\\'")}', '${productName}')">
+                                <img src="${primaryImage}"
                                      class="card-img-top" 
                                      alt="${product.name}"
                                      onerror="this.src='https://via.placeholder.com/400x400/667eea/ffffff?text=${encodeURIComponent(product.name)}'">
@@ -2302,10 +2383,12 @@
                                     ${isInStock ? `<i class="fas fa-check me-1"></i>${product.stock_quantity} Available` : '<i class="fas fa-times me-1"></i>Out of Stock'}
                                 </div>
                             </div>
+                            ${thumbnailHtml}
                             <div class="card-body">
                                 <h5 class="card-title">${product.name}</h5>
                                 ${itemDisplay ? `<div class="text-muted small mb-2"><i class="fas fa-box-open me-1"></i>Items: ${itemDisplay}</div>` : ''}
                                 <p class="product-description">${description}</p>
+                                ${sizesHtml}
                                 ${product.instagram_video_url ? `
                                 <div class="product-video-link mb-2">
                                     <a href="${product.instagram_video_url}" target="_blank" class="instagram-video-btn">
@@ -2317,12 +2400,12 @@
                                 </div>
                                 <div class="product-actions">
                                     <button class="btn btn-add-cart" 
-                                            onclick="addToCart('${productName}', ${product.price}, ${product.id}, '${(product.image_url || '/assets/img/products/aaa777.jpg').replace(/'/g, "\'")}')"
+                                            onclick="addToCart('${productName}', ${product.price}, ${product.id}, '${primaryImage.replace(/'/g, "\'")}')"
                                             ${!isInStock ? 'disabled' : ''}>
                                         <i class="fas fa-shopping-cart me-2"></i>${isInStock ? 'Add to Cart' : 'Sold Out'}
                                     </button>
                                     <button class="btn btn-wishlist" 
-                                            onclick="addToWishlist('${productName}', ${product.id}, ${product.price}, '${(product.image_url || '/assets/img/products/aaa777.jpg').replace(/'/g, "\'")}')"
+                                            onclick="addToWishlist('${productName}', ${product.id}, ${product.price}, '${primaryImage.replace(/'/g, "\'")}')"
                                             title="Add to Wishlist">
                                         <i class="fas fa-heart"></i>
                                     </button>
