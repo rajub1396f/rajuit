@@ -140,7 +140,7 @@ async function sendInvoiceEmail({ to, customerName, orderId, totalAmount, invoic
         <div class="footer">
             <p><strong>Raju IT - Premium Fashion Store</strong></p>
             <p>ðŸ"§ rajuit1396@gmail.com | ðŸ"± +8801726466000</p>
-            <p style="margin-top: 15px; color: #999;">Â© 2025 Raju IT. All rights reserved.</p>
+            <p style="margin-top: 15px; color: #999;">Â© 2026 Raju IT. All rights reserved.</p>
         </div>
     </div>
 </body>

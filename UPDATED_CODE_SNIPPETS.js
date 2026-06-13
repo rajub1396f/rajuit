@@ -187,7 +187,7 @@ async function getPdfAttachmentFromImageKit(pdfUrl) {
               <!-- Footer -->
               <div style="background: #212529; color: #999; padding: 20px; text-align: center; font-size: 12px;">
                 <p style="margin: 0; margin-bottom: 10px;">
-                  © 2025 Raju IT - Premium Fashion Store. All rights reserved.
+                  © 2026 Raju IT - Premium Fashion Store. All rights reserved.
                 </p>
                 <p style="margin: 0; color: #666; font-size: 11px;">
                   This is an automated email. Please do not reply to this email. Your invoice is attached to this message.

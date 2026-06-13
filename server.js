@@ -532,7 +532,7 @@ function generateInvoiceHtml(order, items) {
         <p><strong>Terms & Conditions:</strong></p>
         <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
         For questions about this invoice, contact us at rajuit1396@gmail.com or +8801726466000</p>
-        <p style="margin-top: 20px;">© 2025 Raju IT. All rights reserved.</p>
+        <p style="margin-top: 20px;">© 2026 Raju IT. All rights reserved.</p>
     </div>
 </body>
 </html>`;
@@ -2625,7 +2625,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
         <p><strong>Terms & Conditions:</strong></p>
         <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
         For questions about this invoice, contact us at rajuit1396@gmail.com or +8801726466000</p>
-        <p style="margin-top: 20px;">© 2025 Raju IT. All rights reserved.</p>
+        <p style="margin-top: 20px;">© 2026 Raju IT. All rights reserved.</p>
     </div>
 </body>
 </html>
@@ -2906,7 +2906,7 @@ app.get("/get-invoice/:orderId", verifyToken, async (req, res) => {
         <p><strong>Terms & Conditions:</strong></p>
         <p>Payment is due within 7 days. Please include invoice number with your payment.<br>
         For questions about this invoice, contact us at rajuit1396@gmail.com or +8801726466000</p>
-        <p style="margin-top: 20px;">© 2025 Raju IT. All rights reserved.</p>
+        <p style="margin-top: 20px;">© 2026 Raju IT. All rights reserved.</p>
     </div>
 </body>
 </html>
