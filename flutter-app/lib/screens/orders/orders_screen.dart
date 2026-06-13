@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
-import 'package:dio/dio.dart';
 import '../../config/constants.dart';
+import '../../models/order_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/order_provider.dart';
 
@@ -17,14 +17,12 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   Timer? _refreshTimer;
   int _refreshCount = 0;
-  late final Dio dio;
   final Map<int, bool> _isRegeneratingInvoice =
       {}; // Track regeneration progress
 
   @override
   void initState() {
     super.initState();
-    dio = Dio();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OrderProvider>().fetchOrders();
       _startAutoRefresh();
@@ -144,60 +142,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
           return Column(
             children: [
-              // Invoice Access Information
-              Container(
-                margin: const EdgeInsets.all(Constants.defaultPadding),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.blue.shade200,
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.blue.shade700,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Access Your Invoices',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.blue.shade900,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'To view and download your invoices, please log in to your account on our website at rajuit.online using your registered credentials. Your invoices will be available in the Dashboard section.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade800,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Orders List
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.fromLTRB(
                     Constants.defaultPadding,
-                    0,
+                    Constants.defaultPadding,
                     Constants.defaultPadding,
                     Constants.helpButtonBottomClearance,
                   ),
@@ -347,11 +296,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
       builder: (context) {
         return Consumer<OrderProvider>(
           builder: (context, orderProvider, _) {
-            // Find the order by ID from the provider
-            final order = orderProvider.orders.firstWhere(
-              (o) => o.id == orderId,
-              orElse: () => null as dynamic,
-            );
+            final matchingOrders =
+                orderProvider.orders.where((order) => order.id == orderId);
+
+            if (matchingOrders.isEmpty) {
+              return const SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.all(Constants.defaultPadding),
+                  child: Center(
+                    child: Text('Order details are no longer available.'),
+                  ),
+                ),
+              );
+            }
+
+            final order = matchingOrders.first;
 
             return DraggableScrollableSheet(
               expand: false,
@@ -446,8 +405,35 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     ),
                     const SizedBox(height: 16),
 
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => _viewInvoice(_invoiceUrlFor(order)),
+                          icon: const Icon(Icons.visibility_outlined),
+                          label: const Text('View Order'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton.icon(
+                          onPressed: () =>
+                              _downloadInvoice(_invoiceUrlFor(order)),
+                          icon: const Icon(Icons.download_outlined),
+                          label: const Text('Download Order'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF212529),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+
                     if (order.invoicePdfUrl == null ||
-                        order.invoicePdfUrl!.isEmpty)
+                        order.invoicePdfUrl!.isEmpty) ...[
+                      const SizedBox(height: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -492,14 +478,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                         ScaffoldMessenger.of(context);
 
                                     try {
-                                      print(
+                                      debugPrint(
                                           '[OrdersScreen] Sending invoice via email for order ${order.id}');
 
                                       final result = await context
                                           .read<OrderProvider>()
                                           .sendInvoiceEmail(order.id);
 
-                                      print(
+                                      debugPrint(
                                           '[OrdersScreen] Email result: $result');
                                       if (!mounted) return;
 
@@ -522,7 +508,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                         );
                                       }
                                     } catch (error) {
-                                      print(
+                                      debugPrint(
                                           '[OrdersScreen] Error sending invoice email: $error');
                                       if (mounted) {
                                         messenger.showSnackBar(
@@ -566,6 +552,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           ),
                         ],
                       ),
+                    ],
                   ],
                 );
               },
@@ -574,6 +561,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
         );
       },
     );
+  }
+
+  String _invoiceUrlFor(OrderModel order) {
+    final savedUrl = order.invoicePdfUrl?.trim();
+    if (savedUrl != null && savedUrl.isNotEmpty) {
+      return savedUrl;
+    }
+
+    return '${Constants.baseUrl}/invoice/${order.id}';
   }
 
   Future<void> _viewInvoice(String invoiceUrl) async {
