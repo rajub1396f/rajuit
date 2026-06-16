@@ -38,6 +38,22 @@
         
         <!-- Custom CSS for App Download Section -->
         <style>
+            #mainNav .navbar-brand img {
+                height: 8rem;
+                max-width: 10rem;
+            }
+
+            @media (min-width: 992px) {
+                #mainNav .navbar-brand img {
+                    height: 10rem;
+                    max-width: 12.5rem;
+                }
+
+                #mainNav.navbar-shrink .navbar-brand img {
+                    height: 8rem;
+                }
+            }
+
             .app-download-section a:hover {
                 transform: translateY(-3px);
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
