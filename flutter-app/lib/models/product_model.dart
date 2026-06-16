@@ -4,9 +4,11 @@ class ProductModel {
   final String description;
   final double price;
   final String? image;
+  final List<String> imageUrls;
   final String category;
   final String subcategory;
   final String type;
+  final List<String> sizes;
   final int stock;
   final double rating;
   final int reviews;
@@ -19,9 +21,11 @@ class ProductModel {
     required this.description,
     required this.price,
     this.image,
+    this.imageUrls = const [],
     required this.category,
     this.subcategory = '',
     this.type = '',
+    this.sizes = const [],
     this.stock = 0,
     this.rating = 0.0,
     this.reviews = 0,
@@ -48,15 +52,50 @@ class ProductModel {
       return 0.0;
     }
 
+    List<String> parseStringList(dynamic value) {
+      if (value == null) return [];
+      if (value is List) {
+        return value
+            .map((item) => item?.toString().trim() ?? '')
+            .where((item) => item.isNotEmpty)
+            .toList();
+      }
+      if (value is String && value.trim().isNotEmpty) {
+        final trimmed = value.trim();
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+          final inner = trimmed.substring(1, trimmed.length - 1);
+          return inner
+              .split(',')
+              .map((item) => item.replaceAll('"', '').trim())
+              .where((item) => item.isNotEmpty)
+              .toList();
+        }
+        return trimmed
+            .split(RegExp(r'[\n,]+'))
+            .map((item) => item.trim())
+            .where((item) => item.isNotEmpty)
+            .toList();
+      }
+      return [];
+    }
+
+    final images = parseStringList(json['image_urls']);
+    final primaryImage = json['image_url'] ?? json['image'];
+    if (primaryImage != null && primaryImage.toString().trim().isNotEmpty) {
+      images.insert(0, primaryImage.toString().trim());
+    }
+
     return ProductModel(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       price: parsePrice(json['price']),
-      image: json['image_url'] ?? json['image'],
+      image: images.isNotEmpty ? images.first : null,
+      imageUrls: images.toSet().toList(),
       category: json['category'] ?? '',
       subcategory: json['subcategory'] ?? '',
       type: json['type'] ?? '',
+      sizes: parseStringList(json['sizes']),
       stock: json['stock_quantity'] ?? json['stock'] ?? 0,
       rating: parseRating(json['rating']),
       reviews: json['reviews'] ?? 0,
@@ -72,9 +111,11 @@ class ProductModel {
       'description': description,
       'price': price,
       'image': image,
+      'image_urls': imageUrls,
       'category': category,
       'subcategory': subcategory,
       'type': type,
+      'sizes': sizes,
       'stock': stock,
       'rating': rating,
       'reviews': reviews,
@@ -89,9 +130,11 @@ class ProductModel {
     String? description,
     double? price,
     String? image,
+    List<String>? imageUrls,
     String? category,
     String? subcategory,
     String? type,
+    List<String>? sizes,
     int? stock,
     double? rating,
     int? reviews,
@@ -104,9 +147,11 @@ class ProductModel {
       description: description ?? this.description,
       price: price ?? this.price,
       image: image ?? this.image,
+      imageUrls: imageUrls ?? this.imageUrls,
       category: category ?? this.category,
       subcategory: subcategory ?? this.subcategory,
       type: type ?? this.type,
+      sizes: sizes ?? this.sizes,
       stock: stock ?? this.stock,
       rating: rating ?? this.rating,
       reviews: reviews ?? this.reviews,

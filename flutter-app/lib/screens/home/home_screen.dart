@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/constants.dart';
+import '../../models/product_model.dart';
 import '../../models/order_model.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
@@ -52,6 +53,15 @@ class _HomeScreenState extends State<HomeScreen> {
         .where((word) => word.isNotEmpty)
         .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
         .join(' ');
+  }
+
+  List<String> _productImages(ProductModel product) {
+    final images = <String>[
+      if (product.image != null && product.image!.trim().isNotEmpty)
+        product.image!.trim(),
+      ...product.imageUrls.map((image) => image.trim()),
+    ];
+    return images.where((image) => image.isNotEmpty).toSet().toList();
   }
 
   @override
@@ -385,13 +395,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.all(Constants.defaultPadding),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  mainAxisExtent: 380,
+                  mainAxisExtent: 460,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                 ),
                 itemCount: products.length,
                 itemBuilder: (context, index) {
                   final product = products[index];
+                  final productImages = _productImages(product);
+                  final extraImageCount =
+                      productImages.length > 1 ? productImages.length - 1 : 0;
 
                   return GestureDetector(
                     onTap: () {
@@ -434,6 +447,43 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ),
+                          if (productImages.length > 1)
+                            SizedBox(
+                              height: 42,
+                              child: ListView.separated(
+                                padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+                                scrollDirection: Axis.horizontal,
+                                itemCount: productImages.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: 6),
+                                itemBuilder: (context, imageIndex) {
+                                  final image = productImages[imageIndex];
+                                  return Container(
+                                    width: 34,
+                                    height: 34,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: imageIndex == 0
+                                            ? const Color(0xFFFFC800)
+                                            : Colors.grey.shade300,
+                                        width: imageIndex == 0 ? 2 : 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: CachedNetworkImage(
+                                      imageUrl: image,
+                                      fit: BoxFit.cover,
+                                      errorWidget: (context, url, error) =>
+                                          const Icon(
+                                        Icons.image_not_supported,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.all(8),
@@ -449,6 +499,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
+                                  if (product.description.isNotEmpty) ...[
+                                    Text(
+                                      product.description,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 11,
+                                        height: 1.25,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
                                   Text(
                                     '৳${product.price.toStringAsFixed(2)}',
                                     style: const TextStyle(
@@ -478,6 +541,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                   ],
+                                  if (extraImageCount > 0) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '+$extraImageCount more photo${extraImageCount == 1 ? '' : 's'}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Color(0xFF667EEA),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                   const Spacer(),
                                   // Add to Cart Button
                                   Consumer<CartProvider>(
@@ -501,7 +577,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 id: product.id,
                                                 name: product.name,
                                                 price: product.price,
-                                                image: product.image,
+                                                image: productImages.isNotEmpty
+                                                    ? productImages.first
+                                                    : product.image,
                                                 productId: product.id,
                                               ),
                                             );
