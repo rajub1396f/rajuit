@@ -3117,6 +3117,16 @@ app.use((req, res, next) => {
     next();
 });
 
+app.get("/sitemap.xml", (req, res) => {
+    res.type("application/xml");
+    res.sendFile(path.join(__dirname, "sitemap.xml"));
+});
+
+app.get("/robots.txt", (req, res) => {
+    res.type("text/plain");
+    res.sendFile(path.join(__dirname, "robots.txt"));
+});
+
 // Middleware to remove .html extension and handle clean URLs
 app.use((req, res, next) => {
     if (req.path.endsWith('.html')) {
