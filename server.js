@@ -3096,6 +3096,27 @@ app.post("/api/logout", (req, res) => {
     });
 });
 
+app.use((req, res, next) => {
+    const privatePathPatterns = [
+        /^\/admin(?:-|\/|$)/,
+        /^\/dashboard(?:\/|$)/,
+        /^\/checkout(?:\/|$)/,
+        /^\/invoice(?:\/|$)/,
+        /^\/api(?:\/|$)/,
+        /^\/get-/,
+        /^\/create-/,
+        /^\/debug-/,
+        /^\/migrate-/,
+        /^\/test-/
+    ];
+
+    if (privatePathPatterns.some((pattern) => pattern.test(req.path))) {
+        res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    }
+
+    next();
+});
+
 // Middleware to remove .html extension and handle clean URLs
 app.use((req, res, next) => {
     if (req.path.endsWith('.html')) {

@@ -1,4 +1,15 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin-
+Disallow: /dashboard
+Disallow: /checkout
+Disallow: /invoice
+Disallow: /api/
+Disallow: /get-
+Disallow: /create-
+Disallow: /debug-
+Disallow: /migrate-
+Disallow: /test-
 
 Sitemap: https://rajuit.online/sitemap.xml
