@@ -205,6 +205,35 @@ function normalizeProductImages(primaryImage, extraImages) {
     return normalizeStringArray(primary ? [primary, ...images] : images);
 }
 
+function getClientIp(req) {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) {
+        return String(forwarded).split(',')[0].trim();
+    }
+    return req.headers['x-real-ip'] || req.socket?.remoteAddress || req.ip || '';
+}
+
+function getOptionalUserFromRequest(req) {
+    const header = req.headers["authorization"];
+    const token = header?.split(" ")[1];
+
+    if (token) {
+        try {
+            return jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
+        } catch {
+            return null;
+        }
+    }
+
+    return req.session?.user || null;
+}
+
+function clampInteger(value, min, max) {
+    const number = Number.parseInt(value, 10);
+    if (Number.isNaN(number)) return min;
+    return Math.min(Math.max(number, min), max);
+}
+
 // Verify Brevo API connection
 console.log("✅ Brevo email service initialized");
 
@@ -380,6 +409,76 @@ console.log("✅ Brevo email service initialized");
       console.log("✅ Products table ready");
     } catch (productsErr) {
       console.log("Note: Products table might already exist:", productsErr.message);
+    }
+
+    // Create visitor tracking tables
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS visitor_sessions (
+          id SERIAL PRIMARY KEY,
+          visitor_id VARCHAR(120) UNIQUE NOT NULL,
+          user_id INTEGER,
+          first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          page_views INTEGER DEFAULT 0,
+          ip_address VARCHAR(100),
+          user_agent TEXT,
+          browser VARCHAR(120),
+          os VARCHAR(120),
+          device_type VARCHAR(80),
+          language VARCHAR(80),
+          timezone VARCHAR(120),
+          screen_size VARCHAR(80),
+          country VARCHAR(120),
+          city VARCHAR(120),
+          referrer TEXT,
+          landing_page TEXT,
+          current_page TEXT,
+          last_page TEXT
+        )
+      `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS visitor_page_views (
+          id SERIAL PRIMARY KEY,
+          visitor_id VARCHAR(120) NOT NULL,
+          session_id VARCHAR(120),
+          user_id INTEGER,
+          path TEXT NOT NULL,
+          title TEXT,
+          referrer TEXT,
+          started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          ended_at TIMESTAMP,
+          duration_seconds INTEGER DEFAULT 0,
+          ip_address VARCHAR(100),
+          user_agent TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `;
+
+      await sql`
+        ALTER TABLE visitor_page_views
+        ADD COLUMN IF NOT EXISTS session_id VARCHAR(120)
+      `;
+
+      await sql`
+        ALTER TABLE visitor_page_views
+        ADD COLUMN IF NOT EXISTS title TEXT
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS idx_visitor_sessions_last_seen
+        ON visitor_sessions(last_seen DESC)
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS idx_visitor_page_views_visitor
+        ON visitor_page_views(visitor_id, started_at DESC)
+      `;
+
+      console.log("Visitor tracking tables ready");
+    } catch (visitorErr) {
+      console.log("Note: Visitor tracking tables might already exist:", visitorErr.message);
     }
     
   } catch (err) {
@@ -3430,6 +3529,217 @@ app.get("/test-invoice", async (req, res) => {
 });
 
 // ============= ADMIN ROUTES =============
+
+// ============= VISITOR TRACKING ROUTES =============
+
+app.post("/api/visitor/start", async (req, res) => {
+  try {
+    const {
+      visitorId,
+      sessionId,
+      path: pagePath,
+      title,
+      referrer,
+      language,
+      timezone,
+      screenSize,
+      browser,
+      os,
+      deviceType,
+      country,
+      city
+    } = req.body || {};
+
+    const cleanVisitorId = String(visitorId || '').trim().slice(0, 120);
+    const cleanPath = String(pagePath || req.headers.referer || '/').slice(0, 2000);
+
+    if (!cleanVisitorId) {
+      return res.status(400).json({ success: false, message: "visitorId is required" });
+    }
+
+    const user = getOptionalUserFromRequest(req);
+    const userId = user?.id || user?.userId || null;
+    const ipAddress = String(getClientIp(req) || '').slice(0, 100);
+    const userAgent = String(req.headers['user-agent'] || '').slice(0, 2000);
+    const cleanSessionId = String(sessionId || '').trim().slice(0, 120) || null;
+
+    await sql`
+      INSERT INTO visitor_sessions (
+        visitor_id, user_id, first_seen, last_seen, page_views, ip_address,
+        user_agent, browser, os, device_type, language, timezone, screen_size,
+        country, city, referrer, landing_page, current_page, last_page
+      )
+      VALUES (
+        ${cleanVisitorId}, ${userId}, NOW(), NOW(), 1, ${ipAddress},
+        ${userAgent}, ${String(browser || '').slice(0, 120)}, ${String(os || '').slice(0, 120)},
+        ${String(deviceType || '').slice(0, 80)}, ${String(language || '').slice(0, 80)},
+        ${String(timezone || '').slice(0, 120)}, ${String(screenSize || '').slice(0, 80)},
+        ${String(country || '').slice(0, 120)}, ${String(city || '').slice(0, 120)},
+        ${String(referrer || '').slice(0, 2000)}, ${cleanPath}, ${cleanPath}, ${cleanPath}
+      )
+      ON CONFLICT (visitor_id) DO UPDATE SET
+        user_id = COALESCE(EXCLUDED.user_id, visitor_sessions.user_id),
+        last_seen = NOW(),
+        page_views = visitor_sessions.page_views + 1,
+        ip_address = EXCLUDED.ip_address,
+        user_agent = EXCLUDED.user_agent,
+        browser = EXCLUDED.browser,
+        os = EXCLUDED.os,
+        device_type = EXCLUDED.device_type,
+        language = EXCLUDED.language,
+        timezone = EXCLUDED.timezone,
+        screen_size = EXCLUDED.screen_size,
+        country = NULLIF(EXCLUDED.country, ''),
+        city = NULLIF(EXCLUDED.city, ''),
+        referrer = COALESCE(NULLIF(EXCLUDED.referrer, ''), visitor_sessions.referrer),
+        current_page = EXCLUDED.current_page,
+        last_page = EXCLUDED.last_page
+    `;
+
+    const pageView = await sql`
+      INSERT INTO visitor_page_views (
+        visitor_id, session_id, user_id, path, title, referrer,
+        started_at, ended_at, duration_seconds, ip_address, user_agent
+      )
+      VALUES (
+        ${cleanVisitorId}, ${cleanSessionId}, ${userId}, ${cleanPath},
+        ${String(title || '').slice(0, 500)}, ${String(referrer || '').slice(0, 2000)},
+        NOW(), NOW(), 0, ${ipAddress}, ${userAgent}
+      )
+      RETURNING id
+    `;
+
+    res.json({ success: true, pageViewId: pageView[0]?.id });
+  } catch (error) {
+    console.error("Visitor start error:", error);
+    res.status(500).json({ success: false, message: "Failed to track visitor" });
+  }
+});
+
+app.post("/api/visitor/heartbeat", async (req, res) => {
+  try {
+    const { visitorId, pageViewId, durationSeconds, path: pagePath, title } = req.body || {};
+    const cleanVisitorId = String(visitorId || '').trim().slice(0, 120);
+    const cleanPageViewId = Number.parseInt(pageViewId, 10);
+    const cleanDuration = clampInteger(durationSeconds, 0, 86400);
+    const cleanPath = String(pagePath || '/').slice(0, 2000);
+
+    if (!cleanVisitorId || Number.isNaN(cleanPageViewId)) {
+      return res.status(400).json({ success: false, message: "visitorId and pageViewId are required" });
+    }
+
+    const user = getOptionalUserFromRequest(req);
+    const userId = user?.id || user?.userId || null;
+
+    await sql`
+      UPDATE visitor_page_views
+      SET
+        ended_at = NOW(),
+        duration_seconds = GREATEST(duration_seconds, ${cleanDuration}),
+        user_id = COALESCE(${userId}, user_id),
+        path = ${cleanPath},
+        title = ${String(title || '').slice(0, 500)}
+      WHERE id = ${cleanPageViewId} AND visitor_id = ${cleanVisitorId}
+    `;
+
+    await sql`
+      UPDATE visitor_sessions
+      SET
+        user_id = COALESCE(${userId}, user_id),
+        last_seen = NOW(),
+        current_page = ${cleanPath},
+        last_page = ${cleanPath}
+      WHERE visitor_id = ${cleanVisitorId}
+    `;
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Visitor heartbeat error:", error);
+    res.status(500).json({ success: false, message: "Failed to update visitor" });
+  }
+});
+
+app.get("/admin/visitors/stats", verifyAdmin, async (req, res) => {
+  try {
+    const [summary] = await sql`
+      SELECT
+        COUNT(*)::int as total_visitors,
+        COUNT(CASE WHEN last_seen >= NOW() - INTERVAL '2 minutes' THEN 1 END)::int as online_visitors,
+        COUNT(CASE WHEN first_seen >= NOW() - INTERVAL '24 hours' THEN 1 END)::int as new_today,
+        COALESCE(SUM(page_views), 0)::int as total_page_views
+      FROM visitor_sessions
+    `;
+
+    res.json(summary || {
+      total_visitors: 0,
+      online_visitors: 0,
+      new_today: 0,
+      total_page_views: 0
+    });
+  } catch (error) {
+    console.error("Error fetching visitor stats:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/admin/visitors", verifyAdmin, async (req, res) => {
+  try {
+    const limit = clampInteger(req.query.limit, 1, 200);
+    const offset = clampInteger(req.query.offset, 0, 100000);
+
+    const visitors = await sql`
+      SELECT
+        vs.*,
+        u.name as user_name,
+        u.email as user_email,
+        COALESCE(SUM(vpv.duration_seconds), 0)::int as total_duration_seconds,
+        COUNT(vpv.id)::int as recorded_page_views,
+        CASE WHEN vs.last_seen >= NOW() - INTERVAL '2 minutes' THEN true ELSE false END as is_online
+      FROM visitor_sessions vs
+      LEFT JOIN users u ON vs.user_id = u.id
+      LEFT JOIN visitor_page_views vpv ON vpv.visitor_id = vs.visitor_id
+      GROUP BY vs.id, u.name, u.email
+      ORDER BY vs.last_seen DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+    res.json(visitors);
+  } catch (error) {
+    console.error("Error fetching visitors:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/admin/visitors/:visitorId", verifyAdmin, async (req, res) => {
+  try {
+    const visitorId = String(req.params.visitorId || '').slice(0, 120);
+
+    const visitorRows = await sql`
+      SELECT vs.*, u.name as user_name, u.email as user_email
+      FROM visitor_sessions vs
+      LEFT JOIN users u ON vs.user_id = u.id
+      WHERE vs.visitor_id = ${visitorId}
+      LIMIT 1
+    `;
+
+    if (!visitorRows.length) {
+      return res.status(404).json({ message: "Visitor not found" });
+    }
+
+    const pageViews = await sql`
+      SELECT *
+      FROM visitor_page_views
+      WHERE visitor_id = ${visitorId}
+      ORDER BY started_at DESC
+      LIMIT 100
+    `;
+
+    res.json({ visitor: visitorRows[0], pageViews });
+  } catch (error) {
+    console.error("Error fetching visitor details:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 // Get dashboard stats
 app.get("/admin/stats", verifyAdmin, async (req, res) => {

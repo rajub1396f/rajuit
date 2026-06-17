@@ -392,6 +392,7 @@
             <li><a href="#" id="ordersLink"><i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>
             <li><a href="#" id="productsLink"><i class="fas fa-box"></i><span>Products</span></a></li>
             <li><a href="#" id="usersLink"><i class="fas fa-users"></i><span>Users</span></a></li>
+            <li><a href="#" id="visitorsLink"><i class="fas fa-chart-line"></i><span>Visitors</span></a></li>
             <li><a href="#" id="settingsLink"><i class="fas fa-cog"></i><span>Settings</span></a></li>
         </ul>
         
@@ -628,6 +629,11 @@
         document.getElementById('usersLink').addEventListener('click', (e) => {
             e.preventDefault();
             window.location.href = '/admin-users.html';
+        });
+
+        document.getElementById('visitorsLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/admin-visitors.html';
         });
         
         document.getElementById('settingsLink').addEventListener('click', (e) => {

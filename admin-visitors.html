@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Tracking - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; }
+        .sidebar {
+            position: fixed; left: 0; top: 0; width: 260px; height: 100vh;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 20px 0; z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+        .sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.2); text-align: center; }
+        .sidebar-header h3 { font-size: 24px; font-weight: 700; }
+        .sidebar-menu { list-style: none; padding: 20px 0; }
+        .sidebar-menu li { margin-bottom: 5px; }
+        .sidebar-menu a {
+            display: flex; align-items: center; padding: 12px 20px; color: white;
+            text-decoration: none; transition: all 0.3s ease;
+        }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background: rgba(255,255,255,0.2); padding-left: 30px; }
+        .sidebar-menu a i { margin-right: 12px; font-size: 18px; width: 25px; }
+        .sidebar-footer {
+            position: absolute; bottom: 0; left: 0; right: 0; padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-logout {
+            width: 100%; padding: 10px; background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 8px;
+        }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .page-header {
+            background: white; padding: 25px 30px; border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: center; gap: 16px;
+        }
+        .page-header h2 { margin: 0; color: #333; font-size: 28px; font-weight: 700; }
+        .stat-card {
+            background: white; border-radius: 8px; padding: 22px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); height: 100%;
+        }
+        .stat-label { color: #6c757d; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 30px; font-weight: 800; color: #212529; line-height: 1.2; }
+        .visitors-table-container {
+            background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .table { margin-bottom: 0; }
+        .table thead { background: #f8f9fa; }
+        .table thead th {
+            border-bottom: 2px solid #e9ecef; color: #666; font-weight: 700;
+            font-size: 12px; text-transform: uppercase; padding: 14px;
+        }
+        .table tbody td { padding: 14px; vertical-align: middle; font-size: 14px; }
+        .table tbody tr:hover { background: #f8f9fa; }
+        .visitor-name { font-weight: 700; color: #212529; }
+        .muted-small { color: #6c757d; font-size: 12px; word-break: break-word; }
+        .status-dot {
+            display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+            margin-right: 6px; background: #adb5bd;
+        }
+        .status-dot.online { background: #28a745; box-shadow: 0 0 0 4px rgba(40,167,69,0.12); }
+        .loading-spinner { display: flex; justify-content: center; align-items: center; padding: 40px; }
+        .modal-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .modal-content { border-radius: 8px; border: none; }
+        .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .detail-box { background: #f8f9fa; border-radius: 8px; padding: 12px; }
+        .detail-box strong { display: block; font-size: 12px; color: #6c757d; text-transform: uppercase; margin-bottom: 4px; }
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; }
+            .sidebar-header h3, .sidebar-menu a span { display: none; }
+            .sidebar-menu a { justify-content: center; padding: 15px; }
+            .sidebar-menu a i { margin-right: 0; }
+            .main-content { margin-left: 70px; padding: 18px; }
+            .page-header { align-items: flex-start; flex-direction: column; }
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-shield-alt"></i> Admin Panel</h3>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin-dashboard.html"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+            <li><a href="/admin-orders.html"><i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>
+            <li><a href="/admin-products.html"><i class="fas fa-box"></i><span>Products</span></a></li>
+            <li><a href="/admin-users.html"><i class="fas fa-users"></i><span>Users</span></a></li>
+            <li><a href="/admin-visitors.html" class="active"><i class="fas fa-chart-line"></i><span>Visitors</span></a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <button class="btn btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h2><i class="fas fa-chart-line me-2"></i>Visitor Tracking</h2>
+            <button class="btn btn-primary" onclick="loadVisitors()">
+                <i class="fas fa-sync-alt me-1"></i> Refresh
+            </button>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="stat-label">Total Visitors</div>
+                    <div class="stat-value" id="totalVisitors">-</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="stat-label">Online Now</div>
+                    <div class="stat-value text-success" id="onlineVisitors">-</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="stat-label">New Today</div>
+                    <div class="stat-value text-primary" id="newToday">-</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="stat-label">Page Views</div>
+                    <div class="stat-value text-warning" id="totalPageViews">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="visitors-table-container">
+            <div id="visitorsTableContainer">
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="visitorModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-clock me-2"></i>Visitor Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="visitorModalBody">
+                    <div class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const adminToken = localStorage.getItem('adminToken');
+        const visitorModal = new bootstrap.Modal(document.getElementById('visitorModal'));
+
+        if (!adminToken) {
+            window.location.href = '/admin-login.html';
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+                window.location.href = '/admin-login.html';
+            }
+        }
+
+        function authHeaders() {
+            return { 'Authorization': `Bearer ${adminToken}` };
+        }
+
+        function formatDate(value) {
+            if (!value) return 'N/A';
+            return new Date(value).toLocaleString();
+        }
+
+        function formatDuration(seconds) {
+            const total = Number(seconds) || 0;
+            const hours = Math.floor(total / 3600);
+            const minutes = Math.floor((total % 3600) / 60);
+            const secs = total % 60;
+            if (hours) return `${hours}h ${minutes}m`;
+            if (minutes) return `${minutes}m ${secs}s`;
+            return `${secs}s`;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        async function loadStats() {
+            const response = await fetch('https://rajuit.online/admin/visitors/stats', { headers: authHeaders() });
+            if (!response.ok) throw new Error('Failed to load visitor stats');
+            const stats = await response.json();
+            document.getElementById('totalVisitors').textContent = stats.total_visitors || 0;
+            document.getElementById('onlineVisitors').textContent = stats.online_visitors || 0;
+            document.getElementById('newToday').textContent = stats.new_today || 0;
+            document.getElementById('totalPageViews').textContent = stats.total_page_views || 0;
+        }
+
+        async function loadVisitors() {
+            const container = document.getElementById('visitorsTableContainer');
+            container.innerHTML = '<div class="loading-spinner"><div class="spinner-border text-primary" role="status"></div></div>';
+
+            try {
+                await loadStats();
+                const response = await fetch('https://rajuit.online/admin/visitors?limit=100', { headers: authHeaders() });
+                if (response.status === 401 || response.status === 403) return logout();
+                if (!response.ok) throw new Error('Failed to load visitors');
+                const visitors = await response.json();
+                displayVisitors(visitors);
+            } catch (error) {
+                console.error('Error loading visitors:', error);
+                container.innerHTML = '<div class="alert alert-warning m-3">Unable to load visitors. Please refresh.</div>';
+            }
+        }
+
+        function displayVisitors(visitors) {
+            const container = document.getElementById('visitorsTableContainer');
+            if (!visitors || visitors.length === 0) {
+                container.innerHTML = '<div class="alert alert-info m-3">No visitors tracked yet.</div>';
+                return;
+            }
+
+            let html = `
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Visitor</th>
+                                <th>Where</th>
+                                <th>Device</th>
+                                <th>IP / Timezone</th>
+                                <th>Visits</th>
+                                <th>Stay</th>
+                                <th>Last Seen</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            visitors.forEach(visitor => {
+                const name = visitor.user_email || visitor.user_name || `Guest ${String(visitor.visitor_id).slice(-6)}`;
+                const location = [visitor.city, visitor.country].filter(Boolean).join(', ') || visitor.timezone || 'Unknown';
+                html += `
+                    <tr>
+                        <td>
+                            <div class="visitor-name">
+                                <span class="status-dot ${visitor.is_online ? 'online' : ''}"></span>${escapeHtml(name)}
+                            </div>
+                            <div class="muted-small">${escapeHtml(visitor.visitor_id)}</div>
+                        </td>
+                        <td>
+                            <div>${escapeHtml(visitor.current_page || visitor.last_page || 'N/A')}</div>
+                            <div class="muted-small">From: ${escapeHtml(visitor.referrer || 'Direct')}</div>
+                        </td>
+                        <td>
+                            <div>${escapeHtml(visitor.device_type || 'Unknown')} / ${escapeHtml(visitor.browser || 'Unknown')}</div>
+                            <div class="muted-small">${escapeHtml(visitor.os || '')} ${escapeHtml(visitor.screen_size || '')}</div>
+                        </td>
+                        <td>
+                            <div>${escapeHtml(visitor.ip_address || 'N/A')}</div>
+                            <div class="muted-small">${escapeHtml(location)}</div>
+                        </td>
+                        <td>${visitor.page_views || visitor.recorded_page_views || 0}</td>
+                        <td>${formatDuration(visitor.total_duration_seconds)}</td>
+                        <td>${formatDate(visitor.last_seen)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewVisitor('${escapeHtml(visitor.visitor_id)}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        async function viewVisitor(visitorId) {
+            document.getElementById('visitorModalBody').innerHTML = '<div class="loading-spinner"><div class="spinner-border text-primary" role="status"></div></div>';
+            visitorModal.show();
+
+            try {
+                const response = await fetch(`https://rajuit.online/admin/visitors/${encodeURIComponent(visitorId)}`, { headers: authHeaders() });
+                if (!response.ok) throw new Error('Failed to load visitor details');
+                const data = await response.json();
+                const visitor = data.visitor;
+                const pageViews = data.pageViews || [];
+
+                let html = `
+                    <div class="detail-grid mb-4">
+                        <div class="detail-box"><strong>Who</strong>${escapeHtml(visitor.user_email || visitor.user_name || 'Guest visitor')}</div>
+                        <div class="detail-box"><strong>Visitor ID</strong>${escapeHtml(visitor.visitor_id)}</div>
+                        <div class="detail-box"><strong>IP Address</strong>${escapeHtml(visitor.ip_address || 'N/A')}</div>
+                        <div class="detail-box"><strong>Where</strong>${escapeHtml([visitor.city, visitor.country].filter(Boolean).join(', ') || visitor.timezone || 'Unknown')}</div>
+                        <div class="detail-box"><strong>First Seen</strong>${formatDate(visitor.first_seen)}</div>
+                        <div class="detail-box"><strong>Last Seen</strong>${formatDate(visitor.last_seen)}</div>
+                        <div class="detail-box"><strong>Device</strong>${escapeHtml(visitor.device_type || 'Unknown')} / ${escapeHtml(visitor.browser || 'Unknown')} / ${escapeHtml(visitor.os || 'Unknown')}</div>
+                        <div class="detail-box"><strong>Landing Page</strong>${escapeHtml(visitor.landing_page || 'N/A')}</div>
+                    </div>
+                    <h6 class="mb-3">Page History</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Page</th>
+                                    <th>Title</th>
+                                    <th>Started</th>
+                                    <th>Duration</th>
+                                    <th>Referrer</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                pageViews.forEach(view => {
+                    html += `
+                        <tr>
+                            <td>${escapeHtml(view.path)}</td>
+                            <td>${escapeHtml(view.title || '')}</td>
+                            <td>${formatDate(view.started_at)}</td>
+                            <td>${formatDuration(view.duration_seconds)}</td>
+                            <td class="muted-small">${escapeHtml(view.referrer || 'Direct')}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table></div>';
+                document.getElementById('visitorModalBody').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading visitor details:', error);
+                document.getElementById('visitorModalBody').innerHTML = '<div class="alert alert-warning">Unable to load visitor details.</div>';
+            }
+        }
+
+        loadVisitors();
+        setInterval(loadVisitors, 30000);
+    </script>
+</body>
+</html>
