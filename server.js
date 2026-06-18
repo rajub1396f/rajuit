@@ -3151,7 +3151,6 @@ app.get("/", (req, res) => {
 app.get("/download-apk", (req, res) => {
     const fs = require("fs");
     const apkCandidates = [
-        path.join(__dirname, "assets", "rajuit_fashion_store_v1.0.0_20260613.apk"),
         path.join(__dirname, "assets", "rajuit_fashion_store_v1.0.0_20260204.apk"),
         path.join(__dirname, "rajuit-fashion-store.apk"),
     ];
