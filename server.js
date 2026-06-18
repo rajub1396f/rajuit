@@ -15,6 +15,9 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const puppeteer = require('puppeteer');
 
 const app = express();
+const PUBLIC_BASE_URL = (process.env.BASE_URL || "https://rfashion.online").replace(/\/$/, "");
+const GOOGLE_CALLBACK_URL = (process.env.GOOGLE_CALLBACK_URL || `${PUBLIC_BASE_URL}/auth/google/callback`)
+    .replace("https://rajuit.online", "https://rfashion.online");
 
 // Middleware (CORS, JSON parsing)
 app.use(cors({ origin: true, credentials: true }));
@@ -64,7 +67,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://rfashion.online/auth/google/callback"
+        callbackURL: GOOGLE_CALLBACK_URL
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             // Check if user exists
