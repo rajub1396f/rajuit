@@ -12,4 +12,4 @@ Disallow: /debug-
 Disallow: /migrate-
 Disallow: /test-
 
-Sitemap: https://rajuit.online/sitemap.xml
+Sitemap: https://rfashion.online/sitemap.xml

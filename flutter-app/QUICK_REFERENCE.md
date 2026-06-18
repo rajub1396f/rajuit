@@ -33,7 +33,7 @@ flutter run
 **Update Backend URL:**
 ```dart
 // File: lib/config/constants.dart
-static const String baseUrl = 'https://rajuit.online';
+static const String baseUrl = 'https://rfashion.online';
 ```
 
 ## Build & Release
@@ -146,7 +146,7 @@ flutter analyze
 
 Store sensitive data in `.env` file (create if not exists):
 ```
-BACKEND_URL=https://rajuit.online
+BACKEND_URL=https://rfashion.online
 API_KEY=your_api_key_here
 ```
 

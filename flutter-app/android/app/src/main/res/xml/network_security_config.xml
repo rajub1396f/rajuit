@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">rajuit.online</domain>
-        <domain includeSubdomains="true">rajuit-fashion-store.onrender.com</domain>
+        <domain includeSubdomains="true">rfashion.online</domain>
         <trust-anchors>
             <!-- Trust system CAs -->
             <certificates src="system"/>

@@ -1466,7 +1466,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   icon: Icons.language,
                                   label: 'Website',
                                   color: const Color(0xFF2196F3),
-                                  url: 'https://rajuit.online',
+                                  url: 'https://rfashion.online',
                                 ),
                               ),
                             ],

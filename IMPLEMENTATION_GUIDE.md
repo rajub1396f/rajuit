@@ -191,7 +191,7 @@ attachments: [
 
 ### Create a test order
 ```bash
-curl -X POST https://rajuit.online/create-order \
+curl -X POST https://rfashion.online/create-order \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -204,13 +204,13 @@ curl -X POST https://rajuit.online/create-order \
 
 ### Check order
 ```bash
-curl https://rajuit.online/get-orders \
+curl https://rfashion.online/get-orders \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 ### Get invoice
 ```bash
-curl https://rajuit.online/get-invoice/ORDER_ID \
+curl https://rfashion.online/get-invoice/ORDER_ID \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

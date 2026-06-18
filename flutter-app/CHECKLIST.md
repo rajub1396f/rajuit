@@ -8,7 +8,7 @@
 - [ ] `flutter doctor` shows no errors
 
 ## Backend Configuration
-- [ ] Backend server running on `https://rajuit.online`
+- [ ] Backend server running on `https://rfashion.online`
 - [ ] All required API endpoints available:
   - [ ] `/register` - User registration
   - [ ] `/login` - User authentication

@@ -107,7 +107,7 @@ flutter run
 ### Configure Backend
 Edit `lib/config/constants.dart`:
 ```dart
-static const String baseUrl = 'https://rajuit.online';
+static const String baseUrl = 'https://rfashion.online';
 ```
 
 ## 🎮 Features at a Glance

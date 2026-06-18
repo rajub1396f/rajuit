@@ -31,7 +31,7 @@
    - Edit `lib/config/constants.dart`
    - Update `BASE_URL` to your server:
    ```dart
-   static const String baseUrl = 'https://rajuit.online';
+   static const String baseUrl = 'https://rfashion.online';
    ```
 
 4. **Run the App**
@@ -126,7 +126,7 @@ lib/
 
 ### Base URL
 ```dart
-const String baseUrl = 'https://rajuit.online';
+const String baseUrl = 'https://rfashion.online';
 ```
 
 ### Authentication Endpoints

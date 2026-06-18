@@ -108,7 +108,7 @@ lib/
    - Edit `lib/config/constants.dart`
    - Update `BASE_URL` to your backend server:
    ```dart
-   const String BASE_URL = 'https://rajuit.online';
+   const String BASE_URL = 'https://rfashion.online';
    ```
 
 4. **Run the app**:

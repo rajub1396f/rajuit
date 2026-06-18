@@ -4,7 +4,7 @@
 
 ### 1. Backend Server Verification
 
-- [ ] Server is running on `https://rajuit.online`
+- [ ] Server is running on `https://rfashion.online`
 - [ ] HTTPS certificate is valid
 - [ ] CORS is properly configured for Flutter app
 - [ ] Database is accessible and populated
@@ -132,16 +132,16 @@ Test error responses:
 
 ```bash
 # Test 400 Bad Request
-curl -X POST https://rajuit.online/login \
+curl -X POST https://rfashion.online/login \
   -H "Content-Type: application/json" \
   -d '{"email":"","password":""}'
 
 # Test 401 Unauthorized
-curl -X GET https://rajuit.online/get-orders \
+curl -X GET https://rfashion.online/get-orders \
   -H "Authorization: Bearer invalid_token"
 
 # Test 404 Not Found
-curl https://rajuit.online/product/99999
+curl https://rfashion.online/product/99999
 
 # Test 500 Server Error
 # (Check server logs)
@@ -165,7 +165,7 @@ curl https://rajuit.online/product/99999
 In Flutter app (lib/config/constants.dart):
 
 ```dart
-static const String baseUrl = 'https://rajuit.online';
+static const String baseUrl = 'https://rfashion.online';
 ```
 
 - [ ] Backend URL configured correctly
@@ -315,21 +315,21 @@ After app launch:
 echo "Testing endpoints..."
 
 # Test register
-curl -X POST https://rajuit.online/register \
+curl -X POST https://rfashion.online/register \
   -H "Content-Type: application/json" \
   -d '{"name":"Test","email":"test@test.com","password":"pass123","phone":"01712345678"}'
 
 echo "\n---\n"
 
 # Test login
-curl -X POST https://rajuit.online/login \
+curl -X POST https://rfashion.online/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"pass123"}'
 
 echo "\n---\n"
 
 # Test get products
-curl https://rajuit.online/get-products
+curl https://rfashion.online/get-products
 
 echo "\n---\n"
 

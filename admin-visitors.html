@@ -208,7 +208,7 @@
         }
 
         async function loadStats() {
-            const response = await fetch('https://rajuit.online/admin/visitors/stats', { headers: authHeaders() });
+            const response = await fetch('https://rfashion.online/admin/visitors/stats', { headers: authHeaders() });
             if (!response.ok) throw new Error('Failed to load visitor stats');
             const stats = await response.json();
             document.getElementById('totalVisitors').textContent = stats.total_visitors || 0;
@@ -223,7 +223,7 @@
 
             try {
                 await loadStats();
-                const response = await fetch('https://rajuit.online/admin/visitors?limit=100', { headers: authHeaders() });
+                const response = await fetch('https://rfashion.online/admin/visitors?limit=100', { headers: authHeaders() });
                 if (response.status === 401 || response.status === 403) return logout();
                 if (!response.ok) throw new Error('Failed to load visitors');
                 const visitors = await response.json();
@@ -303,7 +303,7 @@
             visitorModal.show();
 
             try {
-                const response = await fetch(`https://rajuit.online/admin/visitors/${encodeURIComponent(visitorId)}`, { headers: authHeaders() });
+                const response = await fetch(`https://rfashion.online/admin/visitors/${encodeURIComponent(visitorId)}`, { headers: authHeaders() });
                 if (!response.ok) throw new Error('Failed to load visitor details');
                 const data = await response.json();
                 const visitor = data.visitor;

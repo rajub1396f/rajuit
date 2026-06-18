@@ -3,7 +3,7 @@
 ## Render Server Configuration
 
 ### Current Setup
-- **Backend Service:** Render (rajuit-fashion-store.onrender.com)
+- **Backend Service:** Render (rfashion.online)
 - **Database:** Neon PostgreSQL
 - **API Base URL:** Updated to Render in `lib/config/constants.dart`
 
@@ -52,7 +52,7 @@ flutter build web --release
 
 ## API Endpoints
 
-All endpoints are prefixed with: `https://rajuit-fashion-store.onrender.com`
+All endpoints are prefixed with: `https://rfashion.online`
 
 ### Must-Have Endpoints:
 - POST `/register` - Registration
@@ -79,7 +79,7 @@ NODE_ENV=production
 ## Testing Checklist
 
 - [ ] Backend service is live on Render
-- [ ] Can access `https://rajuit-fashion-store.onrender.com` in browser
+- [ ] Can access `https://rfashion.online` in browser
 - [ ] Login endpoint responds with valid JWT token
 - [ ] Products endpoint returns product list
 - [ ] App builds without errors

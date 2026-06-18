@@ -64,7 +64,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://rajuit.online/auth/google/callback"
+        callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://rfashion.online/auth/google/callback"
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             // Check if user exists
@@ -918,7 +918,7 @@ app.post("/register", async (req, res) => {
 
     // Send verification email
     try {
-      const verificationLink = `https://rajuit.online/verify-email?token=${verificationToken}`;
+      const verificationLink = `https://rfashion.online/verify-email?token=${verificationToken}`;
       
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
@@ -1173,7 +1173,7 @@ app.post("/login", async (req, res) => {
       
       // Send verification email
       try {
-        const verificationLink = `https://rajuit.online/verify-email?token=${verificationToken}`;
+        const verificationLink = `https://rfashion.online/verify-email?token=${verificationToken}`;
         
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
@@ -1739,7 +1739,7 @@ app.post("/resend-verification", async (req, res) => {
     `;
 
     // Send verification email
-    const verificationLink = `https://rajuit.online/verify-email?token=${verificationToken}`;
+    const verificationLink = `https://rfashion.online/verify-email?token=${verificationToken}`;
     
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
@@ -1929,7 +1929,7 @@ app.post("/forgot-password", async (req, res) => {
     );
 
     // Send reset email via Brevo
-    const resetLink = `https://rajuit.online/reset-password?token=${resetToken}`;
+    const resetLink = `https://rfashion.online/reset-password?token=${resetToken}`;
     
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
@@ -2731,7 +2731,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
     `;
 
     // Create invoice URL (HTML page, no PDF generation needed)
-    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.online'}/invoice/${orderId}`;
+    const invoiceUrl = `${process.env.BASE_URL || 'https://rfashion.online'}/invoice/${orderId}`;
     console.log(`\n📝 Invoice URL created: ${invoiceUrl}`);
     
     // Update database with invoice URL  
@@ -2775,7 +2775,7 @@ app.post("/create-order", verifyToken, async (req, res) => {
                 <p><strong>Total Amount:</strong> ৳${totalAmount}</p>
               </div>
               <p>You can view and download your invoice from your dashboard.</p>
-              <a href="https://rajuit.online/dashboard" style="display: inline-block; background: #ffc800; color: #212529; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0;">View My Orders</a>
+              <a href="https://rfashion.online/dashboard" style="display: inline-block; background: #ffc800; color: #212529; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0;">View My Orders</a>
               <p style="color: #666; font-size: 14px; margin-top: 30px;">If you have any questions, contact us at rajuit1396@gmail.com</p>
             </div>
           `;
@@ -3539,7 +3539,7 @@ app.get("/test-invoice", async (req, res) => {
 </html>
     `;
     
-    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.online'}/invoice/TEST-${Date.now()}`;
+    const invoiceUrl = `${process.env.BASE_URL || 'https://rfashion.online'}/invoice/TEST-${Date.now()}`;
     
     res.json({ 
       success: true, 
@@ -3922,7 +3922,7 @@ app.put("/admin/orders/:id", verifyAdmin, async (req, res) => {
                 ${statusMessages[status] || 'Your order status has been updated.'}
               </p>
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://rajuit.online/dashboard.html" 
+                <a href="https://rfashion.online/dashboard.html" 
                    style="background: #ffc800; color: #000; padding: 15px 40px; text-decoration: none; 
                           border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
                   View Order Details
@@ -4558,7 +4558,7 @@ app.post("/send-invoice-email/:orderId", verifyToken, async (req, res) => {
     console.log(`✅ Order found for user: ${order.email}`);
     
     // Create invoice URL (HTML page, not PDF)
-    const invoiceUrl = `${process.env.BASE_URL || 'https://rajuit.online'}/invoice/${orderId}`;
+    const invoiceUrl = `${process.env.BASE_URL || 'https://rfashion.online'}/invoice/${orderId}`;
     console.log(`📄 Invoice URL: ${invoiceUrl}`);
     
     // Save invoice URL to database if not exists

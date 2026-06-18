@@ -63,7 +63,7 @@ flutter pub get
 ### Step 2: Configure Backend (Optional)
 Edit `lib/config/constants.dart` if backend URL differs:
 ```dart
-static const String baseUrl = 'https://rajuit.online';
+static const String baseUrl = 'https://rfashion.online';
 ```
 
 ### Step 3: Run App

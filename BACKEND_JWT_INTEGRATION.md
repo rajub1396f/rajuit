@@ -318,7 +318,7 @@ The JWT_SECRET should be:
 ### Test 1: Login and Get Token
 
 ```bash
-curl -X POST https://rajuit.online/login \
+curl -X POST https://rfashion.online/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -338,7 +338,7 @@ curl -X POST https://rajuit.online/login \
 ### Test 2: Use Token to Get Orders
 
 ```bash
-curl -X GET https://rajuit.online/get-orders \
+curl -X GET https://rfashion.online/get-orders \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
 # Response:
@@ -351,7 +351,7 @@ curl -X GET https://rajuit.online/get-orders \
 ### Test 3: Refresh Token
 
 ```bash
-curl -X POST https://rajuit.online/refresh-token \
+curl -X POST https://rfashion.online/refresh-token \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
 # Response:
@@ -365,7 +365,7 @@ curl -X POST https://rajuit.online/refresh-token \
 ### Test 4: Get Invoice with JWT
 
 ```bash
-curl -X GET https://rajuit.online/get-invoice/123 \
+curl -X GET https://rfashion.online/get-invoice/123 \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
 # Response:

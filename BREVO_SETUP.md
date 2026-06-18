@@ -83,7 +83,7 @@ Render will automatically deploy (takes ~2 minutes).
 ## 🔧 Testing
 
 ### Test Password Reset:
-1. Go to https://rajuit.online/forgot-password.html
+1. Go to https://rfashion.online/forgot-password.html
 2. Enter a registered email
 3. Check email for reset link
 4. Click link or paste in browser

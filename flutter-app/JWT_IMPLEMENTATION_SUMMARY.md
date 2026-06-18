@@ -208,7 +208,7 @@ GET /invoices/sync   // JWT required, returns all invoices
 └─────────────────────────────────────────────────┘
          ↓ HTTPS ↓
 ┌─────────────────────────────────────────────────┐
-│    Render Backend (rajuit.online)               │
+│    Render Backend (rfashion.online)               │
 │  ┌────────────────────────────────────────────┐ │
 │  │    JWT Middleware (verifyJWT)              │ │
 │  │  • Validates Bearer token                  │ │

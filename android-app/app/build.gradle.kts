@@ -29,11 +29,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"https://rajuit.online\"")
+            buildConfigField("String", "BASE_URL", "\"https://rfashion.online\"")
         }
         debug {
             isMinifyEnabled = false
-            buildConfigField("String", "BASE_URL", "\"https://rajuit.online\"")
+            buildConfigField("String", "BASE_URL", "\"https://rfashion.online\"")
         }
     }
 

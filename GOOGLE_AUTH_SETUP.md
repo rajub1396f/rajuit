@@ -35,12 +35,12 @@
 4. Enter name: `Raju IT Web Client`
 5. Add **Authorized JavaScript origins:**
    ```
-   https://rajuit.online
+   https://rfashion.online
    http://localhost:3000
    ```
 6. Add **Authorized redirect URIs:**
    ```
-   https://rajuit.online/auth/google/callback
+   https://rfashion.online/auth/google/callback
    http://localhost:3000/auth/google/callback
    ```
 7. Click **"Create"**
@@ -62,7 +62,7 @@ GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
 4. Add these environment variables:
    - `GOOGLE_CLIENT_ID` = Your Google Client ID
    - `GOOGLE_CLIENT_SECRET` = Your Google Client Secret
-   - `GOOGLE_CALLBACK_URL` = `https://rajuit.online/auth/google/callback`
+   - `GOOGLE_CALLBACK_URL` = `https://rfashion.online/auth/google/callback`
 5. Click **"Save Changes"**
 
 ## Step 6: Install Dependencies

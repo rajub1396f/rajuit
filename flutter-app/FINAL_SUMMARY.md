@@ -270,7 +270,7 @@ flutter run
 
 Edit `lib/config/constants.dart` if needed:
 ```dart
-static const String baseUrl = 'https://rajuit.online';
+static const String baseUrl = 'https://rfashion.online';
 ```
 
 ### Testing

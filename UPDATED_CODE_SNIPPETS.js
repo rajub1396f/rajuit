@@ -170,7 +170,7 @@ async function getPdfAttachmentFromImageKit(pdfUrl) {
                 
                 <!-- CTA Button -->
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://rajuit.online/dashboard" style="display: inline-block; background: linear-gradient(135deg, #ffc800 0%, #ffb300 100%); color: #212529; padding: 15px 40px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                  <a href="https://rfashion.online/dashboard" style="display: inline-block; background: linear-gradient(135deg, #ffc800 0%, #ffb300 100%); color: #212529; padding: 15px 40px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;">
                     View My Orders
                   </a>
                 </div>
@@ -287,7 +287,7 @@ ${shippingAddress}
                 </div>
                 
                 <div style="text-align: center; margin-top: 30px;">
-                  <a href="https://rajuit.online/admin-orders.html" style="display: inline-block; background: #dc3545; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                  <a href="https://rfashion.online/admin-orders.html" style="display: inline-block; background: #dc3545; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">
                     View in Admin Dashboard
                   </a>
                 </div>

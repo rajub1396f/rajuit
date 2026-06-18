@@ -8,14 +8,14 @@
         <meta name="keywords" content="fashion, online shopping, ladies clothing, gents clothing, Saudi Arabia, trendy outfits, Raju IT, women fashion, men fashion, clothes online" />
         <meta name="author" content="Raju IT" />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://rajuit.online/" />
+        <link rel="canonical" href="https://rfashion.online/" />
         
         <!-- Open Graph Meta Tags -->
         <meta property="og:title" content="Raju IT - Premium Fashion Store" />
         <meta property="og:description" content="Shop trendy fashion for ladies and gents. Premium quality clothing at affordable prices." />
-        <meta property="og:url" content="https://rajuit.online/" />
+        <meta property="og:url" content="https://rfashion.online/" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://rajuit.online/assets/img/navbar-logo.png" />
+        <meta property="og:image" content="https://rfashion.online/assets/img/navbar-logo.png" />
         
         <!-- Twitter Card Meta Tags -->
         <meta name="twitter:card" content="summary_large_image" />
@@ -99,9 +99,9 @@
           "@type": "Store",
           "name": "Raju IT",
           "description": "Premium fashion store for ladies and gents in Saudi Arabia",
-          "url": "https://rajuit.online",
-          "logo": "https://rajuit.online/assets/img/navbar-logo.png",
-          "image": "https://rajuit.online/assets/img/navbar-logo.png",
+          "url": "https://rfashion.online",
+          "logo": "https://rfashion.online/assets/img/navbar-logo.png",
+          "image": "https://rfashion.online/assets/img/navbar-logo.png",
           "telephone": "+8801726466000",
           "email": "rajuit1396@gmail.com",
           "address": {
@@ -114,7 +114,7 @@
           ],
           "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://rajuit.online/products?q={search_term_string}",
+            "target": "https://rfashion.online/products?q={search_term_string}",
             "query-input": "required name=search_term_string"
           }
         }
@@ -841,7 +841,7 @@
                     <span class="text-muted">or</span>
                   </div>
                   
-                  <a href="https://rajuit.online/auth/google" class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center gap-2">
+                  <a href="https://rfashion.online/auth/google" class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center gap-2">
                     <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
                       <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                       <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -1623,7 +1623,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
   const password = document.getElementById("loginPassword").value;
 
   try {
-    const res = await fetch("https://rajuit.online/login", {
+    const res = await fetch("https://rfashion.online/login", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ email, password }),
@@ -1825,7 +1825,7 @@ let autoSlideInterval;
 // Fetch and display new arrivals
 async function loadNewArrivals() {
   try {
-    const response = await fetch('https://rajuit.online/api/products');
+    const response = await fetch('https://rfashion.online/api/products');
     const products = await response.json();
     
     // Get the latest 12 products

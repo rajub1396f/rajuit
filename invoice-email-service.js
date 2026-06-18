@@ -114,7 +114,7 @@ async function sendInvoiceEmail({ to, customerName, orderId, totalAmount, invoic
             </ul>
 
             <p style="text-align: center; margin-top: 30px;">
-                <a href="https://rajuit.online/dashboard" class="action-button">View Your Orders</a>
+                <a href="https://rfashion.online/dashboard" class="action-button">View Your Orders</a>
             </p>
 
             <div class="divider"></div>

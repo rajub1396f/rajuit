@@ -348,8 +348,8 @@
             
             try {
                 const url = status === 'all' 
-                    ? 'https://rajuit.online/admin/orders'
-                    : `https://rajuit.online/admin/orders?status=${status}`;
+                    ? 'https://rfashion.online/admin/orders'
+                    : `https://rfashion.online/admin/orders?status=${status}`;
                     
                 const response = await fetch(url, {
                     headers: {
@@ -471,7 +471,7 @@
             modal.show();
             
             try {
-                const response = await fetch(`https://rajuit.online/admin/orders/${orderId}`, {
+                const response = await fetch(`https://rfashion.online/admin/orders/${orderId}`, {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
                     }
@@ -587,7 +587,7 @@
             console.log('Updating order:', currentOrderId, { status, shipping_address });
             
             try {
-                const response = await fetch(`https://rajuit.online/admin/orders/${currentOrderId}`, {
+                const response = await fetch(`https://rfashion.online/admin/orders/${currentOrderId}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${adminToken}`,
@@ -618,7 +618,7 @@
             }
             
             try {
-                const response = await fetch(`https://rajuit.online/admin/orders/${orderId}`, {
+                const response = await fetch(`https://rfashion.online/admin/orders/${orderId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${adminToken}`

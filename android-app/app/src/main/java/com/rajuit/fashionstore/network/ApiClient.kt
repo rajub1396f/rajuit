@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
-    private const val BASE_URL = "https://rajuit.online/"
+    private const val BASE_URL = "https://rfashion.online/"
     private var retrofit: Retrofit? = null
     private var apiService: ApiService? = null
 

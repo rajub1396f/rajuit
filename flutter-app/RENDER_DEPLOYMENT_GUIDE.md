@@ -12,7 +12,7 @@ This guide explains how to configure and deploy the Flutter app to work with the
 
 The Flutter app is configured to connect to the Render backend. The base URL is set in:
 - **File:** `lib/config/constants.dart`
-- **Current URL:** `https://rajuit-fashion-store.onrender.com`
+- **Current URL:** `https://rfashion.online`
 
 ### Change the Base URL:
 

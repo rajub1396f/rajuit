@@ -8,14 +8,14 @@
         <meta name="keywords" content="products, fashion collection, ladies fashion, gents fashion, women clothing, men clothing, online shopping Saudi Arabia, Raju IT products" />
         <meta name="author" content="Raju IT" />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://rajuit.online/products" />
+        <link rel="canonical" href="https://rfashion.online/products" />
         
         <!-- Open Graph Meta Tags -->
         <meta property="og:title" content="Products - Raju IT Fashion Collection" />
         <meta property="og:description" content="Browse our exclusive collection of trendy fashion for ladies and gents" />
-        <meta property="og:url" content="https://rajuit.online/products" />
+        <meta property="og:url" content="https://rfashion.online/products" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://rajuit.online/assets/img/products/aaa777.jpg" />
+        <meta property="og:image" content="https://rfashion.online/assets/img/products/aaa777.jpg" />
         
         <!-- Schema.org Product Catalog -->
         <script type="application/ld+json">
@@ -24,7 +24,7 @@
           "@type": "CollectionPage",
           "name": "Raju IT Product Collection",
           "description": "Fashion collection for ladies and gents",
-          "url": "https://rajuit.online/products",
+          "url": "https://rfashion.online/products",
           "provider": {
             "@type": "Store",
             "name": "Raju IT"
@@ -2745,22 +2745,22 @@
                 
                 try {
                     // Load female products
-                    const femaleResponse = await fetch('https://rajuit.online/api/products?category=female');
+                    const femaleResponse = await fetch('https://rfashion.online/api/products?category=female');
                     const femaleProducts = await femaleResponse.json();
                     displayProducts('femaleProductsGrid', femaleProducts);
                     
                     // Load male products
-                    const maleResponse = await fetch('https://rajuit.online/api/products?category=male');
+                    const maleResponse = await fetch('https://rfashion.online/api/products?category=male');
                     const maleProducts = await maleResponse.json();
                     displayProducts('maleProductsGrid', maleProducts);
                     
                     // Load baby products
-                    const babyResponse = await fetch('https://rajuit.online/api/products?category=baby');
+                    const babyResponse = await fetch('https://rfashion.online/api/products?category=baby');
                     const babyProducts = await babyResponse.json();
                     displayProducts('babyProductsGrid', babyProducts);
                     
                     // Load home accessories
-                    const homeResponse = await fetch('https://rajuit.online/api/products?category=home');
+                    const homeResponse = await fetch('https://rfashion.online/api/products?category=home');
                     const homeProducts = await homeResponse.json();
                     displayProducts('homeProductsGrid', homeProducts);
                 } catch (error) {

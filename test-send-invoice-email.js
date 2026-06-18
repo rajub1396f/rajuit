@@ -8,7 +8,7 @@
 const https = require('https');
 
 // Test configuration
-const BASE_URL = 'https://rajuit.online';
+const BASE_URL = 'https://rfashion.online';
 const ORDER_ID = '38'; // Use a real order ID from your system
 const TEST_TOKEN = 'your_jwt_token_here'; // Get this from app localStorage
 

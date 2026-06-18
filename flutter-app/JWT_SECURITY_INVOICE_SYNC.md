@@ -298,7 +298,7 @@ app.post('/refresh-token', async (req, res) => {
 1. **Test Token Refresh:**
    ```bash
    # Login to get tokens
-   curl -X POST https://rajuit.online/login \
+   curl -X POST https://rfashion.online/login \
      -H "Content-Type: application/json" \
      -d '{"email":"test@example.com","password":"pass"}'
    

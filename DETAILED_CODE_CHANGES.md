@@ -162,7 +162,7 @@ async function getPdfAttachmentFromImageKit(pdfUrl) {
                 <p><strong>Total Amount:</strong> ৳${totalAmount}</p>
               </div>
               <p>You can view and download your invoice from your dashboard.</p>
-              <a href="https://rajuit.online/dashboard" style="display: inline-block; background: #ffc800; color: #212529; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0;">View My Orders</a>
+              <a href="https://rfashion.online/dashboard" style="display: inline-block; background: #ffc800; color: #212529; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0;">View My Orders</a>
               <p style="color: #666; font-size: 14px; margin-top: 30px;">If you have any questions, contact us at rajuit1396@gmail.com</p>
             </div>
           `;
@@ -257,7 +257,7 @@ async function getPdfAttachmentFromImageKit(pdfUrl) {
                 
                 <!-- CTA Button -->
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://rajuit.online/dashboard" style="display: inline-block; background: linear-gradient(135deg, #ffc800 0%, #ffb300 100%); color: #212529; padding: 15px 40px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                  <a href="https://rfashion.online/dashboard" style="display: inline-block; background: linear-gradient(135deg, #ffc800 0%, #ffb300 100%); color: #212529; padding: 15px 40px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;">
                     View My Orders
                   </a>
                 </div>

@@ -12,7 +12,7 @@
 ## 📱 Current Status
 
 - **Device:** Moto G24 running app
-- **Backend:** rajuit.online (Render)
+- **Backend:** rfashion.online (Render)
 - **Status:** ✅ Running with JWT authentication
 - **Logs:** `[JWT] Token added to request` ✓
 

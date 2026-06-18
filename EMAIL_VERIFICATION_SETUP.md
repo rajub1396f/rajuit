@@ -14,7 +14,7 @@ Email verification has been successfully implemented for user registration. User
 
 ### Email Verification Flow:
 1. User receives email with verification link
-2. User clicks the link: `https://rajuit.online/verify-email?token=<TOKEN>`
+2. User clicks the link: `https://rfashion.online/verify-email?token=<TOKEN>`
 3. System validates the token and updates user status to `is_verified = TRUE`
 4. User sees success page and is automatically redirected to dashboard in 3 seconds
 5. User can now log in normally

@@ -77,18 +77,18 @@ Test these endpoints to ensure backend is ready:
 
 ```bash
 # Test basic connectivity
-curl https://rajuit-fashion-store.onrender.com
+curl https://rfashion.online
 
 # Test login endpoint
-curl -X POST https://rajuit-fashion-store.onrender.com/login \
+curl -X POST https://rfashion.online/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"password"}'
 
 # Test products endpoint
-curl https://rajuit-fashion-store.onrender.com/products
+curl https://rfashion.online/products
 
 # Test orders endpoint (requires auth token)
-curl https://rajuit-fashion-store.onrender.com/orders \
+curl https://rfashion.online/orders \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -122,7 +122,7 @@ flutter-app/
 - Enable logging: Debug logs in API service
 
 ### Production
-- Base URL: `https://rajuit-fashion-store.onrender.com`
+- Base URL: `https://rfashion.online`
 - Disable logging: Set `kDebugMode = false`
 
 To switch environments, edit `lib/config/constants.dart`:

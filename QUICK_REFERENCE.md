@@ -195,7 +195,7 @@ await sendBrevoEmail({
 ### Environment Variables (verify .env)
 ```
 BREVO_API_KEY=your_api_key
-BREVO_SENDER_EMAIL=noreply@rajuit.online
+BREVO_SENDER_EMAIL=noreply@rfashion.online
 BREVO_SENDER_NAME=Raju IT
 IMAGEKIT_PUBLIC_KEY=...
 IMAGEKIT_PRIVATE_KEY=...

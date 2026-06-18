@@ -503,7 +503,7 @@
         async function loadDashboardData() {
             try {
                 // Load stats
-                const statsResponse = await fetch('https://rajuit.online/admin/stats', {
+                const statsResponse = await fetch('https://rfashion.online/admin/stats', {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
                     }
@@ -518,7 +518,7 @@
                 }
                 
                 // Load recent orders
-                const ordersResponse = await fetch('https://rajuit.online/admin/orders?limit=10', {
+                const ordersResponse = await fetch('https://rfashion.online/admin/orders?limit=10', {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
                     }
