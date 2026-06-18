@@ -1,6 +1,8 @@
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
 
+import '../config/constants.dart';
+
 class GoogleSignInService {
   static final GoogleSignInService _instance = GoogleSignInService._internal();
   late GoogleSignIn _googleSignIn;
@@ -19,13 +21,13 @@ class GoogleSignInService {
         'email',
         'profile',
       ],
-      // Use the web client ID for all platforms to avoid google-services.json dependency
-      clientId: '1027670106522-cvfn6td1finicio4bv1kk73vip6si300.apps.googleusercontent.com',
+      clientId: kIsWeb ? Constants.googleClientId : null,
+      serverClientId: Constants.googleClientId,
     );
-    
+
     if (kDebugMode) {
-      print('[GoogleAuth] Initialized GoogleSignIn with web client ID');
-      print('[GoogleAuth] This bypasses google-services.json requirements');
+      print(
+          '[GoogleAuth] Initialized GoogleSignIn for rfashion.online backend');
     }
   }
 
@@ -37,33 +39,35 @@ class GoogleSignInService {
       }
 
       GoogleSignInAccount? result;
-      
+
       if (kIsWeb) {
         // For web, try different approaches
         try {
           // First try silent sign in
           result = await _googleSignIn.signInSilently(suppressErrors: true);
           if (kDebugMode) {
-            print('[GoogleAuth] Silent sign in result: ${result?.email ?? 'null'}');
+            print(
+                '[GoogleAuth] Silent sign in result: ${result?.email ?? 'null'}');
           }
         } catch (e) {
           if (kDebugMode) {
             print('[GoogleAuth] Silent sign in failed: $e');
           }
         }
-        
+
         // If silent sign in fails, try regular sign in
         if (result == null) {
           try {
             result = await _googleSignIn.signIn();
             if (kDebugMode) {
-              print('[GoogleAuth] Regular sign in result: ${result?.email ?? 'null'}');
+              print(
+                  '[GoogleAuth] Regular sign in result: ${result?.email ?? 'null'}');
             }
           } catch (e) {
             if (kDebugMode) {
               print('[GoogleAuth] Regular sign in failed: $e');
             }
-            
+
             // Handle specific web errors
             if (e.toString().contains('popup_closed')) {
               if (kDebugMode) {
@@ -71,15 +75,17 @@ class GoogleSignInService {
               }
               return null; // User cancelled
             }
-            
-            if (e.toString().contains('unknown_reason') || 
+
+            if (e.toString().contains('unknown_reason') ||
                 e.toString().contains('NetworkError')) {
               if (kDebugMode) {
-                print('[GoogleAuth] Network or FedCM error - this may be a configuration issue');
+                print(
+                    '[GoogleAuth] Network or FedCM error - this may be a configuration issue');
               }
-              throw Exception('Google Sign-In configuration error. Please check client ID setup.');
+              throw Exception(
+                  'Google Sign-In configuration error. Please check client ID setup.');
             }
-            
+
             rethrow;
           }
         }
@@ -103,17 +109,18 @@ class GoogleSignInService {
       if (kDebugMode) {
         print('[GoogleAuth] Sign in error: $error');
       }
-      
+
       // Handle specific web errors gracefully
       if (kIsWeb) {
         if (error.toString().contains('popup_closed')) {
           return null; // User cancelled, not an error
         }
         if (error.toString().contains('unknown_reason')) {
-          throw Exception('Google Sign-In setup issue. Check if localhost is added to authorized origins.');
+          throw Exception(
+              'Google Sign-In setup issue. Check if https://rfashion.online is added to authorized origins.');
         }
       }
-      
+
       throw Exception('Google Sign In failed: $error');
     }
   }
